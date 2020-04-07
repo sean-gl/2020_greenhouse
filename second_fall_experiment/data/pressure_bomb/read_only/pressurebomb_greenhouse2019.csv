@@ -1,0 +1,179 @@
+data_ok,datetime,person,plant,current_treatment,psi_mPa,side_of_greenhouse,diameter_at_base_mm,percent_dead,notes
+yes,11/04/2019 13:30:00,sean,d5,dry,1.6,north,21.18,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,w8,wet,0.91,north,21.64,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,d16,dry,1.42,north,21.88,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,m12,moderate,1.45,north,21.35,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,w4,wet,0.87,north,22.65,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,m4,moderate,1.37,north,19.6,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,m16,moderate,1.39,north,21.13,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,d15,dry,1.52,north,20.55,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/04/2019 13:30:00,sean,w16,wet,0.74,north,21.34,,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+yes,11/13/2019 13:40:00,clay,d5,wet,1.14,south,21.24,,
+yes,11/13/2019 13:40:00,clay,d13,wet,1.16,south,20.1,,
+yes,11/13/2019 13:40:00,clay,m5,moderate,1.73,south,20.67,,
+yes,11/13/2019 13:40:00,clay,d14,wet,1.28,south,19.16,,
+yes,11/13/2019 13:40:00,clay,w2,dry,1.86,south,21.44,,
+yes,11/13/2019 13:40:00,clay,w1,dry,1.85,south,22.55,,
+yes,11/13/2019 13:40:00,clay,m2,moderate,1.91,south,21.61,,
+yes,11/13/2019 13:40:00,clay,m13,moderate,1.87,south,23.04,,
+yes,11/13/2019 13:40:00,clay,w13,dry,1.83,south,22.22,,
+yes,11/15/2019 14:00:00,clay,d20,wet,1.48,north and south,,,IS THIS REALLY M20?; destructive harvest plants; this leaf collected after initial set because I couldn’t get good read on 1st leaf. Used Troy’s pressure bomb.
+yes,11/15/2019 13:25:00,clay,w18,dry,1.67,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/15/2019 14:45:00,clay,d20,wet,1.3,north and south,,,IS THIS REALLY M20? destructive harvest plants; this leaf collected at 14:45. 
+yes,11/15/2019 13:25:00,clay,w21,dry,1.6,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/15/2019 13:25:00,clay,m17,moderate,1.46,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/15/2019 13:25:00,clay,d18,wet,1.25,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/15/2019 13:25:00,clay,d21,wet,1.16,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/15/2019 13:25:00,clay,m23,moderate,1.67,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/15/2019 13:25:00,clay,w23,dry,1.71,north and south,,,destructive harvest plants; Used Troy’s pressure bomb.
+yes,11/18/2019 13:45:00,clay,m15,moderate,1.57,north,,,
+yes,11/18/2019 13:45:00,clay,m16,moderate,1.63,north,,,
+yes,11/18/2019 13:45:00,clay,w15,dry,1.7,north,,,
+yes,11/18/2019 13:45:00,clay,w8,dry,1.67,north,,,
+yes,11/18/2019 13:45:00,clay,d12,wet,1.27,north,,,
+yes,11/18/2019 13:45:00,clay,d4,wet,1.15,north,,,
+yes,11/18/2019 13:45:00,clay,w12,dry,1.67,north,,,
+yes,11/18/2019 13:45:00,clay,m12,moderate,1.51,north,,,
+yes,11/18/2019 13:45:00,clay,d3,wet,1.16,north,,,
+yes,11/19/2019 14:00:00,sean,d13,wet,0.95,south,,,
+yes,11/19/2019 14:00:00,sean,m9,moderate,1.54,south,,,
+yes,11/19/2019 14:00:00,sean,w9,dry,1.64,south,,,
+yes,11/19/2019 14:00:00,sean,w5,dry,1.6,south,,,
+yes,11/19/2019 14:00:00,sean,m5,moderate,1.71,south,,,
+yes,11/19/2019 14:00:00,sean,d9,wet,0.89,south,,,
+yes,11/19/2019 14:00:00,sean,d1,wet,1.2,south,,,
+yes,11/19/2019 14:00:00,sean,m1,moderate,1.59,south,,,
+yes,11/19/2019 14:00:00,sean,w1,dry,1.65,south,,,
+yes,11/20/2019 10:10:00,clay,d12,wet,0.55,north,,,
+yes,11/20/2019 10:10:00,clay,m4,moderate,0.89,north,,,
+yes,11/20/2019 10:10:00,clay,d15,wet,0.58,north,,,
+yes,11/20/2019 10:10:00,clay,w15,dry,1.41,north,,,
+yes,11/20/2019 10:10:00,clay,w12,dry,1.57,north,,,
+yes,11/20/2019 10:10:00,clay,m15,moderate,1.05,north,,,
+yes,11/20/2019 10:10:00,clay,w8,dry,1.55,north,,,
+yes,11/20/2019 10:10:00,clay,m3,moderate,0.64,north,,,
+yes,11/20/2019 10:10:00,clay,d4,wet,0.65,north,,,
+yes,11/21/2019 10:00:00,clay,w14,dry,1.49,south,,,
+yes,11/21/2019 10:00:00,clay,m14,moderate,0.89,south,,,
+yes,11/21/2019 10:00:00,clay,d14,wet,0.78,south,,,
+yes,11/21/2019 10:00:00,clay,w5,dry,1.43,south,,,
+yes,11/21/2019 10:00:00,clay,m1,moderate,0.89,south,,,
+yes,11/21/2019 10:00:00,clay,d2,wet,0.77,south,,,
+yes,11/21/2019 10:00:00,clay,m2,moderate,1.14,south,,,
+yes,11/21/2019 10:00:00,clay,w2,dry,1.36,south,,,
+yes,11/21/2019 10:00:00,clay,d1,wet,0.59,south,,,
+yes,11/22/2019 07:03:00,clay,w15,dry,0.56,north,,,
+yes,11/22/2019 07:03:00,clay,w16,dry,0.56,north,,,
+yes,11/22/2019 07:03:00,clay,d15,wet,0.32,north,,,
+yes,11/22/2019 07:03:00,clay,m16,moderate,0.39,north,,,
+yes,11/22/2019 07:03:00,clay,d8,wet,0.43,north,,,
+yes,11/22/2019 07:03:00,clay,w8,dry,0.88,north,,,
+yes,11/22/2019 07:03:00,clay,d16,wet,0.44,north,,,
+yes,11/22/2019 07:03:00,clay,m8,moderate,0.5,north,,,
+yes,11/22/2019 07:03:00,clay,m15,moderate,0.36,north,,,
+yes,11/22/2019 11:45:00,clay,m9,moderate,1.01,south,,,
+yes,11/22/2019 11:45:00,clay,d9,wet,1.04,south,,,
+yes,11/22/2019 11:45:00,clay,w14,dry,1.53,south,,,
+yes,11/22/2019 11:45:00,clay,d2,wet,1.13,south,,,
+yes,11/22/2019 11:45:00,clay,d4,wet,NA,south,,,Stem broke; couldn’t get reading
+yes,11/22/2019 11:45:00,clay,m13,moderate,1.42,south,,,
+yes,11/22/2019 11:45:00,clay,w7,dry,1.48,south,,,
+yes,11/22/2019 11:45:00,clay,w13,dry,1.46,south,,,
+yes,11/22/2019 11:45:00,clay,m14,moderate,1.56,south,,,
+yes,11/26/2019 17:05:00,clay,m16,moderate,1.27,north,,,
+yes,11/26/2019 17:05:00,clay,d16,wet,0.77,north,,,
+yes,11/26/2019 17:05:00,clay,w4,dry,1.6,north,,,
+yes,11/26/2019 17:05:00,clay,m4,moderate,1.27,north,,,
+yes,11/26/2019 17:05:00,clay,d4,wet,0.75,north,,,
+yes,11/26/2019 17:05:00,clay,d12,wet,0.69,north,,,
+yes,11/26/2019 17:05:00,clay,w16,dry,1.54,north,,,
+yes,11/26/2019 17:05:00,clay,w12,dry,1.66,north,,,
+yes,11/26/2019 17:05:00,clay,m12,moderate,1.5,north,,,
+yes,12/02/2019 15:00:00,clay,w31,dry_virgin,1.78,south,,,
+yes,12/02/2019 15:00:00,clay,m2,wet,1.22,south,,,
+yes,12/02/2019 15:00:00,clay,w29,dry_virgin,1.68,south,,,
+yes,12/02/2019 15:00:00,clay,d5,dry,1.82,south,,,
+yes,12/02/2019 15:00:00,clay,m5,wet,1.13,south,,,
+yes,12/02/2019 15:00:00,clay,d2,dry,1.78,south,,,
+yes,12/02/2019 15:00:00,clay,m14,wet,1.09,south,,,
+yes,12/02/2019 15:00:00,clay,d14,dry,1.79,south,,,
+yes,12/02/2019 15:00:00,clay,w32,dry_virgin,1.69,north,,,"Only 3 good virgin buffer plants, so had to sample from north side for one of them (but is in middle row)"
+no,12/03/2019 08:35:00,clay,w3,dry,1.57,north,,,"This leaf was accidentally collected from an old W block plant. None of these are on scales, so this measurement is probably useless."
+yes,12/03/2019 08:35:00,clay,m8,wet,0.71,north,,,
+yes,12/03/2019 08:35:00,clay,d3,dry,1.76,north,,,
+yes,12/03/2019 08:35:00,clay,w31,dry_virgin,1.69,south,,,
+yes,12/03/2019 08:35:00,clay,m4,wet,0.83,north,,,
+yes,12/03/2019 08:35:00,clay,w32,dry_virgin,1.59,north,,,
+yes,12/03/2019 08:35:00,clay,w29,dry_virgin,1.51,south,,,
+yes,12/03/2019 08:35:00,clay,m3,wet,0.79,north,,,
+yes,12/03/2019 08:35:00,clay,d8,dry,1.62,north,,,
+yes,12/03/2019 08:35:00,clay,d15,dry,1.66,north,,,
+yes,12/05/2019 06:52:00,clay,d5,dry,1.14,south,,<5,"Today, started collecting leaves from bottom of plant towards top (had been collecting from top to bottom before today). Started with about 6-7th leaf from top of plant."
+yes,12/05/2019 06:52:00,clay,m14,wet,0.38,south,,<5,
+yes,12/05/2019 06:52:00,clay,w29,dry_virgin,0.86,south,,15,
+yes,12/05/2019 06:52:00,clay,m1,wet,0.4,south,,<5,
+yes,12/05/2019 06:52:00,clay,d14,dry,0.94,south,,5,
+yes,12/05/2019 06:52:00,clay,w31,dry_virgin,0.92,south,,<5,
+yes,12/05/2019 06:52:00,clay,w32,dry_virgin,0.91,north,,<5,
+yes,12/05/2019 06:52:00,clay,m5,wet,0.34,south,,<5,
+yes,12/05/2019 06:52:00,clay,d2,dry,1.2,south,,<5,
+yes,12/06/2019 14:15:00,clay,m12,wet,1.31,north,,<5,Only collected from M and D blocks today since running low on leaves in W block.
+yes,12/06/2019 14:15:00,clay,d12,dry,1.96,north,,<5,
+yes,12/06/2019 14:15:00,clay,m3,wet,1.1,north,,5,
+yes,12/06/2019 14:15:00,clay,d4,dry,1.44,north,,5,
+yes,12/06/2019 14:15:00,clay,m4,wet,0.8,north,,<5,
+yes,12/06/2019 14:15:00,clay,d3,dry,1.87,north,,5,
+yes,12/09/2019 12:10:00,clay,w29,dry_virgin,1.61,south,,<5,
+yes,12/09/2019 12:10:00,clay,d5,dry,1.88,north,,<5,
+yes,12/09/2019 12:10:00,clay,m14,wet,0.66,north,,<5,
+yes,12/09/2019 12:10:00,clay,w31,dry_virgin,1.69,south,,<5,
+yes,12/09/2019 12:10:00,clay,m2,wet,0.72,north,,<5,
+yes,12/09/2019 12:10:00,clay,d9,dry,1.93,north,,5,
+yes,12/09/2019 12:10:00,clay,d2,dry,1.76,north,,<5,
+yes,12/09/2019 12:10:00,clay,w32,dry_virgin,1.61,north,,<5,
+yes,12/09/2019 12:10:00,clay,m13,wet,0.73,north,,<5,
+yes,12/10/2019 16:33:00,clay,m8,wet,0.74,north,,<5,
+yes,12/10/2019 16:33:00,clay,w31,dry_virgin,1.75,south,,<5,
+yes,12/10/2019 16:33:00,clay,d15,dry,1.96,north,,5,
+yes,12/10/2019 16:33:00,clay,w29,dry_virgin,1.67,south,,<5,
+yes,12/10/2019 16:33:00,clay,m3,wet,0.79,north,,<5,
+yes,12/10/2019 16:33:00,clay,d3,dry,1.98,north,,5,
+yes,12/10/2019 16:33:00,clay,w32,dry_virgin,1.68,north,,<5,
+yes,12/10/2019 16:33:00,clay,d8,dry,1.97,north,,5,
+yes,12/10/2019 16:33:00,clay,m16,wet,0.78,north,,<5,
+yes,12/10/2019 18:00:00,clay,w29,dry_virgin,1.45,south,,5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,m1,wet,0.45,south,,<5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,w32,dry_virgin,1.54,north,,,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,m14,wet,0.4,south,,<5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,w31,dry_virgin,1.53,south,,<5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,d5,dry,1.78,south,,<5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,d1,dry,1.76,south,,5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,m9,wet,0.43,south,,<5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/10/2019 18:00:00,clay,d9,dry,1.83,south,,5,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+yes,12/11/2019 06:20:00,clay,w27,dry_virgin,0.6,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,m7,wet,0.57,north,,10,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,d11,dry,0.71,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,w26,dry_virgin,0.7,south,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,w25,dry_virgin,0.68,south,,10,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,m11,wet,0.2,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,d7,dry,0.84,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,m6,wet,0.25,south,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 06:20:00,clay,d6,dry,0.79,south,,5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+yes,12/11/2019 10:09:00,clay,w25,dry_virgin,1.41,south,,<5,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,d10,dry,1.5,south,,10,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,w26,dry_virgin,1.52,south,,<5,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,m11,wet,0.84,north,,<5,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,m10,wet,1.09,south,,<5,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,d6,dry,1.62,south,,10,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,d11,dry,1.69,north,,<5,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,w28,dry_virgin,1.4,north,,<5,harvested from “treated” plant (on scale).
+yes,12/11/2019 10:09:00,clay,m7,wet,0.92,north,,<5,harvested from “treated” plant (on scale).
+yes,12/12/2019 09:38:00,clay,w25,dry_virgin,1.05,south,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,m7,wet,0.75,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,m11,wet,0.61,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,d6,dry,1.13,south,,10,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,d7,dry,1.37,north,,5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,w26,dry_virgin,1.2,south,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,d11,dry,1.48,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,w28,dry_virgin,1.11,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+yes,12/12/2019 09:38:00,clay,m7,wet,0.6,north,,<5,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"

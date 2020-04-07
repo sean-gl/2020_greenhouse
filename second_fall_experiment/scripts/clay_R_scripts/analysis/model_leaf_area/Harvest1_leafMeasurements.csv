@@ -1,0 +1,73 @@
+pot_id,treatment,measure-er,leaf_id,percent_expanded,percent_dead,leaf_length_cm,leaf_width_cm,leaf_area_cm2,notes
+w-24,wet,Dave,1,100,40,39.4,2.6,79.5,
+w-24,wet,Dave,2,100,5,62.6,4.6,211.75,
+w-24,wet,Dave,3,100,0,70.3,6,344.84,
+w-24,wet,Dave,4,100,0,73.8,7.8,465.36,
+w-24,wet,Dave,5,100,0,83.8,8.8,578.32,
+w-24,wet,Dave,6,100,10,84.8,9.2,596.79,
+w-24,wet,Dave,7,95,5,89.4,9.6,695.77,
+w-24,wet,Dave,8,80,0,86.6,10.2,687.73,
+w-24,wet,Dave,9,70,0,81.6,9.8,603.52,
+w-24,wet,Dave,10,50,0,64.4,9,441.73,leaf vertically oriented; leaf torn at end
+w-24,wet,Dave,11,40,0,51.2,8.6,386.62,leaf vertically oriented
+w-22,wet,Clay,1,100,30,53.2,8.2,,Odd outlier value (101.12)
+w-22,wet,Clay,2,100,0,67.8,5,249.53,
+w-22,wet,Clay,3,100,0,80.8,7.2,439.5,
+w-22,wet,Clay,4,100,0,91.8,8.6,567.82,
+w-22,wet,Clay,5,100,0,98,9.8,699.88,
+w-22,wet,Clay,6,100,0,101,9.8,770.74,
+w-22,wet,Clay,7,90,0,105.4,10.6,867.18,
+w-22,wet,Clay,8,80,0,101.4,10.4,820.46,leaf mostly vertical
+w-22,wet,Clay,9,70,0,93.8,10.8,775.39,leaf mostly vertical
+w-22,wet,Clay,10,50,0,90,11.2,705.03,leaf vertically oriented
+w-22,wet,Clay,11,40,0,77.8,10,568.17,leaf vertically oriented
+w-19,wet,Dave,1,100,0,57.6,3.2,161.73,
+w-19,wet,Dave,2,100,0,68.4,5.4,266.86,
+w-19,wet,Dave,3,100,0,68.2,6.8,335.1,
+w-19,wet,Dave,4,100,0,80.6,8.4,534.01,
+w-19,wet,Dave,5,100,0,89.4,9.2,635.14,
+w-19,wet,Dave,6,100,0,96.2,9.6,766.68,
+w-19,wet,Dave,7,100,5,94.8,10.6,773.74,leaf broken in middle but still green
+w-19,wet,Dave,8,95,0,96.2,10,781.87,
+w-19,wet,Dave,9,80,0,98.4,10.2,747.8,
+w-19,wet,Dave,10,60,0,86.2,10,678.2,leaf mostly vertical
+w-19,wet,Dave,11,40,0,67.6,10.2,550.87,leaf vertically oriented
+m-24,moderate,Clay,1,100,60,53.4,2.6,68.13,
+m-24,moderate,Clay,2,100,0,72.4,5,242.57,
+m-24,moderate,Clay,3,100,0,86.2,6.8,460.4,
+m-24,moderate,Clay,4,100,0,95.4,8,584.7,
+m-24,moderate,Clay,5,100,0,102,9.2,675.4,
+m-24,moderate,Clay,6,100,0,102,9.6,705.02,
+m-24,moderate,Clay,7,95,5,97,9.6,683.01,
+m-24,moderate,Clay,8,80,0,90.6,10,657.57,
+m-24,moderate,Clay,9,60,0,87.2,10.2,599.28,leaf vertically oriented
+m-24,moderate,Clay,10,40,0,64.8,9.6,494.45,leaf vertically oriented
+m-19,moderate,Dave,1,100,0,45.8,2.8,86.31,
+m-19,moderate,Dave,2,100,0,55.6,4.2,173.39,
+m-19,moderate,Dave,3,100,0,66.8,5.8,291.45,
+m-19,moderate,Dave,4,100,0,79.8,7.6,448.26,
+m-19,moderate,Dave,5,100,0,93.2,8.4,600.21,
+m-19,moderate,Dave,6,100,0,100.2,9.2,701.53,
+m-19,moderate,Dave,7,95,0,102.8,9.2,752.02,
+m-19,moderate,Dave,8,80,0,105.4,9.6,787.82,
+m-19,moderate,Dave,9,60,0,89,9.2,701.63,leaf mostly vertical
+m-19,moderate,Dave,10,50,0,68.4,9.4,570.38,leaf vertically oriented
+m-19,moderate,Dave,11,30,0,48,7.8,414.62,leaf vertically oriented
+d-24,dry,Clay,1,100,40,46.8,2.6,68.47,
+d-24,dry,Clay,2,100,15,67.6,4.4,220.83,
+d-24,dry,Clay,3,100,0,83,7.2,422.22,
+d-24,dry,Clay,4,100,0,91.8,8.8,599.53,
+d-24,dry,Clay,5,100,0,95.4,10.4,741.77,
+d-24,dry,Clay,6,100,0,99,11,820.94,
+d-24,dry,Clay,7,90,0,97.8,11.8,846.75,
+d-24,dry,Clay,8,80,0,91.8,11.8,765.19,
+d-24,dry,Clay,9,60,0,89.4,11.6,734.38,
+d-19,dry,Clay,1,100,5,60,3.8,161.49,
+d-19,dry,Clay,2,100,0,75.6,6,354.06,
+d-19,dry,Clay,3,100,0,91,8.2,538.91,
+d-19,dry,Clay,4,100,0,101.2,9.8,716.45,
+d-19,dry,Clay,5,100,0,105,11,816.5,
+d-19,dry,Clay,6,95,0,99.8,11,868.04,
+d-19,dry,Clay,7,90,0,103.8,11.6,873.81,
+d-19,dry,Clay,8,80,0,94.8,11.8,812.29,
+d-19,dry,Clay,9,60,0,86.6,10.8,660.39,

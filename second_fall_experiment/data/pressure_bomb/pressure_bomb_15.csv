@@ -1,0 +1,179 @@
+by15,psi_MPa,plant_id,treatment,side_of_greenhouse,diameter_at_base,percent_dead,data_ok,notes
+2019-11-04 13:30:00,1.6,d5,full_drought,north,21.18,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,0.91,w8,well_watered,north,21.64,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,1.42,d16,full_drought,north,21.88,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,1.45,m12,moderate_drought,north,21.35,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,0.87,w4,well_watered,north,22.65,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,1.37,m4,moderate_drought,north,19.6,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,1.39,m16,moderate_drought,north,21.13,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,1.52,d15,full_drought,north,20.55,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-04 13:30:00,0.74,w16,well_watered,north,21.34,,yes,"today was the first pressure bomb readings, and the treatments were switched on this evening"
+2019-11-13 13:45:00,1.14,d5,well_watered,south,21.24,,yes,
+2019-11-13 13:45:00,1.16,d13,well_watered,south,20.1,,yes,
+2019-11-13 13:45:00,1.73,m5,moderate_drought,south,20.67,,yes,
+2019-11-13 13:45:00,1.28,d14,well_watered,south,19.16,,yes,
+2019-11-13 13:45:00,1.86,w2,full_drought,south,21.44,,yes,
+2019-11-13 13:45:00,1.85,w1,full_drought,south,22.55,,yes,
+2019-11-13 13:45:00,1.91,m2,moderate_drought,south,21.61,,yes,
+2019-11-13 13:45:00,1.87,m13,moderate_drought,south,23.04,,yes,
+2019-11-13 13:45:00,1.83,w13,full_drought,south,22.22,,yes,
+2019-11-15 14:00:00,1.48,m20,moderate_drought,north and south,NA,,yes,THIS WAS ORIGINALLY ENTERED AS D-20 in logbook but I’m pretty sure it’s M-20; destructive harvest plants; this leaf collected after initial set because I couldn’t get good read on 1st leaf. Used Troy’s pressure bomb.
+2019-11-15 13:30:00,1.67,w18,full_drought,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-15 14:45:00,1.3,d20,well_watered,north and south,NA,,yes,IS THIS REALLY M20? destructive harvest plants; this leaf collected at 14:45. 
+2019-11-15 13:30:00,1.6,w21,full_drought,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-15 13:30:00,1.46,m17,moderate_drought,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-15 13:30:00,1.25,d18,well_watered,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-15 13:30:00,1.16,d21,well_watered,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-15 13:30:00,1.67,m23,moderate_drought,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-15 13:30:00,1.71,w23,full_drought,north and south,NA,,yes,destructive harvest plants; Used Troy’s pressure bomb.
+2019-11-18 13:45:00,1.57,m15,moderate_drought,north,NA,,yes,
+2019-11-18 13:45:00,1.63,m16,moderate_drought,north,NA,,yes,
+2019-11-18 13:45:00,1.7,w15,full_drought,north,NA,,yes,
+2019-11-18 13:45:00,1.67,w8,full_drought,north,NA,,yes,
+2019-11-18 13:45:00,1.27,d12,well_watered,north,NA,,yes,
+2019-11-18 13:45:00,1.15,d4,well_watered,north,NA,,yes,
+2019-11-18 13:45:00,1.67,w12,full_drought,north,NA,,yes,
+2019-11-18 13:45:00,1.51,m12,moderate_drought,north,NA,,yes,
+2019-11-18 13:45:00,1.16,d3,well_watered,north,NA,,yes,
+2019-11-19 14:00:00,0.95,d13,well_watered,south,NA,,yes,
+2019-11-19 14:00:00,1.54,m9,moderate_drought,south,NA,,yes,
+2019-11-19 14:00:00,1.64,w9,full_drought,south,NA,,yes,
+2019-11-19 14:00:00,1.6,w5,full_drought,south,NA,,yes,
+2019-11-19 14:00:00,1.71,m5,moderate_drought,south,NA,,yes,
+2019-11-19 14:00:00,0.89,d9,well_watered,south,NA,,yes,
+2019-11-19 14:00:00,1.2,d1,well_watered,south,NA,,yes,
+2019-11-19 14:00:00,1.59,m1,moderate_drought,south,NA,,yes,
+2019-11-19 14:00:00,1.65,w1,full_drought,south,NA,,yes,
+2019-11-20 10:15:00,0.55,d12,well_watered,north,NA,,yes,
+2019-11-20 10:15:00,0.89,m4,moderate_drought,north,NA,,yes,
+2019-11-20 10:15:00,0.58,d15,well_watered,north,NA,,yes,
+2019-11-20 10:15:00,1.41,w15,full_drought,north,NA,,yes,
+2019-11-20 10:15:00,1.57,w12,full_drought,north,NA,,yes,
+2019-11-20 10:15:00,1.05,m15,moderate_drought,north,NA,,yes,
+2019-11-20 10:15:00,1.55,w8,full_drought,north,NA,,yes,
+2019-11-20 10:15:00,0.64,m3,moderate_drought,north,NA,,yes,
+2019-11-20 10:15:00,0.65,d4,well_watered,north,NA,,yes,
+2019-11-21 10:00:00,1.49,w14,full_drought,south,NA,,yes,
+2019-11-21 10:00:00,0.89,m14,moderate_drought,south,NA,,yes,
+2019-11-21 10:00:00,0.78,d14,well_watered,south,NA,,yes,
+2019-11-21 10:00:00,1.43,w5,full_drought,south,NA,,yes,
+2019-11-21 10:00:00,0.89,m1,moderate_drought,south,NA,,yes,
+2019-11-21 10:00:00,0.77,d2,well_watered,south,NA,,yes,
+2019-11-21 10:00:00,1.14,m2,moderate_drought,south,NA,,yes,
+2019-11-21 10:00:00,1.36,w2,full_drought,south,NA,,yes,
+2019-11-21 10:00:00,0.59,d1,well_watered,south,NA,,yes,
+2019-11-22 07:00:00,0.56,w15,full_drought,north,NA,,yes,
+2019-11-22 07:00:00,0.56,w16,full_drought,north,NA,,yes,
+2019-11-22 07:00:00,0.32,d15,well_watered,north,NA,,yes,
+2019-11-22 07:00:00,0.39,m16,moderate_drought,north,NA,,yes,
+2019-11-22 07:00:00,0.43,d8,well_watered,north,NA,,yes,
+2019-11-22 07:00:00,0.88,w8,full_drought,north,NA,,yes,
+2019-11-22 07:00:00,0.44,d16,well_watered,north,NA,,yes,
+2019-11-22 07:00:00,0.5,m8,moderate_drought,north,NA,,yes,
+2019-11-22 07:00:00,0.36,m15,moderate_drought,north,NA,,yes,
+2019-11-22 11:45:00,1.01,m9,moderate_drought,south,NA,,yes,
+2019-11-22 11:45:00,1.04,d9,well_watered,south,NA,,yes,
+2019-11-22 11:45:00,1.53,w14,full_drought,south,NA,,yes,
+2019-11-22 11:45:00,1.13,d2,well_watered,south,NA,,yes,
+2019-11-22 11:45:00,NA,d4,well_watered,south,NA,,yes,Stem broke; couldn’t get reading
+2019-11-22 11:45:00,1.42,m13,moderate_drought,south,NA,,yes,
+2019-11-22 11:45:00,1.48,w7,full_drought,south,NA,,yes,
+2019-11-22 11:45:00,1.46,w13,full_drought,south,NA,,yes,
+2019-11-22 11:45:00,1.56,m14,moderate_drought,south,NA,,yes,
+2019-11-26 17:00:00,1.27,m16,moderate_drought,north,NA,,yes,
+2019-11-26 17:00:00,0.77,d16,well_watered,north,NA,,yes,
+2019-11-26 17:00:00,1.6,w4,full_drought,north,NA,,yes,
+2019-11-26 17:00:00,1.27,m4,moderate_drought,north,NA,,yes,
+2019-11-26 17:00:00,0.75,d4,well_watered,north,NA,,yes,
+2019-11-26 17:00:00,0.69,d12,well_watered,north,NA,,yes,
+2019-11-26 17:00:00,1.54,w16,full_drought,north,NA,,yes,
+2019-11-26 17:00:00,1.66,w12,full_drought,north,NA,,yes,
+2019-11-26 17:00:00,1.5,m12,moderate_drought,north,NA,,yes,
+2019-12-02 15:00:00,1.78,w31,virgin_drought,south,NA,,yes,
+2019-12-02 15:00:00,1.22,m2,well_watered,south,NA,,yes,
+2019-12-02 15:00:00,1.68,w29,virgin_drought,south,NA,,yes,
+2019-12-02 15:00:00,1.82,d5,full_drought,south,NA,,yes,
+2019-12-02 15:00:00,1.13,m5,well_watered,south,NA,,yes,
+2019-12-02 15:00:00,1.78,d2,full_drought,south,NA,,yes,
+2019-12-02 15:00:00,1.09,m14,well_watered,south,NA,,yes,
+2019-12-02 15:00:00,1.79,d14,full_drought,south,NA,,yes,
+2019-12-02 15:00:00,1.69,w32,virgin_drought,north,NA,,yes,"Only 3 good virgin buffer plants, so had to sample from north side for one of them (but is in middle row)"
+2019-12-03 08:30:00,1.57,w3,full_drought,north,NA,,no,"This leaf was accidentally collected from an old W block plant. None of these are on scales, so this measurement is probably useless."
+2019-12-03 08:30:00,0.71,m8,well_watered,north,NA,,yes,
+2019-12-03 08:30:00,1.76,d3,full_drought,north,NA,,yes,
+2019-12-03 08:30:00,1.69,w31,virgin_drought,south,NA,,yes,
+2019-12-03 08:30:00,0.83,m4,well_watered,north,NA,,yes,
+2019-12-03 08:30:00,1.59,w32,virgin_drought,north,NA,,yes,
+2019-12-03 08:30:00,1.51,w29,virgin_drought,south,NA,,yes,
+2019-12-03 08:30:00,0.79,m3,well_watered,north,NA,,yes,
+2019-12-03 08:30:00,1.62,d8,full_drought,north,NA,,yes,
+2019-12-03 08:30:00,1.66,d15,full_drought,north,NA,,yes,
+2019-12-05 06:45:00,1.14,d5,full_drought,south,NA,<5,yes,"Today, started collecting leaves from bottom of plant towards top (had been collecting from top to bottom before today). Started with about 6-7th leaf from top of plant."
+2019-12-05 06:45:00,0.38,m14,well_watered,south,NA,<5,yes,
+2019-12-05 06:45:00,0.86,w29,virgin_drought,south,NA,15,yes,
+2019-12-05 06:45:00,0.4,m1,well_watered,south,NA,<5,yes,
+2019-12-05 06:45:00,0.94,d14,full_drought,south,NA,5,yes,
+2019-12-05 06:45:00,0.92,w31,virgin_drought,south,NA,<5,yes,
+2019-12-05 06:45:00,0.91,w32,virgin_drought,north,NA,<5,yes,
+2019-12-05 06:45:00,0.34,m5,well_watered,south,NA,<5,yes,
+2019-12-05 06:45:00,1.2,d2,full_drought,south,NA,<5,yes,
+2019-12-06 14:15:00,1.31,m12,well_watered,north,NA,<5,yes,Only collected from M and D blocks today since running low on leaves in W block.
+2019-12-06 14:15:00,1.96,d12,full_drought,north,NA,<5,yes,
+2019-12-06 14:15:00,1.1,m3,well_watered,north,NA,5,yes,
+2019-12-06 14:15:00,1.44,d4,full_drought,north,NA,5,yes,
+2019-12-06 14:15:00,0.8,m4,well_watered,north,NA,<5,yes,
+2019-12-06 14:15:00,1.87,d3,full_drought,north,NA,5,yes,
+2019-12-09 12:15:00,1.61,w29,virgin_drought,south,NA,<5,yes,
+2019-12-09 12:15:00,1.88,d5,full_drought,north,NA,<5,yes,
+2019-12-09 12:15:00,0.66,m14,well_watered,north,NA,<5,yes,
+2019-12-09 12:15:00,1.69,w31,virgin_drought,south,NA,<5,yes,
+2019-12-09 12:15:00,0.72,m2,well_watered,north,NA,<5,yes,
+2019-12-09 12:15:00,1.93,d9,full_drought,north,NA,5,yes,
+2019-12-09 12:15:00,1.76,d2,full_drought,north,NA,<5,yes,
+2019-12-09 12:15:00,1.61,w32,virgin_drought,north,NA,<5,yes,
+2019-12-09 12:15:00,0.73,m13,well_watered,north,NA,<5,yes,
+2019-12-10 16:30:00,0.74,m8,well_watered,north,NA,<5,yes,
+2019-12-10 16:30:00,1.75,w31,virgin_drought,south,NA,<5,yes,
+2019-12-10 16:30:00,1.96,d15,full_drought,north,NA,5,yes,
+2019-12-10 16:30:00,1.67,w29,virgin_drought,south,NA,<5,yes,
+2019-12-10 16:30:00,0.79,m3,well_watered,north,NA,<5,yes,
+2019-12-10 16:30:00,1.98,d3,full_drought,north,NA,5,yes,
+2019-12-10 16:30:00,1.68,w32,virgin_drought,north,NA,<5,yes,
+2019-12-10 16:30:00,1.97,d8,full_drought,north,NA,5,yes,
+2019-12-10 16:30:00,0.78,m16,well_watered,north,NA,<5,yes,
+2019-12-10 18:00:00,1.45,w29,virgin_drought,south,NA,5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,0.45,m1,well_watered,south,NA,<5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,1.54,w32,virgin_drought,north,NA,,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,0.4,m14,well_watered,south,NA,<5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,1.53,w31,virgin_drought,south,NA,<5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,1.78,d5,full_drought,south,NA,<5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,1.76,d1,full_drought,south,NA,5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,0.43,m9,well_watered,south,NA,<5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-10 18:00:00,1.83,d9,full_drought,south,NA,5,yes,LEDs turned off today at 16:50 and remained off when cutting leaves for pressure bomb. Sky completely dark; only light is some ambient light coming from adjacent CSU greenhouses. NOTE: I forgot my headlamp so had to use ceiling lights when processing leaves before measurements in pressure bomb. I did NOT need a headlamp to harvest leaves since there was sufficient ambient light in greenhouse.
+2019-12-11 06:15:00,0.6,w27,virgin_drought,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.57,m7,well_watered,north,NA,10,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.71,d11,full_drought,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.7,w26,virgin_drought,south,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.68,w25,virgin_drought,south,NA,10,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.2,m11,well_watered,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.84,d7,full_drought,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.25,m6,well_watered,south,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 06:15:00,0.79,d6,full_drought,south,NA,5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in notebook but not in this spreadsheet (start time = 6:20, end time = 6:33). NOTE, LEDs remained off since 16:50 the previous day, and the sun had not yet risen so it was dark (excluding ambient light from adjacent greenhouse). LEDs turned back on afterwards, at 07:14."
+2019-12-11 10:15:00,1.41,w25,virgin_drought,south,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,1.5,d10,full_drought,south,NA,10,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,1.52,w26,virgin_drought,south,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,0.84,m11,well_watered,north,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,1.09,m10,well_watered,south,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,1.62,d6,full_drought,south,NA,10,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,1.69,d11,full_drought,north,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,1.4,w28,virgin_drought,north,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-11 10:15:00,0.92,m7,well_watered,north,NA,<5,yes,harvested from “treated” plant (on scale).
+2019-12-12 09:45:00,1.05,w25,virgin_drought,south,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,0.75,m7,well_watered,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,0.61,m11,well_watered,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,1.13,d6,full_drought,south,NA,10,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,1.37,d7,full_drought,north,NA,5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,1.2,w26,virgin_drought,south,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,1.48,d11,full_drought,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,1.11,w28,virgin_drought,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
+2019-12-12 09:45:00,0.6,m7,well_watered,north,NA,<5,yes,"harvested from “treated” plant (on scale). Note: Individaul times that leaves were collected recorded in biomass spreadsheet but not in this spreadsheet (start time = 9:38, end time = 10:07)"
