@@ -13,19 +13,19 @@ Sys.getenv('TZ') # make sure it got set
 # read in soil water potential data
 
 # "A" file = block D (west side)
-swp_block_D <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/read_only/CR1000_GH_A_Matric_159.dat', 
+swp_block_D <- read.csv('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/read_only/CR1000_GH_A_Matric_159.dat', 
                    skip = 1, header = T, stringsAsFactors = F) 
 swp_block_D <- swp_block_D[-c(1:2),] # omit 1st row, is units
 head(swp_block_D); tail(swp_block_D)
 
 # "D" file = block M (middle)
-swp_block_M <-  read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/read_only/CR1000_GH_D_Matric_158.dat', 
+swp_block_M <-  read.csv('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/read_only/CR1000_GH_D_Matric_158.dat', 
                          skip = 1, header = T, stringsAsFactors = F) 
 swp_block_M <- swp_block_M[-c(1:2),] # omit 1st row, is units
 head(swp_block_M); tail(swp_block_M)
 
 # "B_C" file = block W (east side)
-swp_block_W <-  read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/read_only/CR1000_GH_BC_Matric_901.dat', 
+swp_block_W <-  read.csv('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/read_only/CR1000_GH_BC_Matric_901.dat', 
                          skip = 1, header = T, stringsAsFactors = F) 
 swp_block_W <- swp_block_W[-c(1:2),] # omit 1st row, is units
 head(swp_block_W); tail(swp_block_W)
@@ -232,7 +232,7 @@ swp$teros_MP_2_kPa <- NULL
 
 
 # Save the combined data
-write.csv(swp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled.csv',
+write.csv(swp, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled.csv',
           row.names = F)
 
 
@@ -266,6 +266,6 @@ swp$teros_soil_temp_mean_C <- rowMeans(swp[,c('teros_soil_temp_1_C','teros_soil_
 
 
 ### Save compiled and condensed file as .RDS and .csv
-saveRDS(swp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
-write.csv(swp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.csv',
+saveRDS(swp, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
+write.csv(swp, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.csv',
         row.names = F)

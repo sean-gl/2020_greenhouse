@@ -3,10 +3,10 @@ rm(list = ls())
 Sys.setenv(tz='GMT')
 
 # read in soil water potential data (watermark & teros/decagon)
-swp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
+swp <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
 
 # read in raw scale data
-bal <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds')
+bal <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds')
 
 ggplot(swp, aes(x=by15, y=teros_MP_kPa, color=block)) + geom_line()
 

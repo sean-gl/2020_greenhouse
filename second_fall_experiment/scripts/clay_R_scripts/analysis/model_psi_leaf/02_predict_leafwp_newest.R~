@@ -10,7 +10,7 @@ Sys.setenv(TZ='GMT')
 Sys.getenv('TZ') # make sure it got set
 
 ### load the combined data
-comb_all <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+comb_all <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
 
 ### SECTION 4. Model fitting ---------------------
@@ -154,7 +154,7 @@ summary(full_predictions); plot(density(full_predictions[!is.na(full_predictions
 
 ## Append predictions to full dataset of predictors and save output
 comb_all_predict <- cbind(comb_all, predicted_psi_leaf = full_predictions)
-saveRDS(comb_all_predict, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predicted_psi_leaf.rds')
+saveRDS(comb_all_predict, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/analysis/clay/output_data/combined_data_predicted_psi_leaf.rds')
 
 
 ### Plot the predicted psi_leaf (lines) with pressure bomb readings (dots)

@@ -1,6 +1,6 @@
 
 rm(list = ls())
-wd <- "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/read_only/post_experiment_data/"
+wd <- "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/read_only/post_experiment_data/"
 setwd(wd)
 
 Sys.setenv(tz='GMT')
@@ -86,7 +86,7 @@ ww <- ddply(ww, .(plant_id), function(x) setNames(mean(x$weight), 'pot_saturated
 ww
 
 # Save the saturated weights to a file
-saveRDS(ww, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance_saturated_pot_weights.rds')
+saveRDS(ww, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance_saturated_pot_weights.rds')
 
 ### ----- I don't remember exactly what I was trying to do here...
 scales = sort(as.numeric(as.character(unique(scaledat$scale))))

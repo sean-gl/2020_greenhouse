@@ -1,5 +1,5 @@
 require(readODS); require(ggplot2); require(plyr)
-led <- read_ods("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/LED_PAR.ods",
+led <- read_ods("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/LED_PAR.ods",
                 sheet = 1, col_names = T)
 head(led)
 

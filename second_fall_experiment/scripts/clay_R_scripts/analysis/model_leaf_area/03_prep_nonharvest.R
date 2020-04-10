@@ -4,7 +4,7 @@ require(readODS); require(ggplot2); require(plyr); require(ranger); require(care
 
 # read in destructive non_harvest data (has leaf length, width and areas)
 # these are all border plants (except on final day, 12/12)
-non_harvest <- read_ods('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/leaf_width_measurements_non_harvest/leaf_width_measurements.ods',
+non_harvest <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_width_measurements_non_harvest/leaf_width_measurements.ods',
                     col_names = T)
 
 # remove empty rows
@@ -53,18 +53,18 @@ for(i in unique(non_harvest$pot_id)) {
 }
 
 # Save data
-saveRDS(non_harvest, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_nonharvest_prepped.rds')
+saveRDS(non_harvest, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_nonharvest_prepped.rds')
 
 
 # Load Random Forest model
-rfmod <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+rfmod <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
 
 # Predict on non-harvest data
 non_harvest$leaf_area_pred <- predict(rfmod, newdata = non_harvest)
 summary(non_harvest$leaf_area_pred)
 
 # Read in harvest data (plus predicted LA)
-harvest <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
+harvest <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
 
 # Combine harvest and non-harvest data + predicitons
 harvest <- harvest[,names(harvest)[names(harvest) %in% names(non_harvest)]]
@@ -167,7 +167,7 @@ m <- merge(subset(grid, select = -c(period)),
 # remove period, not useful
 out <- grid
 out$period <- NULL
-saveRDS(out, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_raw.rds')
+saveRDS(out, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_raw.rds')
 
 # ---Change blocks to match other Data set blocks...
 # NOTE: block V (12/6-12/12) corresonds to block W in other data sets, so let's change that here.
@@ -182,4 +182,4 @@ colSums(table(out_final$date, out_final$block))
 ggplot(out_final, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
 
 # save the data to be used in analysis
-saveRDS(out_final, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')
+saveRDS(out_final, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')

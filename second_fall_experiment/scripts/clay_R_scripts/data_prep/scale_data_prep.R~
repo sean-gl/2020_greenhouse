@@ -17,7 +17,7 @@ require(plyr)
 require(tidyr)
 require(ggplot2)
 
-wd <- "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/read_only/"
+wd <- "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/read_only/"
 setwd(wd)
 
 ###
@@ -109,7 +109,7 @@ scaledat <- scaledat[!is.na(scaledat$scale), ]
 ### Subset Maria's scale data (to send to her)
 # maria_scaledat <- subset(scaledat, scale %in% 15:16)
 # maria_scaledat$file <- NULL
-# write.csv(maria_scaledat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/maria_scale_data_raw_compiled.csv", row.names = F)
+# write.csv(maria_scaledat, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/maria_scale_data_raw_compiled.csv", row.names = F)
 
 # Order data by timestamp and scale number
 scaledat <- scaledat[order(scaledat$timestamp, scaledat$scale),  ]
@@ -142,10 +142,10 @@ scaledat <- scaledat[!ind, ]
 rownames(scaledat) <- NULL
 
 #### Save the compiled file before doing more work!
-saveRDS(scaledat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
+saveRDS(scaledat, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
 
 # load it back
-# scaledat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
+# scaledat <- readRDS("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
 
 ## Add plant IDs...
 # Note: D, M blocks did not change plant IDs, but W block did (when virgin plants were swapped in) 
@@ -222,16 +222,16 @@ table(scaledat$treatment, useNA = 'always')
 
 
 ### Save again, then convert to Wide format and save separately
-saveRDS(scaledat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds")
+saveRDS(scaledat, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds")
 
 # read data back in
-# scaledat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds")
+# scaledat <- readRDS("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds")
 
 
 ### ---- Aggregate (15 minutes) and Flag 
 
 # source the function 'aggAndFlag'
-source("/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/data_prep/flagging_functions.R")
+source("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/data_prep/flagging_functions.R")
 
 # note: this function creates flags 
 aggDat <- aggAndFlag(df = scaledat,
@@ -246,10 +246,10 @@ aggDat <- aggAndFlag(df = scaledat,
 colnames(aggDat)[colnames(aggDat) %in% 'mean'] <- 'mean_weight_kg'
 
 # SAve aggregated and flagged dataframe
-saveRDS(aggDat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
+saveRDS(aggDat, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
 # read back in
-# aggDat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
+# aggDat <- readRDS("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
 ### Add "manual" flags
 
@@ -302,7 +302,7 @@ ggplot(subraw, aes(x=timestamp, y=weight, color=scale)) +
 
 
 ### Finally, save file with all flags
-saveRDS(aggDat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
+saveRDS(aggDat, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
 
 
@@ -377,14 +377,14 @@ which(dups_ind_new)
 ### Convert long format to WIDE and save RDS
 scaledat_wide <- tidyr::spread(scaledat_long, key = scale, value = weight)
 
-saveRDS(scaledat_wide, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_30second_wide.rds")
+saveRDS(scaledat_wide, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_30second_wide.rds")
 
 # subset and save for Maria
 # maria_scaledat_wide <- subset(scaledat_wide, date >= '2019-11-08')
 # maria_scaledat_wide <- maria_scaledat_wide %>% select(-one_of(c('date', 'hour','by15')))
-# write.csv(maria_scaledat_wide, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_30second_wide_maria.csv", row.names = F)
+# write.csv(maria_scaledat_wide, "/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_30second_wide_maria.csv", row.names = F)
 # read data back in 
-# scaledat_wide <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_30second_wide.rds")
+# scaledat_wide <- readRDS("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_30second_wide.rds")
 
 
 
@@ -589,11 +589,11 @@ ggplot(dat, aes(x=timestamp, y=weight, color=scale)) + geom_line() +
 
 ### ---- Finally, Compile Flags into dataframe and save flags + 15-minute means.
 
-saveRDS(weights15, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_15min_means.rds')
+saveRDS(weights15, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_compiled_15min_means.rds')
 
 flags_overall_2 <- as.data.frame(flags_overall)
 flags_overall_2$by15 <- weights15$by15
-saveRDS(flags_overall_2, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_15min_means_FLAGS.rds')
+saveRDS(flags_overall_2, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_compiled_15min_means_FLAGS.rds')
 
 
 
@@ -700,7 +700,7 @@ scaleWide <- scaleWide[ , c('scale','timestamp','weight')]
 scaleWide <- tidyr::spread(scaleWide, key = scale, value = weight)
 head(scaleWide)
 formalArgs(SummarizeTimeseries)
-source("/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/data_prep/timeSeriesAvg_fun.R")
+source("/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/data_prep/timeSeriesAvg_fun.R")
 scaleSummary <- SummarizeTimeseries(dat = scaleWide, 
                                     tsCol = 'timestamp',
                                     # measCols = as.character(c(1:10, 12, 14:16)),

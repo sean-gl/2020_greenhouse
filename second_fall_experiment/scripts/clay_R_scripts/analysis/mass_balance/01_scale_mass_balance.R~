@@ -1,11 +1,11 @@
 rm(list=ls())
-packages <- c('lubridate','plyr','ggplot2','car','readODS')
+packages <- c('lubridate','plyr','ggplot2','car')
 lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
 
 # read in 15-minute aggregated (and flagged) balance data 
-baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
+baldat <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
 
 
 ### Code to estimate soil weight as continuous variable, to get at soil matric potential.
@@ -31,9 +31,9 @@ dm <- ddply(baldat, .(date, plant_id), function(x) {
 dm$saturated_mass_kg <- as.numeric(dm$saturated_mass_kg)
 
 ### Test method on a single plant...
-sub = subset(dm, plant_id == 'W-6')
+sub = subset(dm, plant_id == 'D-6')
 ggplot(sub, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_line() +
-  scale_x_date(breaks = "1 week", date_labels = '%m-%d') + ggtitle(unique(sub$plant_id))
+  scale_x_date(breaks = "1 week", date_labels = '%m-%d')
 
 # add the end weight
 # end wt = (measured plant wet weight) + (sat. pot/soil wt at experiment end) - (sat pot/soil wt at experiment start)
@@ -45,12 +45,11 @@ sww_start = 13.9409
 (end_wt = mww + sww_end - sww_start)
  
 # Read in end-of-experiment saturated pot weights data
-pot_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
+pot_wt <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
 
 # Read in end-of-experiment plant wet weights
-plant_wt <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
-                     col_names = T)
-plant_wt$plant_id <- toupper(plant_wt$plant_id)
+plant_wt <- read.csv('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/data/end_of_experiment_plant_wet_weights.csv',
+                     header = T, stringsAsFactors = F)
 
 # For each pot, exclude non-equilibrium dates,
 # add final saturated weight, and fit trend line...

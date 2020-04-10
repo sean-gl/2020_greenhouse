@@ -1,12 +1,18 @@
+rm(list=ls())
 
 # read in prepped data
-harvest <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
+harvest <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
 
 
 ### 1. First, Random Forests without using leaf lengths
 
-widthData <- harvest
+widthData <- harvest; rm(harvest) # change name of data 
 
+## Exclude leaves < 90% expanded from training data
+widthData <- widthData[widthData$percent_expanded >= 90,]
+
+require(randomForest); require(tdr); require(reshape2); require(tibble)
+# NOTE: I poached this from Dave's code and modified it.
 # this function takes random subsets of the dataset and characterizes the distribution of error terms for a lot of models   
 rfFunc <- function(x){
   # print(x)
@@ -27,7 +33,7 @@ rfFunc <- function(x){
     rownames_to_column(., 'stat')
 }
 
-
+require(dplyr)
 modelRuns <- bind_rows(lapply(1:1000, rfFunc)) 
 
 modelRuns %>%
@@ -61,9 +67,9 @@ fitControl_randomForest <- trainControl(method='repeatedcv',
                                         savePredictions = 'final') # all, final or none
 
 # (optional) create grid of tuning parameters for train()
-tuneGrid = expand.grid(mtry = 1:2, 
+tuneGrid = expand.grid(mtry = 1:4, 
                        splitrule = c('variance', 'extratrees', 'maxstat'),
-                       min.node.size = seq(1, 15, 2))
+                       min.node.size = 1)
 
 # train the model
 randomForest_pl <- train(leaf_area_cm2 ~ leaf_width_cm + mean_width_cm +
@@ -111,37 +117,40 @@ summary(lm(true ~ pred, out))
 ### ---- Repeat on FULL DATA SET
 
 # train the model
-randomForest_pl_2 <- train(leaf_area_cm2 ~ leaf_width_cm + mean_width_cm +
-                           leaf_order_reverse + days_since_planting,
-                         data=harvest,
+randomForest_pl_2 <- train(leaf_area_cm2 ~ leaf_width_cm + leaf_order_reverse,
+                         data=widthData,
                          metric='RMSE',
                          trControl=fitControl_randomForest,
                          # tuneLength=5, # use instead of tuneGrid (? I think)
                          method='ranger',
-                         tuneGrid = tuneGrid)
+                         tuneGrid = tuneGrid,
+                         importance = 'impurity')
+varImp(randomForest_pl_2)
 print(randomForest_pl_2)
 plot(randomForest_pl_2, metric = c('RMSE'))
 randomForest_pl_2$bestTune
 res <- randomForest_pl_2$results
+res[res$RMSE == min(res$RMSE),]
 res[res$MAE == min(res$MAE),]
 res[res$Rsquared == max(res$Rsquared),]
 
-harvest_test$leaf_area_pred <- predict(randomForest_pl_2, newdata = harvest_test)
+# predcitions
+widthData$leaf_area_pred <- predict(randomForest_pl_2, newdata = widthData)
 
 # plot predicted vs. actual
-plot(leaf_area_pred ~ leaf_area_cm2, data = harvest_test); abline(c(0,1))
+plot(leaf_area_pred ~ leaf_area_cm2, data = widthData); abline(c(0,1), col='red')
 
 
-# test RMSE, MAD, MBE
-sqrt(mean((harvest_test$leaf_area_cm2 - harvest_test$leaf_area_pred)^2)) # 14.5, 9.1, 8.1
-mean(abs(harvest_test$leaf_area_cm2 - harvest_test$leaf_area_pred)) # 10.5, 7.7, 6.8
-mean(harvest_test$leaf_area_cm2 - harvest_test$leaf_area_pred) # -2.4, 0.7, 1.1
+# RMSE, MAD, MBE
+sqrt(mean((widthData$leaf_area_cm2 - widthData$leaf_area_pred)^2)) # 14.5, 9.1, 8.1
+mean(abs(widthData$leaf_area_cm2 - widthData$leaf_area_pred)) # 10.5, 7.7, 6.8
+mean(widthData$leaf_area_cm2 - widthData$leaf_area_pred) # -2.4, 0.7, 1.1
 
 
 # Now predict on ALL data and scale up error to entire plant
-harvest$leaf_area_pred <- predict(randomForest_pl_2, newdata = harvest)
+# harvest$leaf_area_pred <- predict(randomForest_pl_2, newdata = harvest)
 
-out <- ddply(harvest, .(pot_id, date, treatment), function(x) {
+out <- ddply(widthData, .(pot_id, date, treatment), function(x) {
   setNames(c(sum(x$leaf_area_cm2), sum(x$leaf_area_pred)), c('true','pred'))
 })
 
@@ -156,8 +165,8 @@ summary(lm(true ~ pred, out))
 ## Save data plus predicted leaf area
 names(harvest)
 harvest <- subset(harvest, select = -c(leaf_order, irrig_cummean))
-saveRDS(harvest, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
+saveRDS(harvest, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
 
 
 ## Save the model
-saveRDS(randomForest_pl_2, '/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+saveRDS(randomForest_pl_2, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')

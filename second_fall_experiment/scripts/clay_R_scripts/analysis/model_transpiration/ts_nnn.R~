@@ -14,7 +14,7 @@ frc <- forecast(fit1,h=12*5)
 plot(frc)
 
 # read 15-minute experimental data
-dat  <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predict_psi_leaf_transpiration.rds')
+dat  <- readRDS('/home/wmsru/Documents/Clay/greenhouse_2019/second_fall_experiment/analysis/clay/output_data/combined_data_predict_psi_leaf_transpiration.rds')
 names(dat)
 
 # get a subset for testing
