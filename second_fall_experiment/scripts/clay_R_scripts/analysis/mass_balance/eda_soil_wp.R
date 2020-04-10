@@ -14,9 +14,9 @@ bal.15 <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/dat
 ggplot(swp, aes(x=by15, y=teros_MP_kPa, color=block)) + geom_line()
 
 # look at pot D-11 (first treatement)
-start <- '2019-10-20'; end <- '2019-11-05'
-d11.bal <- subset(bal.15, plant_id == 'D-11' & date > start & date < end)
-d11.swp <- subset(swp, block == 'D' & date > start & date < end)
+start <- '2019-10-30'; end <- '2019-11-02'
+d11.bal <- subset(bal.15, plant_id == 'D-11' & date >= start & date <= end)
+d11.swp <- subset(swp, block == 'D' & date >= start & date <= end)
 
 # merge data
 d11 <- merge(d11.bal[,c('roundTime','mean_weight_kg')], d11.swp, by.x = 'roundTime', by.y='by15', all = T)
@@ -24,11 +24,13 @@ d11$teros_MPa <- d11$teros_MP_kPa / 1000
 
 pdf('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/soil_water_potential/Rplot_d11_teros_v_scale_t1.pdf',
     width=10, height=7)
-plot(mean_weight_kg ~ roundTime, d11, col='red',  main='Pot D-11 (full drought)')
+plot(mean_weight_kg ~ roundTime, d11, col='red',  main='Pot D-11 (full drought)', xaxt='n', xlab='')
 par(new = TRUE)
 plot(teros_MPa ~ roundTime, d11, type='l', xaxt = "n", yaxt = "n",  ylab = "", xlab = "")
+axis.POSIXct(1, at=seq(d11$roundTime[1], d11$roundTime[nrow(d11)], by="4 hours"), format="%H")
+# identify(d11$roundTime, d11$teros_MPa,d11, labels = d11$roundTime)
 axis(side = 4)
-mtext("Teros (MPa)", side = 4, line = 3)
+mtext("Teros (MPa)", side = 4, line = 0)
 dev.off()
 
 # look at pot M-7

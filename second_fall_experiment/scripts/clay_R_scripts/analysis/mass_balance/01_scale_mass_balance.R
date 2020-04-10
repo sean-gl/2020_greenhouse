@@ -47,7 +47,7 @@ sww_start = 13.9409
 # Read in end-of-experiment saturated pot weights data
 pot_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
 
-# Read in end-of-experiment plant wet weights
+# Read in end-of-experiment plant/root wet weights
 plant_wt <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
                      col_names = T)
 plant_wt$plant_id <- toupper(plant_wt$plant_id)
@@ -80,12 +80,8 @@ plot(x$saturated_mass_kg)
 # x$saturated_mass_kg <- x$saturated_mass_kg - start_wt
 (pot.wt <- pot_wt$pot_saturated_weight_kg[pot_wt$plant_id == p])
 (plant.wt <- plant_wt$wet_weight_g[plant_wt$plant_id == p] / 1000) # wt in grams, convert to kg
+# (root.wt <- plant_wt$wet_weight_roots_g[plant_wt$plant_id == p] / 1000) # wt in grams, convert to kg
 
-# root wt
-root.wt <- .259 # W-6
-root.wt <- .306 # W-7
-root.wt <- .267 # d-6
-root.wt <- .298 # d-10
 
 # recalculate weights 
 # try substracting the saturated pot weight at end (plus root wet weight) from time seriess...
@@ -98,23 +94,32 @@ start_wt - (pot.wt - plant.wt - root.wt)
 
 # note: pot W-10 does not have a recorded ending pot weight, and W-11 has no recorded ending plant wet weight.
 # So for the original wet treatment, we only have n=2 (W-6 and W-7)
+
+
+###  CLAY UPDATED ON 4/10....THIS SHOULD NOW WORK WITH ANY PLANT, NOT JUST W BLOCK...
 for(p in c('W-6','W-7')) {
 
-  x <- subset(dm, plant_id == p)
-  # ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_line() + ggtitle(p)
+  # subset data based on specific (saturated) dates, determined for each block...
+  x <- switch(substr(p,1,1), # block letter
+              'W' = subset(dm, plant_id == p & date <= '2019-11-04'),
+              'M' = subset(dm, plant_id==p & (date <= '2019-10-24' | date >= '2019-12-01')),
+              'D' = subset(dm, plant_id == p & (date <= '2019-10-24' | date >= '2019-11-11' & date <= '2019-11-27')))
+  
+  # check the plot
+  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + ggtitle(p)
   
   # plants were a week old on 9-16 so assume the weight is zero on day 1
-  start_wt <- x$saturated_mass_kg[!is.na(x$saturated_mass_kg)][1] # data are sorted above
-  x$saturated_mass_kg <- x$saturated_mass_kg - start_wt
+  # start_wt <- x$saturated_mass_kg[!is.na(x$saturated_mass_kg)][1] # data are sorted above
+  # x$saturated_mass_kg <- x$saturated_mass_kg - start_wt
   pot.wt <- pot_wt$pot_saturated_weight_kg[pot_wt$plant_id == p]
   plant.wt <- plant_wt$wet_weight_g[plant_wt$plant_id == p] / 1000 # wt in grams, convert to kg
-  end.plant.wt <- plant.wt + pot.wt - start_wt
+  end.plant.wt <- plant.wt + pot.wt #- start_wt
   x <- rbind(x, data.frame(date=as.Date('2019-12-13', format='%Y-%m-%d'),
                            plant_id=p, 
                            saturated_mass_kg=end.plant.wt))
   x$saturated_mass_kg <- as.numeric(x$saturated_mass_kg)
-  # ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_line() + ggtitle(p)
-  x$saturated_mass_kg[x$saturated_mass_kg < 0] <- NA
+  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_point() + ggtitle(p)
+  # x$saturated_mass_kg[x$saturated_mass_kg < 0] <- NA
   
   # convert date to numeric for model fitting
   x$date_num <- as.numeric(x$date - pdat$date[1]) + 1
@@ -122,15 +127,15 @@ for(p in c('W-6','W-7')) {
   ## logistic model fitting ----
   
   # fit a self-starting logistic curve
-  ssl <- nls(saturated_mass_kg ~ SSlogis(date_num, a, b, c), data = x) # 3-point
-  # ssl <- nls(saturated_mass_kg ~ SSfpl(date_num, a, b, c, d), data = x) # 4-point
+  # ssl <- nls(saturated_mass_kg ~ SSlogis(date_num, a, b, c), data = x) # 3-point doesn't work often.
+  ssl <- nls(saturated_mass_kg ~ SSfpl(date_num, a, b, c, d), data = x) # 4-point seems to work better.
   
-  # summary(ssl)
-  # xv <- seq(0, x$date_num[length(x$date_num)], 1)
-  # yv <- predict(ssl, newdata = list(date_num = xv))
-  # yv <- as.numeric(yv)
-  # plot(x$date_num, x$saturated_mass_kg)
-  # lines(xv, yv)
+  summary(ssl)
+  xv <- seq(0, x$date_num[length(x$date_num)], 1)
+  yv <- predict(ssl, newdata = list(date_num = xv))
+  yv <- as.numeric(yv)
+  plot(x$date_num, x$saturated_mass_kg)
+  lines(xv, yv)
   
   # save predicted weights to master dataframe
   preds <- pdat
@@ -146,11 +151,11 @@ for(p in c('W-6','W-7')) {
 
 p = 'M-6'
 for(p in c('M-6','M-7','M-10','M-11')) {
-  
   x <- subset(dm, plant_id == p)
-  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_line() + ggtitle(p)
-  # x <- subset(x, date < '2019-10-25' | date > '2019-11-30')
-  x <- subset(x, date < '2019-10-25')
+  
+  # Subsetting dates for D block plants
+  x <- subset(dm, plant_id == p & (date <= '2019-10-24' | date >= '2019-11-11' & date <= '2019-11-27'))
+  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_point() + ggtitle(p)
   
   # plants were a week old on 9-16 so assume the weight is zero on day 1
   start_wt <- x$saturated_mass_kg[!is.na(x$saturated_mass_kg)][1] # data are sorted above

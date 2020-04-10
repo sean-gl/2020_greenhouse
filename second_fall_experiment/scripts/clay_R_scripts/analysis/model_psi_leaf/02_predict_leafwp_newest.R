@@ -45,6 +45,7 @@ df2 <- subset(comb, select = -c(by15, date, leaftemp_bottom, leaftemp_middle))
 df2 <- subset(df2, complete.cases(df2)); nrow(df2)
 
 # approach 2: Omit those variables so we have more complete cases
+### THIS IS THE APPROACH I ENDED UP USING FOR FINAL MODEL.
 df2 <- subset(comb, select = -c(by15, date, leaftemp_bottom, leaftemp_middle,leaftemp_top,
                                 windspeed_bottom, windspeed_middle, windspeed_top,
                                 soil_temp_C))
@@ -136,13 +137,12 @@ mean(fullmod_lasso_phys$residuals^2); mean(abs(fullmod_lasso_phys$residuals))
 ### Now compare to the model Clay determined earlier was best
 ## (Dropped variables 'treatmentwell_watered' and 'sht2_low_rh', 'blockM'; added 'block')
 # This model has better R^2 and MSE/MAD
+# NOTE: THIS IS THE FINAL MODEL I USED TO MAKE PREDICTIONS !!!
 lasso_simplified_model <- lm(mean_psi_MPa ~ bmp_box_temp + minutes + irrig + block + leaftemp_mean, df2)
 
 # NOTE: these models without BLOCK are very simple and have almost as much predictive value.
-lasso_simplified_model <- lm(mean_psi_MPa ~ minutes + irrig + leaftemp_mean + block, df2)
-lasso_simplified_model <- lm(mean_psi_MPa ~ minutes + irrig + leaftemp_mean + block, df2)
-
-lasso_simplified_model <- lm(mean_psi_MPa ~ minutes + irrig + poly(VPD_leaf, 2), df2)
+# lasso_simplified_model <- lm(mean_psi_MPa ~ minutes + irrig + leaftemp_mean + block, df2)
+# lasso_simplified_model <- lm(mean_psi_MPa ~ minutes + irrig + leaftemp_mean + block, df2)
 
 summary(lasso_simplified_model)
 mean(lasso_simplified_model$residuals^2); mean(abs(lasso_simplified_model$residuals))
@@ -156,6 +156,10 @@ summary(full_predictions); plot(density(full_predictions[!is.na(full_predictions
 comb_all_predict <- cbind(comb_all, predicted_psi_leaf = full_predictions)
 saveRDS(comb_all_predict, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predicted_psi_leaf.rds')
 
+
+
+#### ---------------- OLDER CODE NOT USED FOR PREDICTIONS ----------------
+#### --------- RANDOM FOREST DID NOT GIVE PREDICTIONS THAT LOOKED AS BELIEVABLE AS LASS0....
 
 ### Plot the predicted psi_leaf (lines) with pressure bomb readings (dots)
 
