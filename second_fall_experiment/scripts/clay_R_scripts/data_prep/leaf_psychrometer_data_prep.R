@@ -184,8 +184,9 @@ ggplot(x, aes(x=by15, y=corrected_water_potential_MPa, color=psychrometer_number
 # y=real; x=measured
 y = c(-0.642, -4.64); x = c(-0.77, -6.025)
 (m = (y[2]-y[1])/(x[2]-x[1]))
-start = '2019-11-23'; end = '2019-11-23'
+start = '2019-11-22'; end = '2019-11-25'
 # note: this psychrometer on plant in D block from 11/21 to....end of experiment?
+# on 11-22, moved it from midrib to lamina of same leaf.
 d <- subset(psych, date >= start & date <= end & psychrometer_number == 1)
 # d <- subset(psych_exp2, date == '2019-11-23')
 d$corrected_water_potential_MPa <- m*d$corrected_water_potential_MPa - m*x[1] + y[1]
@@ -214,6 +215,8 @@ axis(side = 4); mtext("PAR_west", side = 4, line = 0)
 plot(corrected_water_potential_MPa ~ by15, data=d, type='b', ylim = c(-6, 2))
 lines(-predicted_psi_leaf ~ by15, data=d, type = 'b', col = 'red')
 
+# look at actual pressure bomb data
+x=subset(psileaf)
 
 # examine  ~nov 24 to end of experiment
 x <- subset(psych_exp2, date >= '2019-12-01' & date <='2019-12-02')

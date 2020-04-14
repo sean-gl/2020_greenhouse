@@ -356,4 +356,13 @@ comb$block <- as.factor(comb$block)
 # Save combined data 
 saveRDS(comb, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
-# comb <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+comb <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+
+
+## Check date ranges for data sets
+datnames <- c('lq','lt','rh','soil_temp','wind','comb')
+for(nm in datnames) {
+  print(nm)
+  print(min(get(nm)$by15))
+  print(max(get(nm)$by15))
+}
