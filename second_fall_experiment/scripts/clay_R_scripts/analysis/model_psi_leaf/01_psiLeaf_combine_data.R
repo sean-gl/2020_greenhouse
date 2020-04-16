@@ -46,17 +46,18 @@ lt_block <- ddply(lt_filter, .(by15, block, treatment, position), function(x){
 lq <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
 lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 
-
 # 3. RH, air temp, soil temp
 rh <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
 rh$by15 <- as.POSIXct(rh$by15, tz='GMT')
-
-rh$par2_s <- NULL # REMOVE THIS VARIABLE, DATA ARE BAD
 
 # remove data before 10-24 (just a few rows), these we don't want
 rh <- subset(rh, date(by15) >= '2019-10-24')
 # remove soil temp columsn, these are imported below
 rh <- rh %>% select(-contains('soil_t'))
+
+rh$par2_s <- NULL # REMOVE THIS VARIABLE, DATA ARE BAD
+
+
 soil_temp <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
 soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
@@ -236,7 +237,7 @@ with(subset(df4, date(by15) <= '2019-10-24'), table(treatment))
 nrow(lq); nrow(df4)
 comb <- merge(lq, df4, all=T); nrow(comb)
 with(comb, table(treatment, block, useNA = 'a'))
-with(subset(comb, date(by15) <= '2019-10-24'), table(treatment,block))
+with(subset(comb, date(by15) <= '2019-10-24'), table(treatment,block,useNA = 'a'))
 # check for any duplicated column names in merges above
 which(grepl('\\.x', names(comb)) | grepl('\\.y', names(comb)))
 
@@ -273,7 +274,7 @@ comb$irrig[comb$treatment %in% c('full_drought','virgin_drought')] <- 150
 table(comb$irrig, useNA = 'a')
 
 # add calculated irrigation amounts
-irrigDat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/mean_irrigation_by_block.rds')
+irrigDat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/mean_irrigation_by_block.rds')
 
 # cummulative stress index, by block and date
 irrigDat$stress_index <- 0
@@ -301,30 +302,30 @@ any(is.na(comb$mean_irrig_kg))
 
 
 # RH high are strongly correlated with each other and with RH low
-cor(comb$sht1_high_rh, comb$am2320_high_rh, use = 'complete.obs')
-cor(comb$sht2_low_rh, comb$sht1_high_rh,  use = 'complete.obs')
-
-# correlation of air temp with psi_leaf
-cor(comb$sht1_high_temp, comb$mean_psi_MPa, use = 'complete.obs')
-cor(comb$am2320_high_temp, comb$mean_psi_MPa, use = 'complete.obs')
-
-cor(comb$sht2_low_temp, comb$mean_psi_MPa, use = 'complete.obs')
-cor(comb$bmp_box_temp, comb$mean_psi_MPa, use = 'complete.obs')
-
-# correlation of leaftemp and psi_leaf
-cor(comb$leaftemp_bottom, comb$mean_psi_MPa, use = 'complete.obs')
-cor(comb$leaftemp_middle, comb$mean_psi_MPa, use = 'complete.obs') # highest r but smaller n
-cor(comb$leaftemp_top, comb$mean_psi_MPa, use = 'complete.obs')
-
-cor(comb$leaftemp_highest_avail, comb$mean_psi_MPa, use = 'complete.obs') # highest n and r
-cor(comb$leaftemp_mean, comb$mean_psi_MPa, use = 'complete.obs')
-summary(comb$leaftemp_bottom); summary(comb$leaftemp_middle); summary(comb$leaftemp_top)
-
-# use mean "high" RH and temp
-comb$rh_high_mean <- rowMeans(comb[ , c('sht1_high_rh','am2320_high_rh')], na.rm = T)
-comb$temp_high_mean <- rowMeans(comb[ , c('sht1_high_temp','am2320_high_temp')], na.rm = T)
-cor(comb$rh_high_mean, comb$mean_psi_MPa, use='complete.obs')
-cor(comb$temp_high_mean, comb$mean_psi_MPa, use='complete.obs')
+# cor(comb$sht1_high_rh, comb$am2320_high_rh, use = 'complete.obs')
+# cor(comb$sht2_low_rh, comb$sht1_high_rh,  use = 'complete.obs')
+# 
+# # correlation of air temp with psi_leaf
+# cor(comb$sht1_high_temp, comb$mean_psi_MPa, use = 'complete.obs')
+# cor(comb$am2320_high_temp, comb$mean_psi_MPa, use = 'complete.obs')
+# 
+# cor(comb$sht2_low_temp, comb$mean_psi_MPa, use = 'complete.obs')
+# cor(comb$bmp_box_temp, comb$mean_psi_MPa, use = 'complete.obs')
+# 
+# # correlation of leaftemp and psi_leaf
+# cor(comb$leaftemp_bottom, comb$mean_psi_MPa, use = 'complete.obs')
+# cor(comb$leaftemp_middle, comb$mean_psi_MPa, use = 'complete.obs') # highest r but smaller n
+# cor(comb$leaftemp_top, comb$mean_psi_MPa, use = 'complete.obs')
+# 
+# cor(comb$leaftemp_highest_avail, comb$mean_psi_MPa, use = 'complete.obs') # highest n and r
+# cor(comb$leaftemp_mean, comb$mean_psi_MPa, use = 'complete.obs')
+# summary(comb$leaftemp_bottom); summary(comb$leaftemp_middle); summary(comb$leaftemp_top)
+# 
+# # use mean "high" RH and temp
+# comb$rh_high_mean <- rowMeans(comb[ , c('sht1_high_rh','am2320_high_rh')], na.rm = T)
+# comb$temp_high_mean <- rowMeans(comb[ , c('sht1_high_temp','am2320_high_temp')], na.rm = T)
+# cor(comb$rh_high_mean, comb$mean_psi_MPa, use='complete.obs')
+# cor(comb$temp_high_mean, comb$mean_psi_MPa, use='complete.obs')
 
 # calculate VPD_leaf based on leaf temperature
 comb$VPD_leaf <- (1 - (comb$rh_high_mean / 100)) * 0.61121 * exp((17.502 * comb$leaftemp_highest_avail) / (240.97 + comb$leaftemp_highest_avail)) 
@@ -356,7 +357,7 @@ comb$block <- as.factor(comb$block)
 # Save combined data 
 saveRDS(comb, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
-comb <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+# comb <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
 
 ## Check date ranges for data sets

@@ -72,7 +72,7 @@ rh$par2_s_plusLED[ind] <- rh$par2_s[ind] + 225
 
 # plot rh before (black) and after (red) adding LED
 x=subset(rh, date >= '2019-12-04' & date <= '2019-12-12')
-plot(x$by15, x$par1_n_plusLED, type = 'l', col='red'); lines(x$by15, x$par1_n)
+plot(x$by15, x$par1_n, type = 'l', col='red'); lines(x$by15, x$par1_n)
 
 
 # ---- Looks good, now replace the original data columns with added PAR
@@ -83,8 +83,29 @@ lq$line_PAR_west_umol_m2_s_plusLED <- NULL
 rh$par1_n <- rh$par1_n_plusLED; rh$par1_n_plusLED <- NULL
 rh$par2_s <- rh$par2_s_plusLED; rh$par2_s_plusLED <- NULL
 
+# remove "X" column (not sure where that came from), and date/minutes columns
+rh <- subset(rh, select = -c(date, minutes, X))
+lq <- subset(lq, select = -c(date, minutes, X))
+
 # save the updated data files
-# write.csv(lq, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/line_PAR_15.csv',
-#           append = F)
-# write.csv(rh, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv',
-#           append = F)
+write.csv(lq, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv',
+          row.names = F)
+write.csv(rh, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv',
+          row.names = F)
+
+
+# ----- bonus code....not used, except to show that the LQ par data is better quality overall.
+
+# --- examine the 'rh' PAR data...baseline (night) LED is < 0, let's shift it upward.
+x=subset(rh, date >= '2019-12-04' & date <= '2019-12-12')
+x=subset(rh, date <= '2019-11-15'); y=subset(lq, date <= '2019-11-15')
+x=subset(rh, date >= '2019-11-15'); y=subset(lq, date >= '2019-11-15')
+
+x=rh
+plot(x$by15, x$par1_n, type = 'l', col='red'); abline(c(0,0))
+lines(x$by15, x$par2_s, type = 'l', col='blue'); abline(c(0,0))
+
+# compare to lq par
+plot(x$by15, x$par1_n, type = 'l', col='red'); abline(c(0,0))
+lines(y$by15, y$line_PAR_east_umol_m2_s, type = 'l', col='blue'); abline(c(0,0))
+lines(y$by15, y$line_PAR_west_umol_m2_s, type = 'l', col='green'); abline(c(0,0))

@@ -113,8 +113,7 @@ for(i in 1:nreps) {
 }
 z=unlist(nzcList)
 b=sort(unique(unlist(nzcList)))
-v=sapply(b, function(a) length(z[z == a]))
-(nzCoef = names(v[(nreps-v)<3]))
+sapply(b, function(a) length(z[z == a]))
 
 # THESE 7 VARIABLES SEEM MOST IMPORTANT:
 # blockM, bMP_box_temp, irrig, leaftemp_mean, minutes, sht2_low_rh, "treatmentwell_watered" (somewhat)
@@ -123,7 +122,7 @@ v=sapply(b, function(a) length(z[z == a]))
 # to a much lesser degree, "daysPostTrt" is also important
 
 # CV using full dataset
-lasso.cv <- cv.glmnet(x, y, family='gaussian', alpha=1, nfolds=5, standardize=T); plot(lasso.cv)
+lasso.cv <- cv.glmnet(x, y, family='gaussian', alpha=1, nfolds=10, standardize=T); plot(lasso.cv)
 lasso.cv$lambda.1se
 
 # Now that we know lambda, fit on *full* data set
@@ -139,19 +138,17 @@ nzCoef
 
 # predictions on all data
 lasso_pred_full <- predict(full_fit_lasso, s = lasso.cv$lambda.1se, newx = x)
-sqrt(mean((lasso_pred_full - y)^2))
+mean((lasso_pred_full - y)^2)
 mean(abs(lasso_pred_full - y))
 plot(lasso_pred_full, y); abline(0, 1, col='red')
 
 # Use all variables (full model)
-fullmod_lasso <- lm(y ~ x[,nzCoef])
-fullmod_lasso <- lm(mean_psi_MPa ~ block + bmp_box_temp + irrig + leaftemp_mean +
-                      minutes + sht2_low_rh + windspeed_top, data=df2)
-summary(fullmod_lasso)
-sqrt(mean(fullmod_lasso$residuals^2)); mean(abs(fullmod_lasso$residuals))
+fullmod_lasso_phys <- lm(y ~ x[,nzCoef])
+summary(fullmod_lasso_phys)
+mean(fullmod_lasso_phys$residuals^2); mean(abs(fullmod_lasso_phys$residuals))
 
 # ### Predict on full data
-# pred_all_fullmod_lasso <- predict(fullmod_lasso, comb_all)
+# pred_all_fullmod_lasso_phys <- predict(fullmod_lasso_phys, comb_all)
 
 ### Now compare to the model Clay determined earlier was best
 ## (Dropped variables 'treatmentwell_watered' and 'sht2_low_rh', 'blockM'; added 'block')
@@ -201,74 +198,111 @@ ggplot(comb_all_predict, aes(x=by15, y=predicted_psi_leaf, color=treatment)) + g
 
 
 
+### ----- Compare some models using cross-validation approach
+### Split data into test/train sets
+
+cvFun <- function(x, propTrain) {
+  
+  # non-stratified sampling
+  train <- sample(1:nrow(df2), nrow(df2)*propTrain, replace = F)
+  
+  # create split datasests
+  df2_train <- df2[train,]; nrow(df2_train)
+  df2_test <- df2[-train,]; nrow(df2_test)
+  nrow(df2_train); nrow(df2_test)
+  
+  m1 <- lm(mean_psi_MPa ~ bmp_box_temp + minutes + irrig + block + leaftemp_mean, df2_train)
+  m2 <- lm(mean_psi_MPa ~ minutes + irrig + leaftemp_mean + block, df2_train)
+  m3 <- lm(mean_psi_MPa ~ minutes + irrig + poly(VPD_leaf, 2), df2_train)
+  
+  mod.list <- list(m1, m2, m3)
+  
+  x=sapply(mod.list, function(m) {
+    y.hat = predict(m, newdata = df2_test)
+    resid = df2_test$mean_psi_MPa - y.hat
+    mean(resid^2)
+  })
+  return(which(x==min(x))) # return the model number w/smallest test MSE
+}
+
+cvout = sapply(1:500, function(x) cvFun(x, propTrain = 0.8))
+table(cvout)
+cvout = sapply(1:500, function(x) cvFun(x, propTrain = 0.5))
+table(cvout)
+
+
 ### RANDOM FORESTS
 
 require(ranger) 
 require(caret)
 
 
-# examine PAR data for df2
-summary(df2$par1_n)
-summary(df2$line_PAR_east_umol_m2_s)
-summary(df2$line_PAR_west_umol_m2_s)
-plot(df2$line_PAR_west_umol_m2_s, df2$mean_psi_MPa, col = df2$treatment, pch = 19)
-plot(df2$par1_n, df2$mean_psi_MPa, col = df2$treatment, pch = 19)
-legend('bottomright', legend=c(levels(df2$treatment)), col=1:4, pch=19, cex=0.6)
+# scale entire data set before splitting
+# cc <- sapply(df2, class) # column classes
+# df2_scaled <- df2[ , names(cc[cc == 'numeric'])]
+# df2_scaled <- cbind(df2[ , names(cc[cc != 'numeric'])],
+#                           as.data.frame(scale(df2_scaled)))
 
-ggplot(df2) +
-  geom_point(aes(x=par1_n, y=mean_psi_MPa, color=treatment)) +
-  geom_smooth(aes(x=par1_n, y=mean_psi_MPa, color=treatment), method = 'lm', formula = y ~ poly(x,2))
-summary(lm(mean_psi_MPa ~ poly(par1_n, 2) + poly(leaftemp_mean, 2) + treatment, df2))
+### Split data into test/train sets
+set.seed(1)
+propTrain <- 0.8
 
-ggplot(df2) +
-  geom_point(aes(x=line_PAR_west_umol_m2_s, y=mean_psi_MPa, color=treatment)) +
-  geom_smooth(aes(x=line_PAR_west_umol_m2_s, y=mean_psi_MPa, color=treatment), method = 'lm', formula = y ~ poly(x,2), se=F)
+# split the data
+# stratified sampling based on treatment
+stratvar <- 'treatment'
 
-ggplot(df2) +
-  geom_point(aes(x=leaftemp_mean, y=mean_psi_MPa, color=treatment)) +
-  geom_smooth(aes(x=leaftemp_mean, y=mean_psi_MPa, color=treatment), method = 'lm', formula = y ~ poly(x,2), se=F)
-summary(lm(mean_psi_MPa ~ poly(leaftemp_mean, 2) + treatment, df2))
+# stratified sampling based on response
+stratvar <- 'mean_psi_MPa'
 
-ggplot(df2) +
-  geom_point(aes(x=bmp_box_temp, y=mean_psi_MPa, color=treatment)) +
-  geom_smooth(aes(x=bmp_box_temp, y=mean_psi_MPa, color=treatment), method = 'lm', formula = y ~ poly(x,2), se=F)
+### OK to stratify using UNSCALED values for psi_leaf (?)
+train <- as.numeric(createDataPartition(df2[[stratvar]], p = propTrain, list = F))
 
-ggplot(df2) +
-  geom_point(aes(x=altd, y=mean_psi_MPa, color=treatment)) +
-  geom_smooth(aes(x=altd, y=mean_psi_MPa, color=treatment), method = 'lm', formula = y ~ x, se=T)
+# non-stratified sampling
+train <- sample(1:nrow(df2), nrow(df2)*propTrain, replace = F)
 
-summary(lm(mean_psi_MPa ~ poly(leaftemp_mean, 2) + treatment, df2))
-summary(lm(mean_psi_MPa ~ poly(leaftemp_mean, 2) + mean_irrig_kg, df2))
-summary(lm(mean_psi_MPa ~ poly(leaftemp_mean, 1)* par_threshold + treatment , df2))
+# create split datasests
+df2_train <- df2[train,]; nrow(df2_train)
+df2_test <- df2[-train,]; nrow(df2_test)
+# df2_train_scaled <- df2_scaled[train,]; nrow(df2_train_scaled)
+# df2_test_scaled <- df2_scaled[-train,]; nrow(df2_test_scaled)
+
+# treatment
+prop.table(table(df2$treatment)); prop.table(table(df2_test_scaled$treatment)); prop.table(table(df2_train_scaled$treatment))
+# block
+prop.table(table(df2$block)); prop.table(table(df2_test_scaled$block)); prop.table(table(df2_train_scaled$block))
+#
+
+# check stratification
+prop.table(table(df2_train_scaled[[stratvar]])); prop.table(table(df2_test_scaled[[stratvar]]))
+summary(df2_train_scaled[[stratvar]]); summary(df2_test_scaled[[stratvar]])
 
 
 
-ggplot(df2) +
-  geom_point(aes(x=altd, y=mean_psi_MPa, color=treatment)) +
-  geom_smooth(aes(x=altd, y=mean_psi_MPa, color=treatment), method = 'lm', formula = y ~ poly(x,2), se=F)
-summary(lm(mean_psi_MPa ~ poly(altd, 1) + treatment, df2))
-summary(lm(mean_psi_MPa ~ poly(altd, 1) + treatment, df2))
+### **********
+### Scale the test and training sets independently
+### *********** THIS PROBABLY NOT IMPORTANT, LET'S TABLE FOR NOW....
+
+# subset to only numeric columns
+# cc <- sapply(df2, class)
+# df2_train_scaled <- df2_train[ , names(cc[cc == 'numeric'])]
+# df2_train_scaled <- cbind(df2_train[ , names(cc[cc != 'numeric'])],
+#                           as.data.frame(scale(df2_train_scaled)))
+# 
+# df2_test_scaled <- df2_test[ , names(cc[cc == 'numeric'])]
+# df2_test_scaled <- cbind(df2_test[ , names(cc[cc != 'numeric'])],
+#                           as.data.frame(scale(df2_test_scaled)))
+
 
 # fit a one-off random forest model (no tuning)
-rf_quick_allvars <- ranger(mean_psi_MPa~ .,
-                           data=df2,
-                           num.trees=5000,
-                           mtry=NULL,
-                           importance = 'impurity')
-print(rf_quick_allvars)
-importance(rf_quick_allvars)[order(importance(rf_quick_allvars), decreasing = T)]
-
-# try just some variables of interest
-
-rf_quick <- ranger(mean_psi_MPa ~ leaftemp_mean + mean_irrig_kg + stress_index + par1_n + pyr1_n,
-                   data=df2,
+rf_quick <- ranger(mean_psi_MPa~ .,
+                   data=df2_train,
                    num.trees=5000,
                    mtry=NULL,
-                   min.node.size = 1,
                    importance = 'impurity')
+
+# treeInfo(Rf1)
 print(rf_quick)
 importance(rf_quick)[order(importance(rf_quick), decreasing = T)]
-
 
 
 ### --- Tune the Random Forest Model --
@@ -284,32 +318,19 @@ fitControl_randomForest <- trainControl(method='repeatedcv',
 
 # (optional) create grid of tuning parameters for train()
 sqrt(ncol(df2_train-1))
-tuneGrid = expand.grid(mtry = 1:3, 
+tuneGrid = expand.grid(mtry = seq(1, 10, 2), 
                        splitrule = c('variance', 'extratrees', 'maxstat'),
-                       min.node.size = 1:3)
+                       min.node.size = seq(1, 10, 2))
 
 
 # train the model
-randomForest_pl <- train(mean_psi_MPa ~ treatment + irrig + leaftemp_highest_avail +
-                           minutes + par1_n,
-                         data=df2,
-                         metric='RMSE',
-                         trControl=fitControl_randomForest,
-                         # tuneLength=5, # use instead of tuneGrid (? I think)
-                         method='ranger',
-                         tuneGrid = tuneGrid,
-                         importance = 'impurity')
-
-# using all variables.
 randomForest_pl <- train(mean_psi_MPa ~ .,
                          data=df2,
                          metric='RMSE',
                          trControl=fitControl_randomForest,
                          # tuneLength=5, # use instead of tuneGrid (? I think)
                          method='ranger',
-                         tuneGrid = tuneGrid, 
-                         importance = 'impurity')
-plot(varImp(randomForest_pl))
+                         tuneGrid = tuneGrid)
 print(randomForest_pl)
 best <- randomForest_pl$bestTune
 res <- randomForest_pl$results
@@ -318,9 +339,8 @@ res[res$Rsquared == max(res$Rsquared),]
 plot(randomForest_pl)
 
 # Fit again using the "best" tuned model
-rf_best <- ranger(mean_psi_MPa~ treatment + irrig + leaftemp_highest_avail +
-                    minutes + par1_n,
-                  data=df2,
+rf_best <- ranger(mean_psi_MPa~ .,
+                  data=df2_train,
                   num.trees=5000,
                   mtry=best$mtry,
                   importance = 'impurity', 
@@ -332,19 +352,34 @@ importance(rf_best)[order(importance(rf_best), decreasing = T)]
 
 ### make predictions using the tuned RF
 pred <- predict(randomForest_pl, df2)
+train_pred <- pred[train]
+test_pred <- pred[-train]
+
+# using refit forest "best"
+# train_pred <- predict(rf_best, df2_train)$predictions 
+# test_pred <- predict(rf_best, df2_test)$predictions
+
+# unscale the predictions
+# train_pred <- train_pred * sd(df2$mean_psi_MPa) + mean(df2$mean_psi_MPa)
+# test_pred <- test_pred * sd(df2$mean_psi_MPa) + mean(df2$mean_psi_MPa)
 
 summary(df2$mean_psi_MPa); summary(pred)
+summary(df2_train$mean_psi_MPa); summary(train_pred)
+summary(df2_test$mean_psi_MPa); summary(test_pred)
 
 
 ## calculate RMSE 
 sqrt(mean((pred - df2$mean_psi_MPa)^2)) # on all data
-
+sqrt(mean((test_pred - df2_test$mean_psi_MPa)^2)) # on test set
+sqrt(mean((train_pred - df2_train$mean_psi_MPa)^2)) # on train set
 
 ## calculate MAE (mean absolute error)
-mean(abs(pred - df2$mean_psi_MPa))
+mean(abs(test_pred - df2_test$mean_psi_MPa))
+mean(abs(train_pred - df2_train$mean_psi_MPa))
 
 ## Plot y vs. yhat
-plot(df2$mean_psi_MPa, pred, xlab='actual', ylab='predicted'); abline(0,1) # train points in black
+plot(df2_train$mean_psi_MPa, train_pred, xlab='actual', ylab='predicted'); abline(0,1) # train points in black
+points(df2_test$mean_psi_MPa, test_pred, col='red') # test points in red
 
 
 ### Predictions on full data set --------------------------
@@ -362,43 +397,35 @@ comb_all_predict <- comb_all_predict[complete.cases(comb_all_predict),]
 comb_all_predict$yhat_rf <- predict(randomForest_pl, 
                                     newdata = comb_all_predict, 
                                     type = 'raw')
-comb_all_predict$yhat_lasso <- predict(fullmod_lasso, newdata = comb_all_predict)
 
 # merge back 
 comb_all_predict <- merge(comb_all_predict, copy[,c('by15','block','mean_psi_MPa')])
 
 # using ranger "quick" forest instead.
 # pred_all_rf <- predict(rf_best, 
-# select only columns used in training model
-# data = comb_all[ , names(comb_all)[names(comb_all) %in% names(df2)]])
+                       # select only columns used in training model
+                       # data = comb_all[ , names(comb_all)[names(comb_all) %in% names(df2)]])
 
 # pred_all_rf <- pred_all_rf * sd(df2$mean_psi_MPa) + mean(df2$mean_psi_MPa) # unscaled
 summary(df2$mean_psi_MPa); summary(pred_all_rf)
 plot(density(df2$mean_psi_MPa)); plot(density(pred_all_rf))
 
 
-### Linear Models
-mod2 <- lm(mean_psi_MPa ~ minutes + irrig + block + poly(leaftemp_mean,2), df2); summary(mod2)
-# mod3 <- lm(mean_psi_MPa ~ irrig + block + leaftemp_mean * par1_n, df2); summary(mod3)
-mod3 <- lm(mean_psi_MPa ~ par1_n + irrig + block +  poly(leaftemp_mean,2), df2); summary(mod3)
-
-sqrt(mean(mod2$residuals^2)); mean(abs(mod2$residuals))
-sqrt(mean(mod3$residuals^2)); mean(abs(mod3$residuals))
-
+### Linear Model
+mod2 <- lm(mean_psi_MPa ~ bmp_box_temp + minutes + irrig + block + leaftemp_mean, df2); summary(mod2)
+mean(mod2$residuals^2); mean(abs(mod2$residuals))
 pred_all_lm <- predict(mod2, comb_all)
-pred_all_lm_2 <- predict(mod3, comb_all)
+
 
 
 ### Plot the predicted psi_leaf =========================================
 
 # add predcitions to comb_all
 comb_all_predict <- comb_all
-# comb_all_predict$yhat_lasso_phys <- pred_all_fullmod_lasso_phys
+comb_all_predict$yhat_lasso_phys <- pred_all_fullmod_lasso_phys
 comb_all_predict$yhat_lm <- pred_all_lm
-comb_all_predict$yhat_lm_2 <- pred_all_lm_2
-
 comb_all_predict$yhat_rf <- pred_all_rf
-# head(comb_all_predict)
+head(comb_all_predict)
 
 # plot 2nd treatments
 sub <- subset(comb_all_predict, date(by15) >= '2019-11-04' & date(by15) <= '2019-11-27', drop = F)
@@ -406,57 +433,13 @@ sub <- subset(comb_all_predict, date(by15) >= '2019-11-04' & date(by15) <= '2019
 sub <- subset(comb_all_predict, date(by15) >= '2019-12-01' & date(by15) <= '2019-12-08')
 sub <- subset(comb_all_predict, date(by15) == '2019-11-20')
 
-# ggplot(sub, aes(x=by15, y=yhat_rf, color=treatment)) + geom_line() +
-#   # geom_line(aes(x=by15, y=line_PAR_east_umol_m2_s/500, color='black')) +
-#   geom_point(aes(x=by15, y=mean_psi_MPa), size=3)
+ggplot(sub, aes(x=by15, y=yhat_rf, color=treatment)) + geom_line() +
+  # geom_line(aes(x=by15, y=line_PAR_east_umol_m2_s/500, color='black')) +
+  geom_point(aes(x=by15, y=mean_psi_MPa), size=3)
 
-
-# plot 1st period
-
-sub <- subset(comb_all_predict, date(by15) >= '2019-11-18' & date(by15) <= '2019-11-21', drop = F)
-
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
-'model_pred_no_PAR_period_1.png'), width=1400, height=700)
-ggplot(sub) +
-  geom_line(aes(x=by15, y=yhat_lm, color=treatment)) + ylim(c(-0.5,2.5)) +
-  geom_line(aes(x=by15, y=par1_n/500), linetype = 'dashed') +
-  geom_point(aes(x=by15, y=mean_psi_MPa, color=treatment), size=3) + ggtitle('Model without PAR')
-dev.off()
-
-
-# ggplot(sub) + 
-#   geom_line(aes(x=by15, y=altd, color=treatment)) +
-#   geom_line(aes(x=by15, y=leaftemp_mean, color=treatment), linetype = 'dashed')
-#   geom_line(aes(x=by15, y=leaftemp_mean, color=treatment)) +
-#   geom_line(aes(x=by15, y=temp_high_mean), linetype = 'dashed') +
-#   geom_line(aes(x=by15, y=bmp_box_temp), linetype = 'solid')
-
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
-           'model_pred_with_PAR_period_1.png'), width=1400, height=700)
-ggplot(sub) +
-  geom_line(aes(x=by15, y=yhat_lasso, color=treatment)) + ylim(c(-0.5,2.5)) +
-  geom_line(aes(x=by15, y=par1_n/500), linetype = 'dashed') +
-  geom_point(aes(x=by15, y=mean_psi_MPa, color=treatment), size=3) + ggtitle('Model with PAR')
-dev.off()
-
-# plot 2nd period
-sub <- subset(comb_all_predict, date(by15) >= '2019-12-09' & date(by15) <= '2019-12-12', drop = F)
-
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
-           'model_pred_no_PAR_period_2.png'), width=1400, height=700)
-ggplot(sub) +
-  geom_line(aes(x=by15, y=yhat_lm, color=treatment)) + ylim(c(-0.5,2.5)) +
-  geom_line(aes(x=by15, y=par1_n/500), linetype = 'dashed') +
-  geom_point(aes(x=by15, y=mean_psi_MPa, color=treatment), size=3) + ggtitle('Model without PAR')
-dev.off()
-
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
-           'model_pred_with_PAR_period_2.png'), width=1400, height=700)
-ggplot(sub) +
-  geom_line(aes(x=by15, y=yhat_lm_2, color=treatment)) + ylim(c(-0.5,2.5)) +
-  geom_line(aes(x=by15, y=par1_n/500), linetype = 'dashed') +
-  geom_point(aes(x=by15, y=mean_psi_MPa, color=treatment), size=3) + ggtitle('Model with PAR')
-dev.off()
+ggplot(sub, aes(x=by15, y=yhat_lm, color=treatment)) + geom_line() +
+  # geom_line(aes(x=by15, y=leaftemp_mean/10)) +
+  geom_point(aes(x=by15, y=mean_psi_MPa), size=3)
 
 ### NOTES
 # Using full data set (n=60), random forest does poor job (does not capture high/low values of psi_leaf)
