@@ -112,6 +112,8 @@ ggplot(modeled_plant_wt, aes(x=date, y=modeled_weight_linear_g, color=block)) + 
 # Save the predictions
 saveRDS(modeled_plant_wt, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
 
+# read back in 
+# modeled_plant_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
 
 
 
@@ -122,6 +124,11 @@ saveRDS(modeled_plant_wt, '/home/wmsru/github/2020_greenhouse/second_fall_experi
 
 # read in 15-minute aggregated (and flagged) balance data 
 baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
+# omit border plants
+baldat <- subset(baldat, !grepl('border', baldat$plant_id)) 
+# rename scale weight column for clarity
+colnames(baldat)[colnames(baldat)=='mean_weight_kg'] <- 'scale_weight_kg'
+
 
 # daily mass after irrigation & fully drained, 2 AM
 dm <- ddply(baldat, .(date, plant_id, block), function(x) {
@@ -136,7 +143,6 @@ dm <- ddply(baldat, .(date, plant_id, block), function(x) {
 })
 dm$night_scale_mass_kg <- as.numeric(dm$night_scale_mass_kg)
 
-dm <- subset(dm, !grepl('border', dm$plant_id)) # omit border plants
 
 ### Test method on a single plant...
 sub = subset(dm, plant_id == 'W-6')
@@ -182,8 +188,8 @@ start_wt_emp$dry_soil_mass_kg <- start_wt_emp$wet_soil_mass_kg / (1 + 0.45/0.65)
 
 
 
-# ----- Let's try this for one plant and treatment period, block "D" trt 1
-pid <- 'D-10'
+# ----- Let's try this for First Treatement, nighttime only
+
 start <- '2019-10-22'; end <- '2019-11-04'
 sub <- subset(baldat, plant_id == pid & date >= start & date <= end)
 ggplot(sub, aes(x=roundTime, y=mean_weight_kg)) + geom_point() + 
@@ -208,22 +214,17 @@ start_wt_emp <- merge(start_wt_emp, plant_wt_sub, all = T)
 # calculate mass of wet soil only
 start_wt_emp$wet_soil_mass_kg <- start_wt_emp$night_scale_mass_kg - start_wt_emp$all_sensors_wt_kg - 0.15
 start_wt_emp$wet_soil_mass_kg[start_wt_emp$plant_id=='W-11'] <- start_wt_emp$night_scale_mass_kg[start_wt_emp$plant_id=='W-11'] - mean_bs_wt/1000
-
-
-# first change block to V to match modeled plant wt df
-start_wt_emp$block <- as.character(start_wt_emp$block)
-
-
-
 # drop columns 
 start_wt_emp <- subset(start_wt_emp, select=-c(n, all_sensors_wt_kg))
 
 # split off the reference weights (day1)
 wtRef <- subset(start_wt_emp, date == '2019-10-22')
 
-# back-calculate mass of dry soil, assuming water content of 0.45 and bulk density of 0.65
-wtRef$dry_soil_mass_kg <- wtRef$wet_soil_mass_kg / (1 + 0.45/0.65)
-wtRef$dry_soil_vol_L <- wtRef$dry_soil_mass_kg / 0.65
+# back-calculate mass of dry soil, assuming water content of 0.45 (vanBavel) and bulk density of 0.65 (from Garrett; air dry)
+saturated_prop_water <- 0.45
+bulk_density <- 0.65
+wtRef$dry_soil_mass_kg <- wtRef$wet_soil_mass_kg / (1 + saturated_prop_water / bulk_density)
+wtRef$dry_soil_vol_L <- wtRef$dry_soil_mass_kg / bulk_density
 
 # now merge modeled plant weights 
 wtRef2 <- merge(start_wt_emp,
@@ -243,7 +244,7 @@ wtRef2$wet_soil_mass_kg <- ifelse(wtRef2$block == 'V',
 # now calculate water content
 wtRef2$volumetric_water_content <- NA
 for(i in 1:nrow(wtRef2)) {
-  print(i)
+  # print(i)
   pl <- wtRef2$plant_id[i]
   # WHY ARE SOME PLANT_ID's NA???
   if(!is.na(pl)) {
@@ -261,14 +262,122 @@ wtRef2$volumetric_water_content <- round(wtRef2$volumetric_water_content, 3)
 # merge
 wtRef3 <- merge(wtRef2, vb, by = 'volumetric_water_content', all.x = T)
 
-### HMMM.....the weight of soil is decreasing each day... not ideal!
-
+# plots of soil water potential
 ggplot(subset(wtRef3, block == 'D')) +
   geom_point(aes(x=date, y=pressure_potential_kPa, color = plant_id))
 ggplot(subset(wtRef3, block == 'M')) +
   geom_point(aes(x=date, y=pressure_potential_kPa, color = plant_id))
 ggplot(subset(wtRef3, block == 'W')) +
   geom_point(aes(x=date, y=pressure_potential_kPa, color = plant_id))
+
+# plots of soil water content
+ggplot(subset(wtRef3, block == 'D')) +
+  geom_point(aes(x=date, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wtRef3, block == 'M')) +
+  geom_point(aes(x=date, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wtRef3, block == 'W')) +
+  geom_point(aes(x=date, y=volumetric_water_content, color = plant_id))
+
+
+### ---- Repeat above, Treatement 1, but using 15-minute scale data ----
+
+pid <- 'D-10'
+start <- '2019-10-22'; end <- '2019-11-04'
+sub <- subset(baldat, plant_id == pid & date >= start & date <= end)
+ggplot(sub, aes(x=roundTime, y=scale_weight_kg)) + geom_point() + 
+  geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
+  geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
+  geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
+
+
+
+# subset scale data to range for Treatment 1
+wc <- subset(baldat, date >= start & date <= end, select = -c(max_diff_weight, hour))
+
+# add up weight of sensors
+plant_wt$all_sensors_wt_kg <- 1e-3*rowSums(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g','teros_wt_g','watermark_wt_g')], na.rm = T)
+# get mean bs sensor wt to subtract from pot W-11 below (it was not recorded)
+mean_bs_wt <- mean(unlist(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g')]), na.rm = T)
+# omit virgin plants, they aren't in this trt
+plant_wt_sub <- subset(plant_wt, !plant_id %in% c('W-25','W-26','W-27','W-28','W-2'),
+                       select = c(plant_id, all_sensors_wt_kg))
+
+# merge to harvest plant/sensor weight data
+wc <- merge(wc, plant_wt_sub, all = T)
+
+# calculate mass of wet soil only: subtract out pot weight and sensor weights
+# pot weight guestimated to be 0.15 kg
+wc$wet_soil_mass_kg <- wc$scale_weight_kg - wc$all_sensors_wt_kg - 0.15
+wc$wet_soil_mass_kg[wc$plant_id=='W-11'] <- wc$scale_weight_kg[wc$plant_id=='W-11'] - mean_bs_wt/1000
+# drop columns 
+wc <- subset(wc, select=-c(all_sensors_wt_kg))
+
+
+# now merge modeled plant weights 
+wc2 <- merge(wc,
+             subset(modeled_plant_wt, date >= start & date <= end & block != 'V'),
+             all.x = T)
+
+# convert modeled plant weights from g to kg
+wc2$modeled_weight_linear_kg <- wc2$modeled_weight_linear_g/1000
+wc2$modeled_weight_logistic_kg <- wc2$modeled_weight_logistic_g/1000
+wc2 <- subset(wc2, select = -c(modeled_weight_linear_g, modeled_weight_logistic_g, date_num))
+
+# subtract out modeled above-ground plant biomass.
+# Use logistic model, since no Virign plants involved.
+wc2$wet_soil_mass_kg <- wc2$wet_soil_mass_kg - wc2$modeled_weight_logistic_kg
+
+
+# Now, subset out the starting pot weights to use as a reference in calculating dry mass of soil
+wcStart <- subset(wc2, roundTime == as.POSIXct('2019-10-22 01:00', tz = "GMT"))
+
+# back-calculate mass of dry soil, assuming water content of 0.45 (vanBavel) and bulk density of 0.65 (from Garrett; air dry)
+saturated_prop_water <- 0.45
+bulk_density <- 0.65
+wcStart$dry_soil_mass_kg <- wcStart$wet_soil_mass_kg / (1 + saturated_prop_water / bulk_density)
+wcStart$dry_soil_vol_L <- wcStart$dry_soil_mass_kg / bulk_density
+
+
+# now calculate water content for each plant at 15-min steps
+wcSplit <- split(wc2, wc2$plant_id)
+wc2 <- do.call(rbind, lapply(wcSplit, function(x) {
+  pl <- unique(x$plant_id)
+  drywt <- wcStart$dry_soil_mass_kg[wcStart$plant_id == pl]
+  dryvol <- wcStart$dry_soil_vol_L[wcStart$plant_id == pl]
+  x$volumetric_water_content <- (x$wet_soil_mass_kg - drywt) / dryvol
+  return(x)
+}))
+
+
+
+# convert water content to soil water potential, using vanBavel curve fit data
+vb <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/vanBavel_desorptionCurve_dataExtract.csv')
+
+# round values to 3 digits, to match VB data
+wc2$volumetric_water_content <- round(wc2$volumetric_water_content, 3)
+# merge
+wtRef3 <- merge(wc2, vb, by = 'volumetric_water_content', all.x = T)
+
+# plots of soil water potential
+ggplot(subset(wtRef3, block == 'D')) +
+  geom_point(aes(x=roundTime, y=pressure_potential_kPa, color = plant_id))
+ggplot(subset(wtRef3, block == 'M')) +
+  geom_point(aes(x=roundTime, y=pressure_potential_kPa, color = plant_id))
+ggplot(subset(wtRef3, block == 'W')) +
+  geom_point(aes(x=roundTime, y=pressure_potential_kPa, color = plant_id))
+
+# plots of soil water content
+ggplot(subset(wtRef3, block == 'D')) +
+  geom_point(aes(x=roundTime, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wtRef3, block == 'M')) +
+  geom_point(aes(x=roundTime, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wtRef3, block == 'W')) +
+  geom_point(aes(x=roundTime, y=volumetric_water_content, color = plant_id))
+
+
+
+
+
 
 # -- ----- OLDER CODE.....
 
