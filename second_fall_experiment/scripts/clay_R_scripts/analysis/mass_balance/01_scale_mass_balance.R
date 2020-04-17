@@ -4,221 +4,19 @@ lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
 
-# read in 15-minute aggregated (and flagged) balance data 
-baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
 
-### Examine the aggregated data by scale
-x = subset(baldat, scale==1)
-ggplot(x, aes(x=roundTime, y=mean_weight_kg)) + geom_line() + ylim(c(10,15)) +
-  ggtitle(paste('scale ', unique(x$scale))) + 
-  geom_vline(xintercept=as.POSIXct(c('2019-10-24','2019-11-04','2019-11-27')), color='red')
+### -------- SECTION 1: Calculate Daily Above-Ground Plant Mass -------------
 
-
-# daily mass at same time, 3 AM (3 hours after watering)
-dm <- ddply(baldat, .(date, plant_id), function(x) {
-  ind <- hour(x$roundTime)==3 # & minute(x$roundTime)==0
-  if(length(ind[ind]) != 4) {
-    out <- NA
-  } else {
-    out <- mean(x$mean_weight_kg[ind], na.rm = T)
-  }
-  return(setNames(out,'saturated_mass_kg'))
-})
-dm$saturated_mass_kg <- as.numeric(dm$saturated_mass_kg)
-
-### Test method on a single plant...
-sub = subset(dm, plant_id == 'W-6')
-ggplot(sub, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_line() +
-  scale_x_date(breaks = "1 week", date_labels = '%m-%d') + ggtitle(unique(sub$plant_id))
-
-# add the end weight
-# end wt = (measured plant wet weight) + (sat. pot/soil wt at experiment end) - (sat pot/soil wt at experiment start)
-
-# W-6
-mww = 0.5936
-sww_end = 14.51 
-sww_start = 13.9409
-(end_wt = mww + sww_end - sww_start)
-
-# Read in end-of-experiment saturated pot weights data
-pot_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
 
 # Read in end-of-experiment plant/root wet weights
 plant_wt <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
                      col_names = T)
 plant_wt$plant_id <- toupper(plant_wt$plant_id)
-
-
-### ----- Calculate bulk dry weight of soil in each pot, based on volume.
-head(plant_wt)
-# depth of soil (pots are 29.8 cm tall, then subtract depth to soil surface) 
-plant_wt$mean_soil_depth_cm <- 29.8 - rowMeans(plant_wt[,c('soil_depth_1','soil_depth_2','soil_depth_3','soil_depth_4')]) / 10
-# use formula for conic fustrum volume. r1 = 11.0 cm, r2 = 12.9 cm
-plant_wt$soil_volume_L <- 1000*(pi/3)*(plant_wt$mean_soil_depth_cm/100)*(0.11^2 + 0.11*0.129 + 0.129^2)
-# convert to soil weight, using bulk density given by manufacturer = 36 (+/-2) lb/ft^3
-# (bd_kg_L <- 36 * 0.0160185) # bulk density, in kg/L (manufacturer)
-bd_kg_L <- 0.65 # using Garret's calculated value.
-plant_wt$soil_dry_weight_kg <- plant_wt$soil_volume_L * bd_kg_L
-# assuming water is 45% of soil volume, after drainage, calculate soil saturated wt
-plant_wt$soil_saturated_weight_kg <- plant_wt$soil_dry_weight_kg + 0.45*plant_wt$soil_volume_L
-summary(plant_wt$soil_saturated_weight_kg)
-# add up weight of sensors
+# add up weight of sensors (will be used below)
 plant_wt$all_sensors_wt_kg <- 1e-3*rowSums(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g','teros_wt_g','watermark_wt_g')], na.rm = T)
-# total pot weight, saturated soil
-plant_wt$total_pot_sat_wt_kg <- rowSums(plant_wt[,c('soil_saturated_weight_kg','all_sensors_wt_kg')])
-View(plant_wt[,c('plant_id','total_pot_sat_wt_kg')])
-
-# For each pot, exclude non-equilibrium dates,
-# add final saturated weight, and fit trend line...
 
 
-# create template dataframe (one per plant) to save predictions for each date
-# these will be combined into a list at end, and then back into a single dataframe
-pdat <- data.frame(date = seq.Date(min(baldat$date, na.rm = T),
-                                   max(baldat$date, na.rm = T), by = 1))
-pdat$date_num <- as.numeric(pdat$date - pdat$date[1]) + 1
-pdat[,c('plant_id','pred_plant_weight_kg')] <- NA
-
-# master list to save all plants predictions
-plist <- list()
-
-
-###  CLAY UPDATED ON 4/10....THIS SHOULD NOW WORK WITH ANY PLANT, NOT JUST W BLOCK...
-allplants <- unique(plant_wt$plant_id); allplants
-allplants <- allplants[!allplants %in% c('W-2','W-25','W-27','W-26','W-28') ]
-for(p in allplants) {
-  
-  # subset data based on specific (saturated) dates, determined for each block...
-  x <- switch(substr(p,1,1), # block letter
-              'W' = subset(dm, plant_id == p & date <= '2019-11-04'),
-              'M' = subset(dm, plant_id==p & (date <= '2019-10-24' | date >= '2019-12-01')),
-              'D' = subset(dm, plant_id == p & (date <= '2019-10-24' | date >= '2019-11-11' & date <= '2019-11-27')))
-  
-  # x = subset(dm, plant_id==p)
-  # check the plot
-  # ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + ggtitle(p)
-  
-  # plants were a week old on 9-16 so assume the weight is zero on day 1
-  # start_wt <- min(x$saturated_mass_kg, na.rm = T)
-  start_wt <- x$saturated_mass_kg[!is.na(x$saturated_mass_kg)][1] # data are sorted above
-  x$saturated_mass_kg <- x$saturated_mass_kg - start_wt
-  pot.wt <- pot_wt$pot_saturated_weight_kg[pot_wt$plant_id == p]
-  plant.wt <- plant_wt$wet_weight_g[plant_wt$plant_id == p] / 1000 # wt in grams, convert to kg
-  
-  end.plant.wt <- plant.wt 
-  
-  # if(substr(p,1,1)=='D') {
-  #   end.plant.wt <- x$saturated_mass_kg[nrow(x)]
-  # } else {
-  #   end.plant.wt <- plant.wt #+ pot.wt #- start_wt
-  # }
-  x <- rbind(x, data.frame(date=as.Date('2019-12-13', format='%Y-%m-%d'),
-                           plant_id=p, 
-                           saturated_mass_kg=end.plant.wt))
-  x$saturated_mass_kg <- as.numeric(x$saturated_mass_kg)
-  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + ggtitle(p)
-  
-  # convert negative values to zero
-  x$saturated_mass_kg[x$saturated_mass_kg < 0] <- NA
-  
-  # convert date to numeric for model fitting
-  x$date_num <- as.numeric(x$date - pdat$date[1]) + 1
-  
-  ## logistic model fitting ----
-  
-  # fit a self-starting logistic curve
-  ssl <- NULL
-  ssl <- tryCatch(nls(saturated_mass_kg ~ SSlogis(date_num, a, b, c), data = x),
-                  error = function(e) return('error'))
-  if(ssl == 'error') ssl <- tryCatch(nls(saturated_mass_kg ~ SSfpl(date_num, a, b, c, d), data = x),
-                                     error = function(e) return('error2'))
-  if(ssl %in% c('error', 'error2')) ssl <- NULL
-  
-  # ssl <- nls(saturated_mass_kg ~ SSlogis(date_num, a, b, c), data = x) # 3-point doesn't work often.
-  # ssl <- nls(saturated_mass_kg ~ SSfpl(date_num, a, b, c, d), data = x) # 4-point seems to work better.
-  
-  # summary(ssl)
-  # xv <- seq(0, x$date_num[length(x$date_num)], 1)
-  
-  # save predicted weights to master dataframe
-  preds <- pdat
-  preds$plant_id <- p
-  
-  if(is.null(ssl)) {
-    preds$pred_plant_weight_kg <- NA
-  } else {
-    preds$pred_plant_weight_kg <- as.numeric(predict(ssl, newdata = list(date_num = preds$date_num)))
-    png(paste('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/',
-              p, 'logistic.png', sep = '_'))
-    myplot <- ggplot(x) + geom_point(aes(x=date, y=saturated_mass_kg)) +
-      geom_line(data = preds, aes(x=date, y=pred_plant_weight_kg)) + ggtitle(p)
-    print(myplot)
-    dev.off()
-  }
-  
-  plist[[p]] <- preds
-}
-
-#combine lis
-preds.all <- do.call(rbind, plist)
-
-# --- M block plants
-
-p = 'M-6'
-for(p in c('M-6','M-7','M-10','M-11')) {
-  x <- subset(dm, plant_id == p)
-  
-  # Subsetting dates for D block plants
-  x <- subset(dm, plant_id == p & (date <= '2019-10-24' | date >= '2019-11-11' & date <= '2019-11-27'))
-  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_point() + ggtitle(p)
-  
-  # plants were a week old on 9-16 so assume the weight is zero on day 1
-  start_wt <- x$saturated_mass_kg[!is.na(x$saturated_mass_kg)][1] # data are sorted above
-  x$saturated_mass_kg <- x$saturated_mass_kg - start_wt
-  pot.wt <- pot_wt$pot_saturated_weight_kg[pot_wt$plant_id == p]
-  plant.wt <- plant_wt$wet_weight_g[plant_wt$plant_id == p] / 1000 # wt in grams, convert to kg
-  end.plant.wt <- plant.wt + pot.wt - start_wt
-  x <- rbind(x, data.frame(date=as.Date('2019-12-13', format='%Y-%m-%d'),
-                           plant_id=p, 
-                           saturated_mass_kg=end.plant.wt))
-  x$saturated_mass_kg <- as.numeric(x$saturated_mass_kg)
-  ggplot(x, aes(x=date, y=saturated_mass_kg)) + geom_point() + geom_line() + ggtitle(p)
-  # x$saturated_mass_kg[x$saturated_mass_kg < 0] <- NA
-  
-  # convert date to numeric for model fitting
-  x$date_num <- as.numeric(x$date - pdat$date[1]) + 1
-  
-  ## logistic model fitting ----
-  
-  # fit a self-starting logistic curve
-  ssl <- nls(saturated_mass_kg ~ SSlogis(date_num, a, b, c), data = x) # 3-point
-  # ssl <- nls(saturated_mass_kg ~ SSfpl(date_num, a, b, c, d), data = x) # 4-point
-  
-  # summary(ssl)
-  # xv <- seq(0, x$date_num[length(x$date_num)], 1)
-  # yv <- predict(ssl, newdata = list(date_num = xv))
-  # yv <- as.numeric(yv)
-  # plot(x$date_num, x$saturated_mass_kg)
-  # lines(xv, yv)
-  
-  # save predicted weights to master dataframe
-  preds <- pdat
-  preds$plant_id <- p
-  preds$pred_plant_weight_kg <- as.numeric(predict(ssl, newdata = list(date_num = preds$date_num)))
-  plot(x$date_num, x$saturated_mass_kg)
-  lines(preds$date_num, preds$pred_plant_weight_kg)
-  plist[[p]] <- preds
-}
-
-
-# combine all predictions of list into master df
-pdat_all <- do.call(rbind, plist)
-
-
-
-### ----- Simpler method: Get mean dry weights by treatement for harvested plants, and 
-## thne model the wet weigth
-
+# Get mean dry weights by treatement for harvested plants, and then model the wet weight
 biomass1 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                      sheet = 'biomass')
 biomass1$date <- as.Date('2019-10-30')
@@ -245,10 +43,6 @@ biomass$pot_id <- toupper(biomass$pot_id)
 biomass$block[biomass$pot_id %in% c('W-25','W-26','W-27','W-28')] <- 'V'
 biomass$block <- as.factor(biomass$block)
 
-# get mean dry mass by block and date
-# meanDryMass <- ddply(biomass, .(date, block), function(x){
-#   setNames(mean(x$mass_above_g), 'mean_mass_above_g')
-# })
 
 # model wet mass based on dry mass, using final harvest data
 bm3 <- biomass3[,c('date','pot_id','mass_above_g')]
@@ -258,18 +52,14 @@ bm3 <- merge(bm3, plant_wt[,c('plant_id','wet_weight_g')])
 bm3$block <- substr(bm3$plant_id, 1,1)
 bm3$block[bm3$plant_id %in% c('W-25','W-26','W-27','W-28')] <- 'V'
 bm3$block <- as.factor(bm3$block)
-# add points for intercept at 0,0 (for each block)
-# bm3 <- rbind(bm3, data.frame(plant_id=NA, date=NA, dry_weight_g=rep(0,4), wet_weight_g=rep(0,4), block=c('W','M','D','V')))
 plot(wet_weight_g ~ dry_weight_g, bm3, col=bm3$block)
 m <- lm(wet_weight_g ~ dry_weight_g + block, bm3); summary(m)
-newdata = expand.grid(dry_weight_g=0, block=as.factor(unique(bm3$block))); newdata
-sd(predict(m, newdata = newdata))
+
 # now, predict wet weights for each block/date combination, using dry weights
 names(biomass)[names(biomass) %in% 'mass_above_g'] <- 'dry_weight_g'
 biomass$predicted_wet_weight_g <- predict(m, newdata = biomass)
-
 # plot predictions
-ggplot(biomass, aes(x=date, y=predicted_wet_weight_g, color=block)) + geom_line()
+ggplot(biomass, aes(x=date, y=predicted_wet_weight_g, color=block)) + geom_point()
 
 # compare predictions to actual wet weights (on final harvest)
 m <- merge(plant_wt[,c('plant_id','wet_weight_g')],
@@ -277,9 +67,7 @@ m <- merge(plant_wt[,c('plant_id','wet_weight_g')],
            by.x = 'plant_id', by.y ='pot_id')
 plot(predicted_wet_weight_g ~ wet_weight_g, m); abline(c(0,1))
 m2 <- lm(predicted_wet_weight_g ~ wet_weight_g, m); summary(m2)
-m2$residuals
 sqrt(mean((m2$residuals)^2)) # RMSE
-sd(m2$residuals) # nearly equivalent
 mean(abs(m2$residuals)) # MAD
 
 
@@ -293,53 +81,221 @@ biomass.expand <- rbind(x, biomass)
 
 # replace predicted wet weight at harvest with measured weight 
 ind <- which(biomass.expand$date=='2019-12-12')
-i=ind[1]
 for(i in ind){
   m <- which(plant_wt$plant_id == biomass.expand$pot_id[i])
   if(length(m)==1) biomass.expand$predicted_wet_weight_g[i] <- plant_wt$wet_weight_g[m]
 }
 ggplot(biomass.expand, aes(x=date,y=predicted_wet_weight_g,color=block)) + geom_point()
 
+
+# convert date to numeric, so we can fit a logisitic curve
 biomass.expand$date_num <- as.numeric(biomass.expand$date - min(biomass.expand$date)) + 1
 
 # --- Fit logistic & linear curves for each block's means (excluding block V)
 x <- subset(biomass.expand, block=='V')
-out <- ddply(biomass.expand, .(block), function(x) {
-  block <- unique(x$block)
+modeled_plant_wt <- ddply(biomass.expand, .(block), function(x) {
+  blk <- unique(x$block)
   d <- data.frame(date_num=seq(1, max(x$date_num)), date=seq.Date(min(x$date), max(x$date), 1))
-  if(block != 'V') {
+  if(blk != 'V') {
     m.logis <- nls(predicted_wet_weight_g ~ SSlogis(date_num, a, b, c), data = x)
-    d$predict_logis <- predict(m.logis, d)
+    d$modeled_weight_logistic_g <- predict(m.logis, d)
   } 
   m.linear <- lm(predicted_wet_weight_g ~ date_num, data=x)
-  d$predict_lm <- predict(m.linear, d)
+  d$modeled_weight_linear_g <- predict(m.linear, d)
   png(paste('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/block',
-            block, 'logistic_v_linear.png', sep = '_'), width=1500, height=900)
-  plot(predicted_wet_weight_g ~ date, data=x, col='red', main=paste('block', block, sep = ' '))
-  if(block != 'V') lines(predict_logis ~ date, data=d)
-  lines(predict_lm ~ date, data=d, lty='dashed')
+            blk, 'logistic_v_linear.png', sep = '_'), width=1500, height=900)
+  plot(predicted_wet_weight_g ~ date, data=x, col='red', main=paste('block', blk, sep = ' '))
+  if(blk != 'V') lines(modeled_weight_logistic_g ~ date, data=d)
+  lines(modeled_weight_linear_g ~ date, data=d, lty='dashed')
   dev.off()
   return(d)
 })
-summary(out)
-ggplot(out, aes(x=date, y=predict_logis, color=block)) + geom_line()
-ggplot(out, aes(x=date, y=predict_lm, color=block)) + geom_line()
+summary(modeled_plant_wt)
+ggplot(modeled_plant_wt, aes(x=date, y=modeled_weight_logistic_g, color=block)) + geom_line()
+ggplot(modeled_plant_wt, aes(x=date, y=modeled_weight_linear_g, color=block)) + geom_line()
+
+# Save the predictions
+saveRDS(modeled_plant_wt, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
+
+# read back in 
+# modeled_plant_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
 
 
-# --- Fit logistic & linear curves for each plant with an ending wet weight (excluding block V)
+
+### -------- SECTION 2: Calculate Soil Water Content and Matric Potential -------------
 
 
-# get means(wet, dry)
-# meanMass <- ddply(biomass, .(date, block), function(x){
-#   setNames(c(mean(x$dry_weight_g), mean(x$predicted_wet_weight_g)), c('mean_dry_weight_g', 'mean_wet_weight_g'))
-# })
-# 
-# # Wet weights
-# ggplot(meanMass, aes(x=date, y=mean_wet_weight_g, color=block)) + geom_point() 
-# p <- ggplot(meanMass, aes(x=date, y=mean_wet_weight_g)) + geom_point() +
-#   geom_smooth(method = 'exponential', se = F)
-# p
-# layer_data(p, 2)
+### 2.1 --- Recreate vanBavel desorption curve 
+###         (for converting soil water content to water potential)
 
 
-### ----- Calculate pot soil weight (dry) using bulk density from green's grade manufacturer
+# read in desorption-curve data (reverse-engineered from vanBavel etal, 1978, fig. 1)
+vb <- read.csv("/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/van_bavel_data_extract.csv")
+names(vb) <- c('volumetric_water_content','pressure_potential_kPa')
+
+# plot vanBavel curve (points extracted from curve in fig. 1)
+plot(pressure_potential_kPa ~ volumetric_water_content, data = vb, log='y', xlim=c(0,0.8), ylim=c(1e-1, 1e4), xaxt='n')
+axis(side = 1, at=seq(0,0.8,0.1)); axis(side = 2, at=10^(-1:4))
+
+# fit a loess spline to curve
+# NOTE: We aren't concerned with overfitting here; the points in the plot above are
+# not actual data but are digitally extracted from the curve in Fig. 1, vanBavel
+vb_loess_fit <- loess(pressure_potential_kPa~volumetric_water_content, data = vb, span=0.1); summary(vb_loess_fit)
+
+# prediction grid
+vb_pred <- data.frame(volumetric_water_content=seq(0, 0.8, 0.001))
+vb_pred$pressure_potential_kPa <- predict(vb_loess_fit, newdata = vb_pred)
+
+# overlay loess fit to original data/curve: looks perfect!
+plot(pressure_potential_kPa ~ volumetric_water_content, data = vb, log='y', xlim=c(0,0.8), ylim=c(1e-1, 1e4), xaxt='n')
+axis(side = 1, at=seq(0,0.8,0.1)); axis(side = 2, at=10^(-1:4))
+lines(pressure_potential_kPa ~ volumetric_water_content,data = vb_pred, col='red')
+
+plot(pressure_potential_kPa ~ volumetric_water_content, data = vb_pred, type = 'b')
+
+# Save loess fit vb_pred
+vb_pred <- vb_pred[complete.cases(vb_pred),] # remove NA data outside of range
+vb_pred$pressure_potential_kPa <- -(vb_pred$pressure_potential_kPa) # reverse the sign (tension not pressure)
+write.csv(vb_pred, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/vanBavel_curve_data_final.csv',
+          row.names = F)
+
+
+### 2.2 ---  Calculate Soil Water Content for each Treatment Period
+
+
+# read in 15-minute aggregated (and flagged) balance data 
+baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
+# omit border plants
+baldat <- subset(baldat, !grepl('border', baldat$plant_id)) 
+# rename scale weight column for clarity
+colnames(baldat)[colnames(baldat)=='mean_weight_kg'] <- 'scale_weight_kg'
+colnames(baldat)[colnames(baldat)=='roundTime'] <- 'by15'
+
+
+## ----- Treatmeant Periods 1-2 ----
+
+start <- '2019-10-22'; end <- '2019-12-12'
+
+sub <- subset(baldat, date >= start & date <= end)
+ggplot(sub, aes(x=by15, y=scale_weight_kg, color=plant_id)) + geom_point() +geom_line() + 
+  geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
+  geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
+  geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
+
+
+
+# subset scale data to range for Treatment 1
+wc <- subset(baldat, date >= start & date <= end &
+               !plant_id %in% c('W-25','W-26','W-27','W-28'),
+                 select = -c(max_diff_weight, hour))
+
+# get mean bs sensor wt to subtract from pot W-11 below (it was not recorded)
+mean_bs_wt <- mean(unlist(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g')]), na.rm = T)
+# omit virgin plants, they aren't in this trt
+plant_wt_sub <- subset(plant_wt, !plant_id %in% c('W-25','W-26','W-27','W-28','W-2'),
+                       select = c(plant_id, all_sensors_wt_kg))
+
+# merge to harvest plant/sensor weight data
+wc <- merge(wc, plant_wt_sub, all = T)
+
+# calculate mass of wet soil only: subtract out pot weight and sensor weights
+# pot weight guestimated to be 0.15 kg
+wc$wet_soil_mass_kg <- wc$scale_weight_kg - wc$all_sensors_wt_kg - 0.15
+wc$wet_soil_mass_kg[wc$plant_id=='W-11'] <- wc$scale_weight_kg[wc$plant_id=='W-11'] - mean_bs_wt/1000
+# drop columns 
+wc <- subset(wc, select=-c(all_sensors_wt_kg))
+
+
+# now merge modeled plant weights 
+wc2 <- merge(wc,
+             subset(modeled_plant_wt, date >= start & date <= end & block != 'V'),
+             all.x = T)
+
+# convert modeled plant weights from g to kg
+wc2$modeled_weight_linear_kg <- wc2$modeled_weight_linear_g/1000
+wc2$modeled_weight_logistic_kg <- wc2$modeled_weight_logistic_g/1000
+wc2 <- subset(wc2, select = -c(modeled_weight_linear_g, modeled_weight_logistic_g, date_num))
+
+# subtract out modeled above-ground plant biomass.
+# Use logistic model, since no Virign plants involved.
+wc2$wet_soil_mass_kg <- wc2$wet_soil_mass_kg - wc2$modeled_weight_logistic_kg
+
+
+# Now, subset out the starting pot weights to use as a reference in calculating dry mass of soil
+wcStart <- subset(wc2, by15 == as.POSIXct('2019-10-22 02:00', tz = "GMT"))
+
+# back-calculate mass of dry soil, assuming water content of 0.45 (vanBavel) and bulk density of 0.65 (from Garrett; air dry)
+saturated_prop_water <- 0.45
+bulk_density <- 0.65
+wcStart$dry_soil_mass_kg <- wcStart$wet_soil_mass_kg / (1 + saturated_prop_water / bulk_density)
+wcStart$dry_soil_vol_L <- wcStart$dry_soil_mass_kg / bulk_density
+
+
+# now calculate water content for each plant at 15-min steps
+wcSplit <- split(wc2, wc2$plant_id)
+wc2 <- do.call(rbind, lapply(wcSplit, function(x) {
+  pl <- unique(x$plant_id)
+  drywt <- wcStart$dry_soil_mass_kg[wcStart$plant_id == pl]
+  dryvol <- wcStart$dry_soil_vol_L[wcStart$plant_id == pl]
+  x$volumetric_water_content <- (x$wet_soil_mass_kg - drywt) / dryvol
+  return(x)
+}))
+
+# use the loess model (see above; vanBavel) to convert soil water content to water potential
+# note: we have to change the sign to get tension instead of postive pressure.
+wc2$pressure_potential_kPa <- -(predict(vb_loess_fit, newdata = wc2))
+summary(wc2)
+
+# plots of soil water potential
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_EastBlock'), width=1500, height=900)
+ggplot(subset(wc2, block == 'D')) + 
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Modeled soil water potential, D block (west)")
+dev.off()
+
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_MiddleBlock'), width=1500, height=900)
+ggplot(subset(wc2, block == 'M')) +
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Modeled soil water potential, M block (middle)")
+dev.off()
+
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_EastBlock'), width=1500, height=900)
+ggplot(subset(wc2, block == 'W')) +
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Modeled soil water potential, W block (east)")
+dev.off()
+
+
+
+## ----- Treatmeant Period 3 (Virgin plants only) ----
+
+
+## NEED TO FINISH THIS SECTION!
+
+start <- '2019-11-27'; end <- '2019-12-12'
+
+sub <- subset(baldat, date >= start & date <= end)
+ggplot(sub, aes(x=by15, y=scale_weight_kg, color=plant_id)) + geom_point() +geom_line() + 
+  geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
+  geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
+  geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
+
+
+
+# subset scale data to range for Treatment 1
+wc <- subset(baldat, date >= start & date <= end, select = -c(max_diff_weight, hour))
+
+# get mean bs sensor wt to subtract from pot W-11 below (it was not recorded)
+mean_bs_wt <- mean(unlist(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g')]), na.rm = T)
+# omit virgin plants, they aren't in this trt
+plant_wt_sub <- subset(plant_wt, !plant_id %in% c('W-25','W-26','W-27','W-28','W-2'),
+                       select = c(plant_id, all_sensors_wt_kg))
+
+# merge to harvest plant/sensor weight data
+wc <- merge(wc, plant_wt_sub, all = T)

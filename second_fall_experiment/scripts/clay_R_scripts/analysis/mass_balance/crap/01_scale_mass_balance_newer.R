@@ -128,11 +128,12 @@ baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/dat
 baldat <- subset(baldat, !grepl('border', baldat$plant_id)) 
 # rename scale weight column for clarity
 colnames(baldat)[colnames(baldat)=='mean_weight_kg'] <- 'scale_weight_kg'
+colnames(baldat)[colnames(baldat)=='roundTime'] <- 'by15'
 
 
 # daily mass after irrigation & fully drained, 2 AM
 dm <- ddply(baldat, .(date, plant_id, block), function(x) {
-  ind <- hour(x$roundTime)==2 # & minute(x$roundTime)==0
+  ind <- hour(x$by15)==2 # & minute(x$by15)==0
   n <- length(ind[ind])
   # if(n != 4) {
   #   out <- NA
@@ -192,7 +193,7 @@ start_wt_emp$dry_soil_mass_kg <- start_wt_emp$wet_soil_mass_kg / (1 + 0.45/0.65)
 
 start <- '2019-10-22'; end <- '2019-11-04'
 sub <- subset(baldat, plant_id == pid & date >= start & date <= end)
-ggplot(sub, aes(x=roundTime, y=mean_weight_kg)) + geom_point() + 
+ggplot(sub, aes(x=by15, y=mean_weight_kg)) + geom_point() + 
   geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
   geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
   geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
@@ -279,12 +280,14 @@ ggplot(subset(wtRef3, block == 'W')) +
   geom_point(aes(x=date, y=volumetric_water_content, color = plant_id))
 
 
+
+
 ### ---- Repeat above, Treatement 1, but using 15-minute scale data ----
 
 pid <- 'D-10'
 start <- '2019-10-22'; end <- '2019-11-04'
 sub <- subset(baldat, plant_id == pid & date >= start & date <= end)
-ggplot(sub, aes(x=roundTime, y=scale_weight_kg)) + geom_point() + 
+ggplot(sub, aes(x=by15, y=scale_weight_kg)) + geom_point() + 
   geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
   geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
   geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
@@ -329,7 +332,7 @@ wc2$wet_soil_mass_kg <- wc2$wet_soil_mass_kg - wc2$modeled_weight_logistic_kg
 
 
 # Now, subset out the starting pot weights to use as a reference in calculating dry mass of soil
-wcStart <- subset(wc2, roundTime == as.POSIXct('2019-10-22 01:00', tz = "GMT"))
+wcStart <- subset(wc2, by15 == as.POSIXct('2019-10-22 01:00', tz = "GMT"))
 
 # back-calculate mass of dry soil, assuming water content of 0.45 (vanBavel) and bulk density of 0.65 (from Garrett; air dry)
 saturated_prop_water <- 0.45
@@ -356,23 +359,99 @@ vb <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/script
 # round values to 3 digits, to match VB data
 wc2$volumetric_water_content <- round(wc2$volumetric_water_content, 3)
 # merge
-wtRef3 <- merge(wc2, vb, by = 'volumetric_water_content', all.x = T)
+wc3 <- merge(wc2, vb, by = 'volumetric_water_content', all.x = T)
 
 # plots of soil water potential
-ggplot(subset(wtRef3, block == 'D')) +
-  geom_point(aes(x=roundTime, y=pressure_potential_kPa, color = plant_id))
-ggplot(subset(wtRef3, block == 'M')) +
-  geom_point(aes(x=roundTime, y=pressure_potential_kPa, color = plant_id))
-ggplot(subset(wtRef3, block == 'W')) +
-  geom_point(aes(x=roundTime, y=pressure_potential_kPa, color = plant_id))
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_FullDrought'), width=1500, height=900)
+ggplot(subset(wc3, block == 'D')) + ylim(c(-600, 0)) +
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Modeled soil water potential, full drought treatment")
+dev.off()
+
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_ModerateDrought'), width=1500, height=900)
+ggplot(subset(wc3, block == 'M')) + ylim(c(-600, 0)) +
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Modeled soil water potential, moderate drought treatment")
+dev.off()
+
+ggplot(subset(wc3, block == 'W')) + ylim(c(-600, 0)) +
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id))
 
 # plots of soil water content
-ggplot(subset(wtRef3, block == 'D')) +
-  geom_point(aes(x=roundTime, y=volumetric_water_content, color = plant_id))
-ggplot(subset(wtRef3, block == 'M')) +
-  geom_point(aes(x=roundTime, y=volumetric_water_content, color = plant_id))
-ggplot(subset(wtRef3, block == 'W')) +
-  geom_point(aes(x=roundTime, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wc3, block == 'D')) +
+  geom_point(aes(x=by15, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wc3, block == 'M')) +
+  geom_point(aes(x=by15, y=volumetric_water_content, color = plant_id))
+ggplot(subset(wc3, block == 'W')) +
+  geom_point(aes(x=by15, y=volumetric_water_content, color = plant_id))
+
+
+# plots comparing to Garret's sensors 
+# D block = plant D-11 
+
+# read garrett's soil sensor data in
+soilDat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
+
+# chose block
+blk <- 'D'
+
+# subset to D block treatment 1
+sdSub <- subset(soilDat, date >= start & date <= end & block == blk)
+
+# first get means of water content data
+# wcMeans <- ddply(wc3, .(block, by15, date), function(x){
+#   setNames(mean(x$pressure_potential_kPa, na.rm = T), 'pressure_potential_kPa')
+# })
+
+# compare same pot, D-11
+wc4 <- subset(wc3, plant_id == 'D-11')
+wc4 <- merge(wc4, sdSub, all = T); nrow(wcMeans2); nrow(wtRef4)
+
+colors <- c("modeled" = "blue", "watermark" = "red", "teros" = "orange")
+
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_FullDrought_Sensors_v_Modeled'), width=1500, height=900)
+ggplot(wc4, aes(x=by15)) +
+  geom_line(aes(y=pressure_potential_kPa, color='modeled')) +
+  geom_line(aes(y=teros_MP_kPa, color='teros')) + 
+  geom_line(aes(y=watermark_MP_kPa, color='watermark')) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Soil water potential, full drought treatment") +
+  labs(color = "Legend")
+dev.off()
+
+
+# --- repeat above but for M block (moderate trt)---
+
+
+# chose block
+blk <- 'M'
+
+# subset to M block treatment 1
+sdSub <- subset(soilDat, date >= start & date <= end & block == blk)
+
+# compare same pot, m_7
+wc4 <- subset(wc3, plant_id == 'M-7')
+wc4 <- merge(wc4, sdSub, all = T); nrow(wcMeans2); nrow(wtRef4)
+
+colors <- c("modeled" = "blue", "watermark" = "red", "teros" = "orange")
+
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment1_ModerateDrought_Sensors_v_Modeled'), width=1500, height=900)
+ggplot(wc4, aes(x=by15)) +
+  geom_line(aes(y=pressure_potential_kPa, color='modeled')) +
+  geom_line(aes(y=teros_MP_kPa, color='teros')) + 
+  geom_line(aes(y=watermark_MP_kPa, color='watermark')) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Soil water potential, moderate drought treatment") +
+  labs(color = "Legend")
+dev.off()
+
+
 
 
 
