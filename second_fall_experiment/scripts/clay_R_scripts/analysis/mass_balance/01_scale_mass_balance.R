@@ -246,9 +246,9 @@ biomass$block[biomass$pot_id %in% c('W-25','W-26','W-27','W-28')] <- 'V'
 biomass$block <- as.factor(biomass$block)
 
 # get mean dry mass by block and date
-meanDryMass <- ddply(biomass, .(date, block), function(x){
-  setNames(mean(x$mass_above_g), 'mean_mass_above_g')
-})
+# meanDryMass <- ddply(biomass, .(date, block), function(x){
+#   setNames(mean(x$mass_above_g), 'mean_mass_above_g')
+# })
 
 # model wet mass based on dry mass, using final harvest data
 bm3 <- biomass3[,c('date','pot_id','mass_above_g')]
@@ -259,7 +259,7 @@ bm3$block <- substr(bm3$plant_id, 1,1)
 bm3$block[bm3$plant_id %in% c('W-25','W-26','W-27','W-28')] <- 'V'
 bm3$block <- as.factor(bm3$block)
 # add points for intercept at 0,0 (for each block)
-bm3 <- rbind(bm3, data.frame(plant_id=NA, date=NA, dry_weight_g=rep(0,4), wet_weight_g=rep(0,4), block=c('W','M','D','V')))
+# bm3 <- rbind(bm3, data.frame(plant_id=NA, date=NA, dry_weight_g=rep(0,4), wet_weight_g=rep(0,4), block=c('W','M','D','V')))
 plot(wet_weight_g ~ dry_weight_g, bm3, col=bm3$block)
 m <- lm(wet_weight_g ~ dry_weight_g + block, bm3); summary(m)
 newdata = expand.grid(dry_weight_g=0, block=as.factor(unique(bm3$block))); newdata
