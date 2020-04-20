@@ -172,6 +172,8 @@ colnames(baldat)[colnames(baldat)=='mean_weight_kg'] <- 'scale_weight_kg'
 colnames(baldat)[colnames(baldat)=='roundTime'] <- 'by15'
 
 
+
+
 ## ----- Treatmeant Periods 1-2 ----
 
 start <- '2019-10-22'; end <- '2019-12-12'
@@ -246,9 +248,12 @@ wc2 <- do.call(rbind, lapply(wcSplit, function(x) {
 wc2$pressure_potential_kPa <- -(predict(vb_loess_fit, newdata = wc2))
 summary(wc2)
 
+# save the predcited soil water potentials: we will add to these below...
+wcAll <- wc2
+
 # plots of soil water potential
 png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
-           'Treatment1_EastBlock'), width=1500, height=900)
+           'Treatment1_WestBlock'), width=1500, height=900)
 ggplot(subset(wc2, block == 'D')) + 
   geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
   scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
@@ -262,6 +267,18 @@ ggplot(subset(wc2, block == 'M')) +
   scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
   ggtitle("Modeled soil water potential, M block (middle)")
 dev.off()
+
+# what's going on with M-7 ?
+
+## CLAY: I think the reason M-7 ceclines so much more than others in that block 
+# is that the plant was smaller than the others, so the logisitc model overestimates 
+# it's weight, and thus underestimates the weight of the soil...and thus 
+# overestimates the soil water content....at least that's my best guess.
+
+# x <- subset(wc2, block == 'M' & date >= '2019-10-21' & date <= '2019-11-04')
+# ggplot(x) +
+#   geom_point(aes(x=by15, y=scale_weight_kg, color = plant_id)) +
+#   scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d')
 
 png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
            'Treatment1_EastBlock'), width=1500, height=900)
@@ -280,22 +297,99 @@ dev.off()
 
 start <- '2019-11-27'; end <- '2019-12-12'
 
-sub <- subset(baldat, date >= start & date <= end)
-ggplot(sub, aes(x=by15, y=scale_weight_kg, color=plant_id)) + geom_point() +geom_line() + 
-  geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
-  geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
-  geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
+# sub <- subset(baldat, date >= start & date <= end)
+# ggplot(sub, aes(x=by15, y=scale_weight_kg, color=plant_id)) + geom_point() +geom_line() + 
+#   geom_vline(xintercept = as.POSIXct('2019-10-24 00:00', tz = 'GMT')) +
+#   geom_vline(xintercept = as.POSIXct('2019-10-23 02:00', tz = 'GMT')) +
+#   geom_vline(xintercept = as.POSIXct('2019-10-22 02:00', tz = 'GMT'))
 
 
+# subset scale data to range for Treatment 3 & virgin plants only
+wc <- subset(baldat, date >= start & date <= end &
+               plant_id %in% c('W-25','W-26','W-27','W-28'),
+             select = -c(max_diff_weight, hour))
 
-# subset scale data to range for Treatment 1
-wc <- subset(baldat, date >= start & date <= end, select = -c(max_diff_weight, hour))
-
-# get mean bs sensor wt to subtract from pot W-11 below (it was not recorded)
-mean_bs_wt <- mean(unlist(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g')]), na.rm = T)
-# omit virgin plants, they aren't in this trt
-plant_wt_sub <- subset(plant_wt, !plant_id %in% c('W-25','W-26','W-27','W-28','W-2'),
-                       select = c(plant_id, all_sensors_wt_kg))
+ggplot(wc, aes(x=by15, y=scale_weight_kg, color=scale)) + geom_point()
 
 # merge to harvest plant/sensor weight data
-wc <- merge(wc, plant_wt_sub, all = T)
+plant_wt_sub <- subset(plant_wt, plant_id %in% c('W-25','W-26','W-27','W-28'),
+                       select = c(plant_id, all_sensors_wt_kg))
+wc <- merge(wc, plant_wt_sub, all.x = T)
+
+# calculate mass of wet soil only: subtract out pot weight and sensor weights
+# pot weight guestimated to be 0.15 kg
+wc$wet_soil_mass_kg <- wc$scale_weight_kg - wc$all_sensors_wt_kg - 0.15
+# drop columns 
+wc <- subset(wc, select=-c(all_sensors_wt_kg))
+
+
+# now merge modeled plant weights 
+wc2 <- merge(wc,
+             subset(modeled_plant_wt, date >= start & date <= end & block != 'V'),
+             all.x = T)
+
+# convert modeled plant weights from g to kg
+wc2$modeled_weight_linear_kg <- wc2$modeled_weight_linear_g/1000
+wc2$modeled_weight_logistic_kg <- wc2$modeled_weight_logistic_g/1000
+wc2 <- subset(wc2, select = -c(modeled_weight_linear_g, modeled_weight_logistic_g, date_num))
+
+# subtract out modeled above-ground plant biomass.
+# Use linear model, since all plants are Virign 
+wc2$wet_soil_mass_kg <- wc2$wet_soil_mass_kg - wc2$modeled_weight_linear_kg
+
+
+### Clay: Need to decide to use Method 1 or Method 2. With Method 1, there is no
+# reponse for plant W-28 (interestingly this seems to refelct the scale data).
+# With Method 2, there  is a dramatic response. Method 1 is more consistent with 
+# the way I did it for treatments 1 & 2 above, so I'll go with that for now.
+
+
+# Method 1: Now, subset out the starting pot weights to use as a reference in calculating dry mass of soil
+wcStart <- subset(wc2, by15 == as.POSIXct('2019-11-28 02:00', tz = "GMT"))
+wcStart <- merge(wcStart, plant_wt, all.x = T)
+wcStart$wet_soil_mass_kg <- wcStart$scale_weight_kg - wcStart$all_sensors_wt_kg - 0.15
+
+
+# Method 2: Now, use the ENDING pot weights to use as a reference in calculating dry mass of soil
+# wcStart <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
+# wcStart <- subset(wcStart, plant_id %in% c('W-25','W-26','W-27','W-28'))
+# wcStart <- merge(wcStart, plant_wt)
+# # calculate mass of wet soil only: subtract out pot weight and sensor weights
+# # pot weight guestimated to be 0.15 kg
+# wcStart$wet_soil_mass_kg <- wcStart$pot_saturated_weight_kg - wcStart$all_sensors_wt_kg - 0.15
+
+
+# back-calculate mass of dry soil, assuming water content of 0.45 (vanBavel) and bulk density of 0.65 (from Garrett; air dry)
+saturated_prop_water <- 0.45
+bulk_density <- 0.65
+wcStart$dry_soil_mass_kg <- wcStart$wet_soil_mass_kg / (1 + saturated_prop_water / bulk_density)
+wcStart$dry_soil_vol_L <- wcStart$dry_soil_mass_kg / bulk_density
+
+
+# now calculate water content for each plant at 15-min steps
+wcSplit <- split(wc2, wc2$plant_id)
+wc2 <- do.call(rbind, lapply(wcSplit, function(x) {
+  pl <- unique(x$plant_id)
+  drywt <- wcStart$dry_soil_mass_kg[wcStart$plant_id == pl]
+  dryvol <- wcStart$dry_soil_vol_L[wcStart$plant_id == pl]
+  x$volumetric_water_content <- (x$wet_soil_mass_kg - drywt) / dryvol
+  return(x)
+}))
+
+# use the loess model (see above; vanBavel) to convert soil water content to water potential
+# note: we have to change the sign to get tension instead of postive pressure.
+wc2$pressure_potential_kPa <- -(predict(vb_loess_fit, newdata = wc2))
+summary(wc2)
+           
+# PLOT the Virgin treatment   
+png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+           'Treatment3_EastBlock_Virgins'), width=1500, height=900)
+ggplot(wc2) +
+  geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d') +
+  ggtitle("Modeled soil water potential, W block (east)")
+dev.off()     
+
+# Save the predicted soil water potential data
+wcAll <- rbind(wcAll, wc2)
+saveRDS(wcAll, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')

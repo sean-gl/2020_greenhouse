@@ -144,8 +144,49 @@ rownames(scaledat) <- NULL
 #### Save the compiled file before doing more work!
 saveRDS(scaledat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
 
-# load it back
-# scaledat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
+# read back in
+scaledat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
+
+### Clay added on 4/20/20: A couple scales (6, 8) data was offset, since a logger box fell on them.
+### Let's fix this...
+
+x <- subset(scaledat, scale %in% c(6,8) & date >= '2019-11-15' & date <= '2019-11-18')
+ggplot(x, aes(x=timestamp, y=weight, color=scale)) + geom_point()
+
+x <- subset(scaledat, scale %in% c(6,8) & date == '2019-11-18')
+ggplot(x, aes(x=timestamp, y=weight, color=scale)) + geom_point()
+
+# looks like the box fell on 11/16, before noon...
+y <- subset(scaledat, scale %in% c(6,8) & timestamp >= '2019-11-16 10:30' & 
+              timestamp <= '2019-11-16 10:45')
+ggplot(y, aes(x=timestamp, y=weight, color=scale)) + geom_point()
+plot(y$timestamp, y$weight); identify(y$timestamp, y$weight, labels = y$timestamp)
+# first measurement after box fell
+start <- as.POSIXct('2019-11-16 10:38:23', tz='GMT')
+# get the shift in weight
+diff(y[y$scale==6,'weight']) # adjust by 0.096 + 0.025 = 0.121
+diff(y[y$scale==8,'weight']) # adjust by 0.173
+
+# now find end
+y <- subset(scaledat, scale %in% c(6,8) & timestamp >= '2019-11-18 16:00' & 
+              timestamp <= '2019-11-18 16:30')
+ggplot(y, aes(x=timestamp, y=weight, color=scale)) + geom_point()
+plot(y$timestamp, y$weight); identify(y$timestamp, y$weight, labels = y$timestamp)
+# last meas. after box fell
+end <- as.POSIXct('2019-11-18 16:24:01', tz='GMT')
+
+# adjust scale 6 
+ind <- with(scaledat, scale == 6 & timestamp >= start & timestamp <= end)
+scaledat$weight[ind] <-  scaledat$weight[ind] - 0.121
+ind <- with(scaledat, scale == 8 & timestamp >= start & timestamp <= end)
+scaledat$weight[ind] <-  scaledat$weight[ind] - 0.173
+
+# Check the plots 
+y <- subset(scaledat, scale %in% c(6,8) & timestamp >= '2019-11-18 16:00' & 
+              timestamp <= '2019-11-18 16:30')
+ggplot(y, aes(x=timestamp, y=weight, color=scale)) + geom_point()
+# it's not perfect but better than before!
+
 
 ## Add plant IDs...
 # Note: D, M blocks did not change plant IDs, but W block did (when virgin plants were swapped in) 
