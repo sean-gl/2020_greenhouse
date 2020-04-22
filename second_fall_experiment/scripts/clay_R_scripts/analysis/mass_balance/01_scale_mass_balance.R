@@ -275,10 +275,10 @@ dev.off()
 # it's weight, and thus underestimates the weight of the soil...and thus 
 # overestimates the soil water content....at least that's my best guess.
 
-# x <- subset(wc2, block == 'M' & date >= '2019-10-21' & date <= '2019-11-04')
-# ggplot(x) +
-#   geom_point(aes(x=by15, y=scale_weight_kg, color = plant_id)) +
-#   scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d')
+x <- subset(baldat, block == 'M' & date >= '2019-10-21' & date <= '2019-11-04')
+ggplot(x) +
+  geom_point(aes(x=by15, y=scale_weight_kg, color = plant_id)) +
+  scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d')
 
 png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
            'Treatment1_EastBlock'), width=1500, height=900)
@@ -292,8 +292,6 @@ dev.off()
 
 ## ----- Treatmeant Period 3 (Virgin plants only) ----
 
-
-## NEED TO FINISH THIS SECTION!
 
 start <- '2019-11-27'; end <- '2019-12-12'
 
@@ -393,3 +391,16 @@ dev.off()
 # Save the predicted soil water potential data
 wcAll <- rbind(wcAll, wc2)
 saveRDS(wcAll, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
+
+# Read back in and calculate block means
+# wcAll <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
+
+wcAll_means <- ddply(wcAll, .(by15, date, block), function(x){
+  setNames(mean(x$pressure_potential_kPa, na.rm = T), 'mean_soil_water_potential_kPa')
+})
+with(wcAll_means, table(date, block))
+
+ggplot(wcAll_means, aes(x=by15, y=mean_soil_water_potential_kPa, color=block)) + geom_line()
+
+# Save the predicted soil water potential data (block means)
+saveRDS(wcAll_means, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil_block_means.rds')

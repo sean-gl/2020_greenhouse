@@ -1,10 +1,10 @@
-# rm(list = ls())
+rm(list = ls())
 
 require(readODS); require(ggplot2); require(plyr); require(ranger); require(caret)
 
 # read in destructive non_harvest data (has leaf length, width and areas)
 # these are all border plants (except on final day, 12/12)
-non_harvest <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_width_measurements_non_harvest/leaf_width_measurements.ods',
+non_harvest <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_width_measurements_non_harvest/read_only/leaf_width_measurements.ods',
                     col_names = T)
 
 # remove empty rows
@@ -21,7 +21,12 @@ non_harvest$date <- as.Date(non_harvest$date, format = '%m/%d/%y')
 non_harvest$leaf_width_cm <- as.numeric(non_harvest$leaf_width_cm)
 
 # keep relevant columns only
-non_harvest <- subset(non_harvest, select = c(date, treatment, pot_id, leaf_id, leaf_width_cm))
+non_harvest <- subset(non_harvest, select = c(date, treatment, pot_id, leaf_id, leaf_width_cm,
+                                              percent_dead))
+
+# percent_dead: assume zero when missing
+ind <- which(is.na(non_harvest$percent_dead)); ind
+non_harvest$percent_dead[ind] <- 0
 
 # examine missing data
 ind <- which(!complete.cases(non_harvest)); ind
@@ -36,8 +41,10 @@ non_harvest <- non_harvest[complete.cases(non_harvest),]
 u <- unique(non_harvest[,c('date','pot_id')])
 for(i in 1:nrow(u)) {
   ind <- non_harvest$date == u$date[i] & non_harvest$pot_id == u$pot_id[i]
+  non_harvest$leaf_order[ind] <- non_harvest$leaf_id[ind] - min(non_harvest$leaf_id[ind])
   non_harvest$leaf_order_reverse[ind] <- max(non_harvest$leaf_id[ind]) - non_harvest$leaf_id[ind]
 }
+table(non_harvest$leaf_order)
 table(non_harvest$leaf_order_reverse)
 
 
@@ -55,18 +62,32 @@ for(i in unique(non_harvest$pot_id)) {
 # Save data
 saveRDS(non_harvest, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_nonharvest_prepped.rds')
 
-
-# Load Random Forest model
-rfmod <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+# Load Random Forest (leaf length) model
+rfmod_length <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
 
 # Predict on non-harvest data
-non_harvest$leaf_area_pred <- predict(rfmod, newdata = non_harvest)
+non_harvest$leaf_length_pred <- predict(rfmod_length, newdata = non_harvest)
+summary(non_harvest$leaf_length_pred)
+
+
+# Load Random Forest (leaf area) model
+rfmod_area <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+
+# Predict on non-harvest data
+non_harvest$leaf_area_pred <- predict(rfmod_area, newdata = non_harvest)
 summary(non_harvest$leaf_area_pred)
 
 # Read in harvest data (plus predicted LA)
 harvest <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
 
 # Combine harvest and non-harvest data + predicitons
+# use the measured leaf area for the harvest plants, and the predicted leaf area 
+# for the non-harvest plants
+
+# first, for non-harvest, adjust leaf by subtracting out dead leaf area
+# (this was already done in harvest plants)
+non_harvest$leaf_area_cm2_adjusted <- non_harvest$leaf_area_pred * (1 - non_harvest$percent_dead/100)
+
 harvest <- harvest[,names(harvest)[names(harvest) %in% names(non_harvest)]]
 non_harvest <- non_harvest[,names(non_harvest)[names(non_harvest) %in% names(harvest)]]
 
@@ -84,23 +105,47 @@ dat$block[dat$pot_id %in% c('w-25','w-26','w-27','w-28')] <- 'V'
 table(dat$block, useNA = 'always')
 table(dat$block, dat$treatment)
 
+
+
+
+# # Calculate plant leaf area totals by plant and date
+# totalArea <- ddply(dat, .(isHarvest, date, pot_id, treatment, block), function(x) {
+#   setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area')
+# })
+# 
+# ggplot(totalArea, aes(x=date, y=total_leaf_area, color=block)) + 
+#   geom_point() + facet_wrap(~isHarvest)
+# 
+# # Calculate plant leaf area totals by block and date
+# meanArea <- ddply(totalArea, .(isHarvest, date, treatment, block), function(x) {
+#   setNames(mean(x$total_leaf_area), 'mean_total_leaf_area')
+# })
+# 
+# ggplot(meanArea, aes(x=date, y=mean_total_leaf_area, color=block)) + 
+#   geom_line() + geom_point() + facet_wrap(~isHarvest)
+
+
+# ---- try again without isHarvest
+
+ 
 # Calculate plant leaf area totals by plant and date
-totalArea <- ddply(dat, .(isHarvest, date, pot_id, treatment, block), function(x) {
-  setNames(sum(x$leaf_area_pred), 'total_leaf_area')
+totalArea <- ddply(dat, .(date, pot_id, treatment, block), function(x) {
+  setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area')
 })
 
 ggplot(totalArea, aes(x=date, y=total_leaf_area, color=block)) + 
-  geom_point() + facet_wrap(~isHarvest)
+  geom_point() 
 
-# Calculate plant leaf area totals by block and date
-meanArea <- ddply(totalArea, .(isHarvest, date, treatment, block), function(x) {
+# Calculate mean for each block/date, of total plant leaf area 
+meanArea <- ddply(totalArea, .(date, treatment, block), function(x) {
   setNames(mean(x$total_leaf_area), 'mean_total_leaf_area')
 })
 
 ggplot(meanArea, aes(x=date, y=mean_total_leaf_area, color=block)) + 
-  geom_line() + geom_point() + facet_wrap(~isHarvest)
+  geom_line() + geom_point() 
 
 
+# Function to calculate piecewise-linear coefficiencts
 pw_linear_coef <- ddply(meanArea, .(date, block), function(x) {
   # print(x)
   dates <- sort(unique(meanArea$date[meanArea$block == x$block]))
@@ -159,9 +204,9 @@ ggplot(grid, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
 
 
 # merge datasets to check
-m <- merge(subset(grid, select = -c(period)),
-           subset(meanArea,  select = -c(period)),
-           by = c('date','block'), all.x = T)
+# m <- merge(subset(grid, select = -c(period)),
+#            subset(meanArea,  select = -c(period)),
+#            by = c('date','block'), all.x = T)
 
 # Save the predictions as-is (block doesn't match other data sets for 'virgin' period)
 # remove period, not useful
@@ -180,6 +225,22 @@ out_final[out_final$block=='V', 'block'] <- 'W'
 colSums(table(out_final$date, out_final$block))
 # See, now the W block plants are virgins after 11/27 and non-virgins before
 ggplot(out_final, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
+
+
+# extend (flat) lines out to periods before plants were measured...
+ind <- out_final$block=='W' & out_final$date >='2019-11-28' & out_final$date <= '2019-12-05'
+out_final$leaf_area_pred[ind] <- out_final$leaf_area_pred[out_final$block == 'W' & out_final$date == '2019-12-06']
+
+for(b in unique(out_final$block)) {
+  ind <- out_final$date <= '2019-10-29' & out_final$block == b
+  out_final$leaf_area_pred[ind] <- out_final$leaf_area_pred[out_final$block == b & out_final$date == '2019-10-30']
+}
+
+# plot the complete dataset
+ggplot(out_final, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
+
+# rename column
+names(out_final)[names(out_final) == 'leaf_area_pred'] <- 'mean_plant_leaf_area_cm2'
 
 # save the data to be used in analysis
 saveRDS(out_final, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')

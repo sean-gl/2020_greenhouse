@@ -62,75 +62,77 @@ sdiff_time <- lapply(s_time, function(x) c(NA, diff(as.numeric(x))))
 all(sapply(sdiff_weight, length) == sapply(sdiff_time, length))
 
 
-# units as-is are in kg/15 minutes, but we will convert to L/hr (or kg/hr)
-baldat_noflag$T_mL_hr <- NA
+# Calculate transpiration as differences in weight between 15-minute steps
+# Note: this code finds any gaps that are not 15-minutes and omits them from T calculation.(NA)
+baldat_noflag$T_mg_s <- NA
 for(plant in names(sdiff_weight)) {
   ind <- baldat_noflag$plant_id == plant
   wt_diffs <- as.numeric(unlist(sdiff_weight[plant]))
   time_diffs <- as.numeric(unlist(sdiff_time[plant]))
   gaps <- time_diffs != 900 # gaps are anything that is not 900 seconds (or 15 mins.)
   wt_diffs[gaps] <- NA # omit any diffs that are not 15-minute gaps
-  baldat_noflag$T_mL_hr[ind] <- -(wt_diffs) # change transpiration sign to positive
+  baldat_noflag$T_mg_s[ind] <- -(wt_diffs) # change transpiration sign to positive
 }
-# convert to mL/hr
-baldat_noflag$T_mL_hr <- baldat_noflag$T_mL_hr * 4 * 1000
+# convert from kg/15-min to mg/s
+baldat_noflag$T_mg_s <- baldat_noflag$T_mg_s / (15*60) * 1E6
+summary(baldat_noflag$T_mg_s)
 
 # change any flagged data transpiration values to NA
-baldat_flag$T_mL_hr <- NA
+baldat_flag$T_mg_s <- NA
 
 # combine flagged and not flagged data back together
 transp <- rbind(baldat_flag, baldat_noflag)
 
 # # examine data
-# by(transp, transp$block, function(x) summary(x$T_mL_hr)) # why so many NA in block D?
+# by(transp, transp$block, function(x) summary(x$T_mg_s)) # why so many NA in block D?
 # table(transp$block)
 
 # plot -- some obviously bad data a bit after Nov 15...
-ggplot(transp[transp$scale==5,], aes(x=by15, y=T_mL_hr, color=scale)) +
+ggplot(transp[transp$scale==5,], aes(x=by15, y=T_mg_s, color=scale)) +
   geom_line()
 
-i = which(transp$T_mL_hr > 200)
+i = which(transp$T_mg_s > 200)
 transp[i,] # nov. 19...
 ggplot(subset(transp, by15 > '2019-11-19 08:00' & by15 < '2019-11-19 11:00'),
-       aes(x=by15, y=T_mL_hr, color=scale)) + geom_line()
+       aes(x=by15, y=T_mg_s, color=scale)) + geom_line()
 
 # something fishy going on at 10:00 am, most scales...just NA them all for this time point
-transp$T_mL_hr[transp$by15 == '2019-11-19 10:15'] <- NA
+transp$T_mg_s[transp$by15 == '2019-11-19 10:15'] <- NA
 
 # scale 5 has obvious outlier
 ggplot(subset(transp, by15 > '2019-11-19 14:00' & by15 < '2019-11-19 16:00'),
-      aes(x=by15, y=T_mL_hr, color=scale)) + geom_line()
-transp$T_mL_hr[transp$by15 == '2019-11-19 15:30' & transp$scale == 5] <- NA
+      aes(x=by15, y=T_mg_s, color=scale)) + geom_line()
+transp$T_mg_s[transp$by15 == '2019-11-19 15:30' & transp$scale == 5] <- NA
 
-# x = transp$T_mL_hr[baldat$hour >= 9 & baldat$hour <= 17]
-x = transp$T_mL_hr
+# x = transp$T_mg_s[baldat$hour >= 9 & baldat$hour <= 17]
+x = transp$T_mg_s
 summary(x); plot(density(x, na.rm = T))
 
 # examine T above 100 or below -10 
-high <- which(transp$T_mL_hr > 100); length(high)
+high <- which(transp$T_mg_s > 100); length(high)
 View(transp[high,]) # looks beleivable to me.
-low <- which(transp$T_mL_hr < -10); length(low)
+low <- which(transp$T_mg_s < -10); length(low)
 View(transp[low,])
 # not sure about these; I'll just filter out negatives during analysis
 
 # Write raw transpiration data (plant-level, 15 minute) to file
-saveRDS(transp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/transpiration_by_plant.rds')
+saveRDS(transp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
 
 ### Examine data distribution (omit flagged data)
 
 # all data
-summary(transp$T_mL_hr)
-plot(density(transp$T_mL_hr, na.rm = T))
+summary(transp$T_mg_s)
+plot(density(transp$T_mg_s, na.rm = T))
 
 # daytime data only
 daydat <- subset(transp, hour > 3 & hour < 20)
-summary(daydat$T_mL_hr)
-plot(density(daydat$T_mL_hr, na.rm = T))
+summary(daydat$T_mg_s)
+plot(density(daydat$T_mg_s, na.rm = T))
 
 # night data only
 nightdat <- subset(transp, hour < 4 | hour > 19)
-summary(nightdat$T_mL_hr)
-plot(density(nightdat$T_mL_hr, na.rm = T))
+summary(nightdat$T_mg_s)
+plot(density(nightdat$T_mg_s, na.rm = T))
 
 
 ### Now, aggregate to block/treatment level
@@ -142,12 +144,12 @@ aggdat <- subset(transp, !scale %in% 15:16)
 
 # aggregate
 aggdat <- ddply(aggdat, .(by15, block, treatment), function(x) {
-  d = x$T_mL_hr[!is.na(x$T_mL_hr)]
-  setNames(c(mean(d), sd(d), length(d)), c('mean_T_mL_hr', 'sd_T_mL_hr', 'n_T_mL_hr'))
+  d = x$T_mg_s[!is.na(x$T_mg_s)]
+  setNames(c(mean(d), sd(d), length(d)), c('mean_T_mg_s', 'sd_T_mg_s', 'n_T_mg_s'))
 })
 
 # view summary
-summary(aggdat$mean_T_mL_hr)
+summary(aggdat$mean_T_mg_s)
 
 # plot
 # trt 1
@@ -158,15 +160,15 @@ subdat <- subset(aggdat, date(by15) >= '2019-11-05' & date(by15) <= '2019-11-27'
 subdat <- subset(aggdat, date(by15) >= '2019-11-28')
 
 table(subdat$block)
-ggplot(subdat, aes(x=by15, y=mean_T_mL_hr, color=block)) + 
+ggplot(subdat, aes(x=by15, y=mean_T_mg_s, color=block)) + 
   geom_line()
 
 # Save aggregated data (by block/trt)
-saveRDS(aggdat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/transpiration_by_plant.rds')
+saveRDS(aggdat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/transpiration_by_block.rds')
 
 
 ### Now, read in combined data (plus psi_leaf predictions) and merge to transpiration data (at block-level)
-combdat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predicted_psi_leaf.rds')
+combdat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predicted_psi_leaf.rds')
 
 head(combdat)
 head(aggdat)
@@ -175,7 +177,7 @@ head(aggdat)
 alldat <- merge(combdat, aggdat, by = c('by15','block','treatment'), all.x = TRUE)
 
 # save the combined data
-saveRDS(alldat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predict_psi_leaf_transpiration.rds')
+saveRDS(alldat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predict_psi_leaf_transpiration.rds')
 
 
 
@@ -191,7 +193,7 @@ subdat <- subset(baldat,
                    # !flag %in% c('irrig','man') )
 
 # plot all data in subset
-ggplot(subdat, aes(x=by15, y=T_mL_hr, color = plant_id)) +
+ggplot(subdat, aes(x=by15, y=T_mg_s, color = plant_id)) +
   geom_line() + facet_grid(~block) +
   ylim(c(-10, 250))
 
@@ -203,7 +205,7 @@ subdat2 <- subset(baldat, date == day & block == blk)
 # only unflagged data
 subdat2 <- subset(baldat, date == day & flag == 0 & block == blk)
 
-ggplot(subdat2, aes(x=by15, y=T_mL_hr, color = plant_id)) +
+ggplot(subdat2, aes(x=by15, y=T_mg_s, color = plant_id)) +
   geom_point() + geom_line() 
 
 
@@ -216,24 +218,24 @@ d <- subset(baldat, plant_id=='W-6' & date>='2019-10-25' & date <='2019-11-14' &
 d <- subset(baldat, scale == 5 & date>='2019-11-25' & date <='2019-12-12' & flag == 0)
 
 ### k = 3-5 seems like a reasonable choice. 
-d$rm[!is.na(d$T_mL_hr)] <- runmed(d$T_mL_hr[!is.na(d$T_mL_hr)], k=5)
-summary(d$T_mL_hr); summary(d$rm)
+d$rm[!is.na(d$T_mg_s)] <- runmed(d$T_mg_s[!is.na(d$T_mg_s)], k=5)
+summary(d$T_mg_s); summary(d$rm)
 ggplot(d) +
   geom_line(aes(x=by15, y=rm), color = 'red') +
-  geom_point(aes(x=by15, y=T_mL_hr), color='blue', alpha = .5) + 
+  geom_point(aes(x=by15, y=T_mg_s), color='blue', alpha = .5) + 
   ylim(c(-50,200))
   
 
 ### Do values make sense? (do they add up to a reasonable number?)
 d <- subset(baldat, plant_id == 'D-11' & date=='2019-10-23' & flag == 0)
-d$rm[!is.na(d$T_mL_hr)] <- runmed(d$T_mL_hr[!is.na(d$T_mL_hr)], k=5)
+d$rm[!is.na(d$T_mg_s)] <- runmed(d$T_mg_s[!is.na(d$T_mg_s)], k=5)
 ggplot(d) +
   geom_line(aes(x=by15, y=rm), color = 'red') +
-  geom_point(aes(x=by15, y=T_mL_hr), color='blue', alpha = .5) 
+  geom_point(aes(x=by15, y=T_mg_s), color='blue', alpha = .5) 
 
 # 'integrated' T over day
 sum(d$rm/4) # units are in mL_hr, so need to divide by 4 since timesteps are 1/4 hr
-sum(d$T_mL_hr/4) # using raw transpiration
+sum(d$T_mg_s/4) # using raw transpiration
 
 # absolute water (weight) loss over day
 ggplot(d) + geom_point(aes(x=by15, y=mean_weight_kg), color = 'red')
