@@ -102,7 +102,7 @@ plot(x$by15, x$mean_T_mg_m2_s); identify(x$by15, x$mean_T_mg_m2_s, labels = x$by
 x = dat[dat$block=='W' & dat$date == '2019-10-28',]
 sundat <- ddply(dat[dat$block=='W',], .(date), function(x) {
   x <- x[order(x$by15), ]
-  sunup <- which(x$line_PAR_east_umol_m2_s > 10)
+  sunup <- which(x$line_PAR_west_umol_m2_s > 1)
   start <- sunup[1]
   end <- sunup[length(sunup)]
   return(data.frame(date=unique(x$date), 
@@ -288,13 +288,42 @@ fitLasso <- function(df) {
   nrow(lc)
   return(lc)
 }
-nreps <- 10
-modelRuns <- lapply(1:nreps, function(x) fitLasso(df = periodList$early_morning))
-modelRuns <- do.call(rbind, allvars)
+
 
 require(tidyr); require(dplyr)
-modelRuns %>% group_by(variable) %>% summarise(mean_val = mean(coef))
+nreps <- 20
 
-x = pivot_wider(modelRuns, values_from = coef, names_from = variable)
-table(unlist(allvars))
-fitLasso(df = periodList$early_morning)
+modelRuns_early_morning <- lapply(1:nreps, function(x) fitLasso(df = periodList$early_morning))
+modelRuns_early_morning <- do.call(rbind, modelRuns_early_morning)
+
+modelRuns_early_morning %>% group_by(variable) %>% 
+  summarise(mean_val = mean(coef), sd=sd(coef), n=n()) %>%
+  arrange(desc(abs(mean_val))) %>% filter(n >= nreps*0.75)
+
+modelRuns_mid_morning <- lapply(1:nreps, function(x) fitLasso(df = periodList$mid_morning))
+modelRuns_mid_morning <- do.call(rbind, modelRuns_mid_morning)
+
+modelRuns_mid_morning %>% group_by(variable) %>% 
+  summarise(mean_val = mean(coef), sd=sd(coef), n=n()) %>%
+  arrange(desc(abs(mean_val))) %>% filter(n >= nreps*0.75)
+
+modelRuns_midday <- lapply(1:nreps, function(x) fitLasso(df = periodList$midday))
+modelRuns_midday <- do.call(rbind, modelRuns_midday)
+
+modelRuns_midday %>% group_by(variable) %>% 
+  summarise(mean_val = mean(coef), sd=sd(coef), n=n()) %>%
+  arrange(desc(abs(mean_val))) %>% filter(n >= nreps*0.75)
+
+modelRuns_late_afternoon <- lapply(1:nreps, function(x) fitLasso(df = periodList$late_afternoon))
+modelRuns_late_afternoon <- do.call(rbind, modelRuns_late_afternoon)
+
+modelRuns_late_afternoon %>% group_by(variable) %>% 
+  summarise(mean_val = mean(coef), sd=sd(coef), n=n()) %>%
+  arrange(desc(abs(mean_val))) %>% filter(n >= nreps*0.75)
+
+modelRuns_night <- lapply(1:nreps, function(x) fitLasso(df = periodList$night))
+modelRuns_night <- do.call(rbind, modelRuns_night)
+
+modelRuns_night %>% group_by(variable) %>% 
+  summarise(mean_val = mean(coef), sd=sd(coef), n=n()) %>%
+  arrange(desc(abs(mean_val))) %>% filter(n >= nreps*0.75)
