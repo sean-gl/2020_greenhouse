@@ -18,13 +18,14 @@ Sys.getenv('TZ') # make sure it got set
 
 # assign treatment dates... don't forget the "tz='GMT' !!
 exp1_start <- as.POSIXct('2019-10-24 12:00:00', tz='GMT')
-exp1_end   <- as.POSIXct('2019-11-04 09:00:00', tz='GMT')
+exp1_end   <- as.POSIXct('2019-11-04 16:00:00', tz='GMT') # clay: changed end time from 09:00, to get more pressure bomb data
 
 exp2_start <- as.POSIXct('2019-11-04 17:00:00', tz='GMT')
-exp2_end   <- as.POSIXct('2019-11-27 09:00:00', tz='GMT')
+exp2_end   <- as.POSIXct('2019-11-27 16:00:00', tz='GMT') # clay: changed end time from 09:00, to get more pressure bomb data
 
 exp3_start <- as.POSIXct('2019-11-27 17:00:00', tz='GMT')
-exp3_end   <- as.POSIXct('2019-12-12 09:00:00', tz='GMT')
+exp3_end   <- as.POSIXct('2019-12-12 16:00:00', tz='GMT') # clay: changed end time from 09:00, to get more pressure bomb data
+
 
 
 
@@ -125,6 +126,8 @@ allData4 <- merge(pbMeans, allData3, by=c('by15','treatment','block'), all = TRU
 saveRDS(allData4, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
 
 
+# read back in
+# allData4 <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
 
 
 ### -------------------------------------------
@@ -180,34 +183,35 @@ lt_wide$leaftemp_highest_avail <- apply(lt_wide, 1, function(x) {
 lt_wide$treatment <- NA
 
 # Block D
-i <- with(lt_wide, block=='D' & by15 > exp1_start & by15 < exp1_end)
+i <- with(lt_wide, block=='D' & by15 >= exp1_start & by15 <= exp1_end)
 lt_wide$treatment[i] <- 'full_drought'
-i <- with(lt_wide, block=='D' & by15 > exp2_start & by15 < exp2_end)
+i <- with(lt_wide, block=='D' & by15 >= exp2_start & by15 <= exp2_end)
 lt_wide$treatment[i] <- 'well_watered'
-i <- with(lt_wide, block=='D' & by15 > exp3_start & by15 < exp3_end)
+i <- with(lt_wide, block=='D' & by15 >= exp3_start & by15 <= exp3_end)
 lt_wide$treatment[i] <- 'full_drought'
 table(lt_wide$treatment[lt_wide$block=='D'], useNA = 'a')
 
 # Block M
-i <- with(lt_wide, block=='M' & by15 > exp1_start & by15 < exp1_end)
+i <- with(lt_wide, block=='M' & by15 >= exp1_start & by15 <= exp1_end)
 lt_wide$treatment[i] <- 'moderate_drought'
-i <- with(lt_wide, block=='M' & by15 > exp2_start & by15 < exp2_end)
+i <- with(lt_wide, block=='M' & by15 >= exp2_start & by15 <= exp2_end)
 lt_wide$treatment[i] <- 'moderate_drought'
-i <- with(lt_wide, block=='M' & by15 > exp3_start & by15 < exp3_end)
+i <- with(lt_wide, block=='M' & by15 >= exp3_start & by15 <= exp3_end)
 lt_wide$treatment[i] <- 'well_watered'
 table(lt_wide$treatment[lt_wide$block=='M'], useNA = 'a')
 
 # Block W
-i <- with(lt_wide, block=='W' & by15 > exp1_start & by15 < exp1_end)
+i <- with(lt_wide, block=='W' & by15 >= exp1_start & by15 <= exp1_end)
 lt_wide$treatment[i] <- 'well_watered'
-i <- with(lt_wide, block=='W' & by15 > exp2_start & by15 < exp2_end)
+i <- with(lt_wide, block=='W' & by15 >= exp2_start & by15 <= exp2_end)
 lt_wide$treatment[i] <- 'full_drought'
-i <- with(lt_wide, block=='W' & by15 > exp3_start & by15 < exp3_end)
+i <- with(lt_wide, block=='W' & by15 >= exp3_start & by15 <= exp3_end)
 lt_wide$treatment[i] <- 'virgin_drought'
 table(lt_wide$treatment[lt_wide$block=='W'], useNA = 'a')
 
 # omit rows without a treatment assigned
-lt_wide <- subset(lt_wide, !is.na(treatment))
+nrow(lt_wide)
+lt_wide <- subset(lt_wide, !is.na(treatment)); nrow(lt_wide)
   
 
 # --- MERGE TO FULL DATA SET
@@ -216,4 +220,60 @@ allData5 <- merge(lt_wide, allData4, by=c('by15','treatment','block'), all = TRU
 nrow(allData5); nrow(allData4)*4 # close to the correct number of rows (4 plants/block)
 
 
+####
+# 6. Transpiration data (calculated from scale weights)
+###
 
+# read data
+transp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
+
+# remove border plants
+transp <- subset(transp, !grepl('border_plant', plant_id))
+
+# re-do assignment of treatments to match those above
+transp$treatment <- NA
+
+# Block D
+i <- with(transp, block=='D' & by15 >= exp1_start & by15 <= exp1_end)
+transp$treatment[i] <- 'full_drought'
+i <- with(transp, block=='D' & by15 >= exp2_start & by15 <= exp2_end)
+transp$treatment[i] <- 'well_watered'
+i <- with(transp, block=='D' & by15 >= exp3_start & by15 <= exp3_end)
+transp$treatment[i] <- 'full_drought'
+table(transp$treatment[transp$block=='D'], useNA = 'a')
+
+# Block M
+i <- with(transp, block=='M' & by15 >= exp1_start & by15 <= exp1_end)
+transp$treatment[i] <- 'moderate_drought'
+i <- with(transp, block=='M' & by15 >= exp2_start & by15 <= exp2_end)
+transp$treatment[i] <- 'moderate_drought'
+i <- with(transp, block=='M' & by15 >= exp3_start & by15 <= exp3_end)
+transp$treatment[i] <- 'well_watered'
+table(transp$treatment[transp$block=='M'], useNA = 'a')
+
+# Block W
+i <- with(transp, block=='W' & by15 >= exp1_start & by15 <= exp1_end)
+transp$treatment[i] <- 'well_watered'
+i <- with(transp, block=='W' & by15 >= exp2_start & by15 <= exp2_end)
+transp$treatment[i] <- 'full_drought'
+i <- with(transp, block=='W' & by15 >= exp3_start & by15 <= exp3_end)
+transp$treatment[i] <- 'virgin_drought'
+table(transp$treatment[transp$block=='W'], useNA = 'a')
+
+# NA are all on dates treatments switched or before start of experiment
+table(transp$date[is.na(transp$treatment)]) 
+# remove rows without treatment
+transp <- transp[!is.na(transp$treatment), ]
+
+# reanme flag column
+colnames(transp)[colnames(transp)=='flag'] <- 'transpiration_flag'
+colnames(transp)[colnames(transp)=='mean_weight_kg'] <- 'scale_weight_kg'
+
+# remove columns not wanted in merge
+head(transp)
+transp <- subset(transp, select = c(by15, plant_id, treatment, block, transpiration_flag, T_mg_s, scale_weight_kg))
+
+
+ggplot(transp, aes(x=by15, y=T_mg_s))
+### MERGE
+allData6 <- merge(transp, allData5, by=c('by15','block','treatment','plant_id'))

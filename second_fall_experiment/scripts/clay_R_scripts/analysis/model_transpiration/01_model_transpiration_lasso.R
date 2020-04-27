@@ -27,11 +27,6 @@ dat$mean_T_mg_s[ind] <- 0
 la <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')
 
 
-# # Check VPD calculations, by using alternative formula
-# dat$
-# dat$VP_sat <- exp(-1.044E4 / dat$sht2_low_temp - 11.29 - 2.7E-2*dat$sht2_low_temp + 
-#                     1.289E-5*dat$sht2_low_temp^2 - 2.478e-9*dat$sht2_low_temp^3 + 
-#                     6.456*log(dat$sht2_low_temp))
 
 
 # Merge leaf area to other data

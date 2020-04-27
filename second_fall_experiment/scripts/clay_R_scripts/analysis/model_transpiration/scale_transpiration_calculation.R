@@ -43,8 +43,11 @@ baldat <- baldat[order(baldat$plant_id, baldat$by15), ]
 # split into 2 sets of data: with flags and without
 # only use the noflag data to calculate transpiration, 
 # but then at the end we will re-combine the two sets for completeness
-baldat_noflag <- baldat[baldat$flag == 0, ]
-baldat_flag <- baldat[baldat$flag != 0, ]
+table(baldat$flag)
+badflags <- c(1:3, 'irrig1', 'irrig2', 'irrig3', 'man')
+
+baldat_noflag <- baldat[!baldat$flag  %in% badflags, ]
+baldat_flag <- baldat[baldat$flag %in% badflags, ]
 nrow(baldat) == nrow(baldat_flag) + nrow(baldat_noflag)
 
 # ensure data is in chronological order (by plant_id)
@@ -57,8 +60,8 @@ s_weight <- split(baldat_noflag$mean_weight_kg, baldat_noflag$plant_id)
 s_time <- split(baldat_noflag$by15, baldat_noflag$plant_id)
 
 # note: need the "as.numeric()" here to make sure they all are converted to seconds (not minutes)
-sdiff_weight <- lapply(s_weight, function(x) c(NA, diff(as.numeric(x))))
-sdiff_time <- lapply(s_time, function(x) c(NA, diff(as.numeric(x))))
+sdiff_weight <- lapply(s_weight, function(x) c(diff(as.numeric(x)), NA))
+sdiff_time <- lapply(s_time, function(x) c(diff(as.numeric(x)), NA))
 all(sapply(sdiff_weight, length) == sapply(sdiff_time, length))
 
 
@@ -87,22 +90,26 @@ transp <- rbind(baldat_flag, baldat_noflag)
 # by(transp, transp$block, function(x) summary(x$T_mg_s)) # why so many NA in block D?
 # table(transp$block)
 
+sub=subset(transp, date=='2019-10-24' & block=='W')
+ggplot(sub, aes(x=by15, y=T_mg_s, color=plant_id)) + geom_line() + geom_point()
+ggplot(sub, aes(x=by15, y=mean_weight_kg, color=plant_id)) + geom_line() + geom_point()
+
 # plot -- some obviously bad data a bit after Nov 15...
 ggplot(transp[transp$scale==5,], aes(x=by15, y=T_mg_s, color=scale)) +
   geom_line()
 
-i = which(transp$T_mg_s > 200)
+i = which(transp$T_mg_s > 100)
 transp[i,] # nov. 19...
 ggplot(subset(transp, by15 > '2019-11-19 08:00' & by15 < '2019-11-19 11:00'),
        aes(x=by15, y=T_mg_s, color=scale)) + geom_line()
 
 # something fishy going on at 10:00 am, most scales...just NA them all for this time point
-transp$T_mg_s[transp$by15 == '2019-11-19 10:15'] <- NA
+transp$T_mg_s[transp$by15 == '2019-11-19 10:00'] <- NA
 
 # scale 5 has obvious outlier
 ggplot(subset(transp, by15 > '2019-11-19 14:00' & by15 < '2019-11-19 16:00'),
       aes(x=by15, y=T_mg_s, color=scale)) + geom_line()
-transp$T_mg_s[transp$by15 == '2019-11-19 15:30' & transp$scale == 5] <- NA
+transp$T_mg_s[transp$by15 == '2019-11-19 15:15' & transp$scale == 5] <- NA
 
 # x = transp$T_mg_s[baldat$hour >= 9 & baldat$hour <= 17]
 x = transp$T_mg_s
@@ -110,29 +117,62 @@ summary(x); plot(density(x, na.rm = T))
 
 # examine T above 100 or below -10 
 high <- which(transp$T_mg_s > 100); length(high)
-View(transp[high,]) # looks beleivable to me.
 low <- which(transp$T_mg_s < -10); length(low)
 View(transp[low,])
 # not sure about these; I'll just filter out negatives during analysis
 
+
+# read in leaf area (modeled) data
+# note: the follwing dates and blocks were outside the range of any measurments, 
+# so we may wish to exclude the leaf area estimates for them:
+# 10/24 to 10/29 (all blocks), and 11-28 to 12-05 (W block only (virgins))
+la <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')
+
+
+# Merge leaf area to other data
+transp <- merge(transp, la, by = c('date','block'), all.x = T)
+summary(transp$mean_plant_leaf_area_cm2) 
+
+# note: 10-23 doesn't have leaf area data; but this is before treatments began so we will
+# exclude this data anyway
+transp <- subset(transp, date >= '2019-10-24')
+
+
+# --- Transpiration needs to be scaled by leaf area. Since we are doing the analysis 
+# at the block-level, we use the (mean) total plant leaf area in each block, and the 
+# mean transpiration for each block.
+# also we want to convert from cm2 to m2 so we divide by 10000.
+transp$mean_plant_leaf_area_m2 <- (transp$mean_plant_leaf_area_cm2) / 1E4
+transp$mean_plant_leaf_area_cm2 <- NULL
+transp$T_mg_m2_s <- transp$T_mg_s / transp$mean_plant_leaf_area_m2
+summary(transp$mean_plant_leaf_area_m2)
+summary(transp$T_mg_m2_s)
+summary(transp$T_mg_s)
+
+
+
+
 # Write raw transpiration data (plant-level, 15 minute) to file
 saveRDS(transp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
+
+# read back in
+# transp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
 
 ### Examine data distribution (omit flagged data)
 
 # all data
-summary(transp$T_mg_s)
-plot(density(transp$T_mg_s, na.rm = T))
+summary(transp$T_mg_m2_s)
+plot(density(transp$T_mg_m2_s, na.rm = T))
 
 # daytime data only
 daydat <- subset(transp, hour > 3 & hour < 20)
-summary(daydat$T_mg_s)
-plot(density(daydat$T_mg_s, na.rm = T))
+summary(daydat$T_mg_m2_s)
+plot(density(daydat$T_mg_m2_s, na.rm = T))
 
 # night data only
 nightdat <- subset(transp, hour < 4 | hour > 19)
-summary(nightdat$T_mg_s)
-plot(density(nightdat$T_mg_s, na.rm = T))
+summary(nightdat$T_mg_m2_s)
+plot(density(nightdat$T_mg_m2_s, na.rm = T))
 
 
 ### Now, aggregate to block/treatment level
@@ -144,12 +184,12 @@ aggdat <- subset(transp, !scale %in% 15:16)
 
 # aggregate
 aggdat <- ddply(aggdat, .(by15, block, treatment), function(x) {
-  d = x$T_mg_s[!is.na(x$T_mg_s)]
-  setNames(c(mean(d), sd(d), length(d)), c('mean_T_mg_s', 'sd_T_mg_s', 'n_T_mg_s'))
+  d = x$T_mg_m2_s[!is.na(x$T_mg_m2_s)]
+  setNames(c(mean(d), sd(d), length(d)), c('mean_T_mg_m2_s', 'sd_T_mg_m2_s', 'n_T_mg_m2_s'))
 })
 
 # view summary
-summary(aggdat$mean_T_mg_s)
+summary(aggdat$mean_T_mg_m2_s)
 
 # plot
 # trt 1
@@ -160,7 +200,7 @@ subdat <- subset(aggdat, date(by15) >= '2019-11-05' & date(by15) <= '2019-11-27'
 subdat <- subset(aggdat, date(by15) >= '2019-11-28')
 
 table(subdat$block)
-ggplot(subdat, aes(x=by15, y=mean_T_mg_s, color=block)) + 
+ggplot(subdat, aes(x=by15, y=mean_T_mg_m2_s, color=block)) + 
   geom_line()
 
 # Save aggregated data (by block/trt)
@@ -178,6 +218,9 @@ alldat <- merge(combdat, aggdat, by = c('by15','block','treatment'), all.x = TRU
 
 # save the combined data
 saveRDS(alldat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predict_psi_leaf_transpiration.rds')
+
+
+
 
 
 

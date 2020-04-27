@@ -110,18 +110,18 @@ table(dat$block, dat$treatment)
 
 # # Calculate plant leaf area totals by plant and date
 # totalArea <- ddply(dat, .(isHarvest, date, pot_id, treatment, block), function(x) {
-#   setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area')
+#   setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area_cm2')
 # })
 # 
-# ggplot(totalArea, aes(x=date, y=total_leaf_area, color=block)) + 
+# ggplot(totalArea, aes(x=date, y=total_leaf_area_cm2, color=block)) + 
 #   geom_point() + facet_wrap(~isHarvest)
 # 
 # # Calculate plant leaf area totals by block and date
 # meanArea <- ddply(totalArea, .(isHarvest, date, treatment, block), function(x) {
-#   setNames(mean(x$total_leaf_area), 'mean_total_leaf_area')
+#   setNames(mean(x$total_leaf_area_cm2), 'total_leaf_area_cm2_block_mean')
 # })
 # 
-# ggplot(meanArea, aes(x=date, y=mean_total_leaf_area, color=block)) + 
+# ggplot(meanArea, aes(x=date, y=total_leaf_area_cm2_block_mean, color=block)) + 
 #   geom_line() + geom_point() + facet_wrap(~isHarvest)
 
 
@@ -130,18 +130,18 @@ table(dat$block, dat$treatment)
  
 # Calculate plant leaf area totals by plant and date
 totalArea <- ddply(dat, .(date, pot_id, treatment, block), function(x) {
-  setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area')
+  setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area_cm2')
 })
 
-ggplot(totalArea, aes(x=date, y=total_leaf_area, color=block)) + 
+ggplot(totalArea, aes(x=date, y=total_leaf_area_cm2, color=block)) + 
   geom_point() 
 
 # Calculate mean for each block/date, of total plant leaf area 
 meanArea <- ddply(totalArea, .(date, treatment, block), function(x) {
-  setNames(mean(x$total_leaf_area), 'mean_total_leaf_area')
+  setNames(mean(x$total_leaf_area_cm2), 'total_leaf_area_cm2_block_mean')
 })
 
-ggplot(meanArea, aes(x=date, y=mean_total_leaf_area, color=block)) + 
+ggplot(meanArea, aes(x=date, y=total_leaf_area_cm2_block_mean, color=block)) + 
   geom_line() + geom_point() 
 
 
@@ -153,10 +153,10 @@ pw_linear_coef <- ddply(meanArea, .(date, block), function(x) {
     return(rep(NA,2))
   } else {
     # calculate intercept & slope between each pair of points
-    p1 <- c(as.numeric(x$date), x$mean_total_leaf_area)
+    p1 <- c(as.numeric(x$date), x$total_leaf_area_cm2_block_mean)
     nextdate <- dates[which(dates == x$date) + 1]
     x2 <- subset(meanArea, block == x$block & date == nextdate)
-    p2 <- c(as.numeric(x2$date), x2$mean_total_leaf_area)
+    p2 <- c(as.numeric(x2$date), x2$total_leaf_area_cm2_block_mean)
     d <- data.frame(rbind(p1, p2))
     m <- lm(X2~X1, d) 
     return(as.numeric(m$coefficients))
