@@ -349,6 +349,23 @@ colnames(lq_west_15) <- c('by15', 'line_PAR_west_umol_m2_s')
 # merge east and west dfs
 comb <- merge(lq_east_15, lq_west_15, by='by15')
 
+
+### --- Clay added this
+
+# We need to adjust times; apparently the clock was set to MDT, so the clock goes back by
+# an hour on 11/3 
+ind <- with(comb, by15 <= '2019-11-04 02:00')
+head(comb$by15[ind] )
+comb$by15[ind] <- comb$by15[ind] - 3600
+head(comb$by15[ind] )
+
+# Sean had a note to not use data from WEST sensor on 11/4 between ca. 15:00 and 16:00 
+sub = subset(comb, lubridate::date(by15)=='2019-11-04' )
+plot(line_PAR_west_umol_m2_s ~ by15, type='l', sub)
+lines(line_PAR_east_umol_m2_s ~ by15, type='l', sub, col='red')
+ind <- with(comb, by15 >= '2019-11-04 14:45' & by15 <= '2019-11-04 16:15')
+comb$line_PAR_west_umol_m2_s[ind] <- NA
+
 # save to file
 write.csv(comb, paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
                       "data/line_PAR_sensors/line_PAR_15.csv", sep=""), row.names=FALSE)

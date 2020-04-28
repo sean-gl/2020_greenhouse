@@ -58,6 +58,96 @@ lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 allData1 <- merge(rh, lq, by='by15', all=TRUE)
 
 
+### ---- Special Section: Add LED PAR contribution ----
+
+
+# add date & minutes columns
+allData1$date <- date(allData1$by15)
+allData1$minutes <- hour(allData1$by15)*60 + minute(allData1$by15)
+
+# general indexes for times between 03:20 and 19:20 (when LEDs were on)
+
+# NOTE: Apparently the greenhouse system was set to daylight time, so on 11/3 the LED
+# started coming on an hour later (relative to all other data loggers)
+ind1 <- with(allData1, by15 < as.POSIXct('2019-11-03 02:00', tz="GMT") & 
+              (minutes >= 3*60 + 20) & (minutes <= 19*60 + 20)) # TRUE = LEDs on.
+ind2 <- with(allData1, by15 >= as.POSIXct('2019-11-03 02:00', tz="GMT") & 
+               (minutes >= 4*60 + 20) & (minutes <= 20*60 + 20)) # TRUE = LEDs on.
+
+# special indices for times when LEDs manually turned off (see greehouse logbook)
+# TRUE = LEDS ON
+ind3 <- !(with(allData1, date == '2019-12-05' & (minutes >= 10*60 + 40) & (minutes <= 17*60 + 30)))
+ind4 <- !(with(allData1, date == '2019-12-10' & (minutes >= 16*60 + 50)))
+ind5 <- !(with(allData1, date == '2019-12-11' & (minutes <= 7*60 + 15)))
+
+# combine all indices 
+ind <- (ind1 | ind2) & ind3 & ind4 & ind5
+# ind <- ind & ind1 & ind2 & ind3
+
+# add LED contribution to indexed timestamps
+allData1$line_PAR_east_umol_m2_s_plusLED[!ind] <- allData1$line_PAR_east_umol_m2_s[!ind]
+allData1$line_PAR_east_umol_m2_s_plusLED[ind] <- allData1$line_PAR_east_umol_m2_s[ind] + 225
+allData1$line_PAR_west_umol_m2_s_plusLED[!ind] <- allData1$line_PAR_west_umol_m2_s[!ind]
+allData1$line_PAR_west_umol_m2_s_plusLED[ind] <- allData1$line_PAR_west_umol_m2_s[ind] + 225
+allData1$par1_n_plusLED[!ind] <- allData1$par1_n[!ind]
+allData1$par1_n_plusLED[ind] <- allData1$par1_n[ind] + 225
+allData1$par2_n_plusLED[!ind] <- allData1$par2_n[!ind]
+allData1$par2_n_plusLED[ind] <- allData1$par2_n[ind] + 225
+
+# Check: plot lq before (black) and after (red) adding LED
+x=subset(allData1, date >= '2019-12-04' & date <= '2019-12-12')
+plot(x$by15, x$line_PAR_east_umol_m2_s_plusLED, type = 'l', col='red'); lines(x$by15, x$line_PAR_east_umol_m2_s)
+plot(x$by15, x$par1_n_plusLED, type = 'l', col='red'); lines(x$by15, x$par1_n)
+
+# ---- Looks good, now replace the original data columns with added PAR
+allData1$line_PAR_east_umol_m2_s <- allData1$line_PAR_east_umol_m2_s_plusLED
+allData1$line_PAR_east_umol_m2_s_plusLED <- NULL 
+allData1$line_PAR_west_umol_m2_s <- allData1$line_PAR_west_umol_m2_s_plusLED
+allData1$line_PAR_west_umol_m2_s_plusLED <- NULL
+allData1$par1_n <- allData1$par1_n_plusLED
+allData1$par1_n_plusLED <- NULL 
+allData1$par2_s <- allData1$par2_s_plusLED
+allData1$par1_n_plusLED <- NULL 
+
+
+
+# ----- Add VPD_air ----
+
+# require(plantecophys)
+
+# Examine RH data
+# colors <- c('am2320'='black', 'sht_hi'='red', 'sht_lo'='blue')
+# # hi v. low
+# ggplot(allData1, aes(x=by15)) +
+#   geom_line(aes(y=sht1_high_rh, color='sht_hi')) +
+#   geom_line(aes(y=sht2_low_rh, color='sht_lo'))
+# 
+# # sht hi vs. am2320 hi
+# ggplot(allData1, aes(x=by15)) +
+#   geom_line(aes(y=am2320_high_rh, color='am2320')) +
+#   geom_line(aes(y=sht1_high_rh, color='sht_hi')) 
+#  
+# cor(allData1$sht1_high_rh, allData1$am2320_high_rh, use='complete.obs')
+# cor(allData1$sht1_high_rh, allData1$sht2_low_rh, use='complete.obs')
+
+# Using Sean's formula
+
+# VPD_air, high (note: using am2320 RH/temp results in very similar VPD)
+allData1$VPD_air_high <- (1 - (allData1$sht1_high_rh / 100)) * 0.61121 * exp((17.502 * allData1$sht1_high_temp) / (240.97 + allData1$sht1_high_temp)) 
+
+# VPD_air, low
+allData1$VPD_air_low <- (1 - (allData1$sht2_low_rh / 100)) * 0.61121 * exp((17.502 * allData1$sht2_low_temp) / (240.97 + allData1$sht2_low_temp)) 
+
+# nearly same result using this function, assuming atm pressure = 101 kPa
+# allData1$VPD_air_high <- plantecophys::RHtoVPD(RH = allData1$sht1_high_rh, 
+#                                                TdegC = allData1$sht1_high_temp, 
+#                                                Pa = 101)
+
+summary(allData1$VPD_air_high)
+summary(allData1$VPD_air_low)
+
+
+
 ### -------------------------------------------
 ###  --- Second, merge to block-level data  ----
 ### -------------------------------------------
@@ -119,7 +209,6 @@ pbMeans <- ddply(pb, .(by15, treatment, block), function(x) {
 
 ### MERGE data
 allData4 <- merge(pbMeans, allData3, by=c('by15','treatment','block'), all = TRUE)
-
 
 
 ### ----- At this point, let's save the "treatment-level only" dataset
@@ -212,7 +301,7 @@ table(lt_wide$treatment[lt_wide$block=='W'], useNA = 'a')
 # omit rows without a treatment assigned
 nrow(lt_wide)
 lt_wide <- subset(lt_wide, !is.na(treatment)); nrow(lt_wide)
-  
+
 
 # --- MERGE TO FULL DATA SET
 
@@ -220,8 +309,54 @@ allData5 <- merge(lt_wide, allData4, by=c('by15','treatment','block'), all = TRU
 nrow(allData5); nrow(allData4)*4 # close to the correct number of rows (4 plants/block)
 
 
+
+# --- Now calculate VPD_leaf, using highest available leaf temp, and "low" air temp/RH (75% canopy ht.)
+
+# First calculate the satVP_of_leaf:
+satVP_leaf <- 1e-3*(exp(77.345+0.0057*(allData5$leaftemp_highest_avail+273.15)-7235/(allData5$leaftemp_highest_avail+273.15)))/(allData5$leaftemp_highest_avail+273.15)^8.2
+summary(satVP_leaf)
+
+# Then, calculate the satVP_of_atmosphere:
+satVP_atm <- 1e-3*(exp(77.345+0.0057*(allData5$sht2_low_temp+273.15)-7235/(allData5$sht2_low_temp+273.15)))/(allData5$sht2_low_temp+273.15)^8.2
+summary(satVP_atm)
+
+
+# Then, use satVP_of_atmosphere and RH data (from sensors) to calculate actual VP of atmosphere:
+VP_atm <- satVP_atm * allData5$sht2_low_rh/100  #[ note this is to express RH as a fraction ]
+summary(VP_atm)
+
+# then, finally, calculate VPD_leaf:
+allData5$VPD_leaf <- satVP_leaf - VP_atm
+summary(allData5$VPD_leaf)
+
+
+
 ####
-# 6. Transpiration data (calculated from scale weights)
+# 6.2 Modeled psi_leaf
+###
+
+# add irrigation amount (ml); its used in the model
+allData5$irrig <- NA
+allData5$irrig[allData5$date < "2019-11-05" & allData5$treatment == 'well_watered'] <- 750
+allData5$irrig[allData5$date >= "2019-11-05" & allData5$treatment == 'well_watered'] <- 1000
+allData5$irrig[allData5$treatment == 'moderate_drought'] <- 375
+allData5$irrig[allData5$treatment %in% c('full_drought','virgin_drought')] <- 150
+table(allData5$irrig, useNA = 'a')
+
+# add mean PAR column, also used in model
+allData5$line_PAR_mean_umol_m2_s <- rowMeans(allData5[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
+
+# read in model
+psi_leaf_model <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
+
+# predict psi_leaf on continuous data
+allData5$mean_psi_leaf_MPa_modeled <- predict(psi_leaf_model, newdata = allData5)
+
+summary(allData5$mean_psi_leaf_MPa_modeled)
+
+
+####
+# 7. Transpiration data (calculated from scale weights)
 ###
 
 # read data
@@ -266,14 +401,73 @@ table(transp$date[is.na(transp$treatment)])
 transp <- transp[!is.na(transp$treatment), ]
 
 # reanme flag column
-colnames(transp)[colnames(transp)=='flag'] <- 'transpiration_flag'
+colnames(transp)[colnames(transp)=='flag'] <- 'scale_flag'
 colnames(transp)[colnames(transp)=='mean_weight_kg'] <- 'scale_weight_kg'
 
 # remove columns not wanted in merge
 head(transp)
-transp <- subset(transp, select = c(by15, plant_id, treatment, block, transpiration_flag, T_mg_s, scale_weight_kg))
+transp <- subset(transp, select = c(by15, plant_id, treatment, block, scale_flag, T_mg_s, T_mg_m2_s, scale_weight_kg))
+
+sub=subset(transp, block=='D')
+ggplot(sub, aes(x=by15, y=T_mg_m2_s, color=plant_id)) + geom_line()
 
 
-ggplot(transp, aes(x=by15, y=T_mg_s))
 ### MERGE
-allData6 <- merge(transp, allData5, by=c('by15','block','treatment','plant_id'))
+allData6 <- merge(transp, allData5, by=c('by15','block','treatment','plant_id'), all = TRUE)
+
+
+
+####
+# 8. Soil water potential (calculated from scale weights)
+###
+
+soilwp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
+head(soilwp)
+
+
+# --- Assign treatments
+soilwp$treatment <- NA
+
+# Block D
+i <- with(soilwp, block=='D' & by15 >= exp1_start & by15 <= exp1_end)
+soilwp$treatment[i] <- 'full_drought'
+i <- with(soilwp, block=='D' & by15 >= exp2_start & by15 <= exp2_end)
+soilwp$treatment[i] <- 'well_watered'
+i <- with(soilwp, block=='D' & by15 >= exp3_start & by15 <= exp3_end)
+soilwp$treatment[i] <- 'full_drought'
+table(soilwp$treatment[soilwp$block=='D'], useNA = 'a')
+
+# Block M
+i <- with(soilwp, block=='M' & by15 >= exp1_start & by15 <= exp1_end)
+soilwp$treatment[i] <- 'moderate_drought'
+i <- with(soilwp, block=='M' & by15 >= exp2_start & by15 <= exp2_end)
+soilwp$treatment[i] <- 'moderate_drought'
+i <- with(soilwp, block=='M' & by15 >= exp3_start & by15 <= exp3_end)
+soilwp$treatment[i] <- 'well_watered'
+table(soilwp$treatment[soilwp$block=='M'], useNA = 'a')
+
+# Block W
+i <- with(soilwp, block=='W' & by15 >= exp1_start & by15 <= exp1_end)
+soilwp$treatment[i] <- 'well_watered'
+i <- with(soilwp, block=='W' & by15 >= exp2_start & by15 <= exp2_end)
+soilwp$treatment[i] <- 'full_drought'
+i <- with(soilwp, block=='W' & by15 >= exp3_start & by15 <= exp3_end)
+soilwp$treatment[i] <- 'virgin_drought'
+table(soilwp$treatment[soilwp$block=='W'], useNA = 'a')
+
+# omit rows without a treatment assigned
+nrow(soilwp)
+soilwp <- subset(soilwp, !is.na(treatment)); nrow(soilwp)
+
+# rename column
+soilwp <- rename(soilwp, soil_water_potential_kPa = pressure_potential_kPa)
+
+# remove unneeded columns
+soilwp <- select(soilwp, c(by15, block, treatment, plant_id, soil_water_potential_kPa))
+
+### MERGE
+allData7 <- merge(soilwp, allData6, by=c('by15','block','treatment','plant_id'), all = TRUE)
+
+
+### ---- Finallly, save the complete (plant-level) dataset
+saveRDS(allData7, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
