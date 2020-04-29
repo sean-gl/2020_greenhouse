@@ -335,7 +335,7 @@ ggplot(mrSummary, aes(x = period, y = imp_mean, color = variable)) +
   geom_point(aes(group = variable)) + geom_errorbar(limits, width = 0.25) +
   # scale_color_lancet() +
   theme_bw(base_size = 15)  +
-  ylim(c(.4,1))
+  ylim(c(0.5,1))
 
 
 
