@@ -65,14 +65,14 @@ allData1 <- merge(rh, lq, by='by15', all=TRUE)
 allData1$date <- date(allData1$by15)
 allData1$minutes <- hour(allData1$by15)*60 + minute(allData1$by15)
 
-# general indexes for times between 03:20 and 19:20 (when LEDs were on)
+# general indexes for times between 03:15 and 19:15 (when LEDs were on)
 
 # NOTE: Apparently the greenhouse system was set to daylight time, so on 11/3 the LED
 # started coming on an hour later (relative to all other data loggers)
 ind1 <- with(allData1, by15 < as.POSIXct('2019-11-03 02:00', tz="GMT") & 
-              (minutes >= 3*60 + 20) & (minutes <= 19*60 + 20)) # TRUE = LEDs on.
+              (minutes >= 2*60 + 15) & (minutes <= 18*60 + 15)) # TRUE = LEDs on.
 ind2 <- with(allData1, by15 >= as.POSIXct('2019-11-03 02:00', tz="GMT") & 
-               (minutes >= 4*60 + 20) & (minutes <= 20*60 + 20)) # TRUE = LEDs on.
+               (minutes >= 3*60 + 15) & (minutes <= 19*60 + 15)) # TRUE = LEDs on.
 
 # special indices for times when LEDs manually turned off (see greehouse logbook)
 # TRUE = LEDS ON
@@ -109,6 +109,8 @@ allData1$par1_n_plusLED <- NULL
 allData1$par2_s <- allData1$par2_s_plusLED
 allData1$par1_n_plusLED <- NULL 
 
+# now, omit date & minutes columns (they make merging messy)
+allData1 <- select(allData1, -c(date, minutes))
 
 
 # ----- Add VPD_air ----
@@ -164,7 +166,9 @@ soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 soil_temp <- soil_temp[,c('by15','treatment','block','soil_temp_C')]
 
 # --- MERGE
-allData2 <- merge(soil_temp, allData1, by='by15')
+nrow(allData1)
+allData2 <- merge(soil_temp, allData1, by=c('by15'), all = TRUE)
+nrow(allData2)/3 # roughly equal to above
 
 
 ####
@@ -230,6 +234,10 @@ saveRDS(allData4, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/dat
 ###
 
 lt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
+
+# check that block names match plant id
+bn <- substr(lt$plant_id, 1, 1)
+all(bn == lt$block)
 
 # also remove thermistor number, not useful
 lt$thermistor <- NULL
@@ -309,6 +317,9 @@ allData5 <- merge(lt_wide, allData4, by=c('by15','treatment','block'), all = TRU
 nrow(allData5); nrow(allData4)*4 # close to the correct number of rows (4 plants/block)
 
 
+# check for missing data...?
+# by(allData5, allData5$plant_id, function(x) length(which(is.na(x$line_PAR_west_umol_m2_s))))
+
 
 # --- Now calculate VPD_leaf, using highest available leaf temp, and "low" air temp/RH (75% canopy ht.)
 
@@ -349,8 +360,14 @@ allData5$line_PAR_mean_umol_m2_s <- rowMeans(allData5[,c('line_PAR_west_umol_m2_
 # read in model
 psi_leaf_model <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
 
+# add 'minutes' column (used in model)
+allData5$minutes <- hour(allData5$by15)*60 + minute(allData5$by15)
+
 # predict psi_leaf on continuous data
 allData5$mean_psi_leaf_MPa_modeled <- predict(psi_leaf_model, newdata = allData5)
+
+# omit minutes column
+allData5$minutes <- NULL
 
 summary(allData5$mean_psi_leaf_MPa_modeled)
 
@@ -364,6 +381,10 @@ transp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scr
 
 # remove border plants
 transp <- subset(transp, !grepl('border_plant', plant_id))
+
+# check that block names match plant id
+bn <- substr(transp$plant_id, 1, 1)
+all(bn == transp$block)
 
 # re-do assignment of treatments to match those above
 transp$treatment <- NA
@@ -397,6 +418,8 @@ table(transp$treatment[transp$block=='W'], useNA = 'a')
 
 # NA are all on dates treatments switched or before start of experiment
 table(transp$date[is.na(transp$treatment)]) 
+with(transp[is.na(transp$treatment),], table(date, plant_id))
+
 # remove rows without treatment
 transp <- transp[!is.na(transp$treatment), ]
 
@@ -404,17 +427,25 @@ transp <- transp[!is.na(transp$treatment), ]
 colnames(transp)[colnames(transp)=='flag'] <- 'scale_flag'
 colnames(transp)[colnames(transp)=='mean_weight_kg'] <- 'scale_weight_kg'
 
-# remove columns not wanted in merge
+# select columns to keep in merge
 head(transp)
 transp <- subset(transp, select = c(by15, plant_id, treatment, block, scale_flag, T_mg_s, T_mg_m2_s, scale_weight_kg))
 
-sub=subset(transp, block=='D')
-ggplot(sub, aes(x=by15, y=T_mg_m2_s, color=plant_id)) + geom_line()
+# check
+# sub=subset(transp, block=='D')
+# ggplot(sub, aes(x=by15, y=T_mg_m2_s, color=plant_id)) + geom_line()
 
 
 ### MERGE
 allData6 <- merge(transp, allData5, by=c('by15','block','treatment','plant_id'), all = TRUE)
 
+# check --- why do plants d6, d7, w-26 have missing PAR, etc?
+# Something funny going on with last merge....changing to all.y = TRUE fixes but we lose some rows..
+table(transp$plant_id)
+by(allData6, allData6$plant_id, function(x) length(which(is.na(x$line_PAR_west_umol_m2_s))))
+ind <- with(allData6, plant_id=='D-6' & is.na(line_PAR_west_umol_m2_s))
+View(allData6[ind,])
+with(allData6[ind,], table(date))
 
 
 ####

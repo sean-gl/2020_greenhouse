@@ -1,7 +1,7 @@
 
 rm(list = ls())
 
-packages <- c('lubridate','plyr','ggplot2')
+packages <- c('lubridate','plyr','ggplot2','tidyr', 'dplyr','glmnet')
 lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
@@ -144,11 +144,8 @@ periodList <- split(dat, dat$period)
 # sapply(periodList, nrow)
 
 
-require(glmnet)
-
 # testing
 df = periodList$`midday (11-14)`
-responseVar = 'gs_air'
 
   
 # Function to fit a lasso model to a dataframe
@@ -162,8 +159,8 @@ fitLasso <- function(df) {
   df$random2 <- rnorm(nrow(df))
   
   # define model matrix and response
-  x <- model.matrix(gs_air ~ ., df)
-  y <- df$gs_air
+  x <- model.matrix(T_mg_m2_s ~ ., df)
+  y <- df$T_mg_m2_s
   
   # split into train/test sets
   propTrain <- 0.75
@@ -281,8 +278,14 @@ ggplot(mrSummary, aes(x = period, y = coef_mean, color = variable)) +
 
 ### ----------- RANDOM FORESTS --------------------
 
+require(ranger)
+
+df = periodList$`midday (11-14)`
 
 fitRF <- function(df) {
+  
+  # omit unwanted variables
+  df <- subset(df, select = -period)
   
   ### Split data into test/train sets
   propTrain <- 0.75
@@ -308,7 +311,7 @@ fitRF <- function(df) {
   
 }
 
-nreps <- 20
+nreps <- 5
 # Apply RF function to all time periods in list
 modelRuns <- lapply(periodList, function(df) do.call(rbind, lapply(1:nreps, function(x) fitRF(df))))
 modelRuns_df <- do.call(rbind, modelRuns)
