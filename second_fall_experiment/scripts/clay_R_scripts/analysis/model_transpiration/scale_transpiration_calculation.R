@@ -131,12 +131,11 @@ la <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts
 
 # Merge leaf area to other data
 transp <- merge(transp, la, by = c('date','block'), all.x = T)
-summary(transp$mean_plant_leaf_area_cm2) 
 
 # note: 10-23 doesn't have leaf area data; but this is before treatments began so we will
 # exclude this data anyway
 transp <- subset(transp, date >= '2019-10-24')
-
+summary(transp$mean_plant_leaf_area_cm2) 
 
 # --- Transpiration needs to be scaled by leaf area. Since we are doing the analysis 
 # at the block-level, we use the (mean) total plant leaf area in each block, and the 

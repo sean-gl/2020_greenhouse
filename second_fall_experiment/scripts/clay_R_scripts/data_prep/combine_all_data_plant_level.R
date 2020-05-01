@@ -391,7 +391,8 @@ colnames(transp)[colnames(transp)=='mean_weight_kg'] <- 'scale_weight_kg'
 
 # select columns to keep in merge
 head(transp)
-transp <- subset(transp, select = c(by15, plant_id, treatment, block, scale_flag, T_mg_s, T_mg_m2_s, scale_weight_kg))
+transp <- subset(transp, select = c(by15, plant_id, treatment, block, scale_flag,
+                                    T_mg_s, T_mg_m2_s, scale_weight_kg, mean_plant_leaf_area_m2))
 
 # check
 # sub=subset(transp, block=='D')
@@ -478,7 +479,7 @@ which(ind) # no rows w/no data
 
 # NOTE: after merge, some rows missing treatment/block; remove these, they're outside the treatment windows
 ind <- is.na(allData2$treatment) | is.na(allData2$block)
-View(allData2[ind,])
+# View(allData2[ind,])
 # drop rows
 allData2 <- allData2[!ind, ]
 
