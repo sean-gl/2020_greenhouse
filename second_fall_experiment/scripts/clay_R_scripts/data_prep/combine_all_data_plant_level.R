@@ -55,62 +55,66 @@ rh <- rh %>% select(-contains('soil_t'))
 lq <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
 lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 
-allData1 <- merge(rh, lq, by='by15', all=TRUE)
+allDataExp <- merge(rh, lq, by='by15', all=TRUE)
 
 
 ### ---- Special Section: Add LED PAR contribution ----
 
 
 # add date & minutes columns
-allData1$date <- date(allData1$by15)
-allData1$minutes <- hour(allData1$by15)*60 + minute(allData1$by15)
+allDataExp$date <- date(allDataExp$by15)
+allDataExp$minutes <- hour(allDataExp$by15)*60 + minute(allDataExp$by15)
 
 # general indexes for times between 03:15 and 19:15 (when LEDs were on)
 
 # NOTE: Apparently the greenhouse system was set to daylight time, so on 11/3 the LED
 # started coming on an hour later (relative to all other data loggers)
-ind1 <- with(allData1, by15 < as.POSIXct('2019-11-03 02:00', tz="GMT") & 
+ind1 <- with(allDataExp, by15 < as.POSIXct('2019-11-03 02:00', tz="GMT") & 
               (minutes >= 2*60 + 15) & (minutes <= 18*60 + 15)) # TRUE = LEDs on.
-ind2 <- with(allData1, by15 >= as.POSIXct('2019-11-03 02:00', tz="GMT") & 
+ind2 <- with(allDataExp, by15 >= as.POSIXct('2019-11-03 02:00', tz="GMT") & 
                (minutes >= 3*60 + 15) & (minutes <= 19*60 + 15)) # TRUE = LEDs on.
 
 # special indices for times when LEDs manually turned off (see greehouse logbook)
 # TRUE = LEDS ON
-ind3 <- !(with(allData1, date == '2019-12-05' & (minutes >= 10*60 + 40) & (minutes <= 17*60 + 30)))
-ind4 <- !(with(allData1, date == '2019-12-10' & (minutes >= 16*60 + 50)))
-ind5 <- !(with(allData1, date == '2019-12-11' & (minutes <= 7*60 + 15)))
+ind3 <- !(with(allDataExp, date == '2019-12-05' & (minutes >= 10*60 + 40) & (minutes <= 17*60 + 30)))
+ind4 <- !(with(allDataExp, date == '2019-12-10' & (minutes >= 16*60 + 50)))
+ind5 <- !(with(allDataExp, date == '2019-12-11' & (minutes <= 7*60 + 15)))
 
 # combine all indices 
 ind <- (ind1 | ind2) & ind3 & ind4 & ind5
 # ind <- ind & ind1 & ind2 & ind3
 
 # add LED contribution to indexed timestamps
-allData1$line_PAR_east_umol_m2_s_plusLED[!ind] <- allData1$line_PAR_east_umol_m2_s[!ind]
-allData1$line_PAR_east_umol_m2_s_plusLED[ind] <- allData1$line_PAR_east_umol_m2_s[ind] + 225
-allData1$line_PAR_west_umol_m2_s_plusLED[!ind] <- allData1$line_PAR_west_umol_m2_s[!ind]
-allData1$line_PAR_west_umol_m2_s_plusLED[ind] <- allData1$line_PAR_west_umol_m2_s[ind] + 225
-allData1$par1_n_plusLED[!ind] <- allData1$par1_n[!ind]
-allData1$par1_n_plusLED[ind] <- allData1$par1_n[ind] + 225
-allData1$par2_n_plusLED[!ind] <- allData1$par2_n[!ind]
-allData1$par2_n_plusLED[ind] <- allData1$par2_n[ind] + 225
+allDataExp$line_PAR_east_umol_m2_s_plusLED[!ind] <- allDataExp$line_PAR_east_umol_m2_s[!ind]
+allDataExp$line_PAR_east_umol_m2_s_plusLED[ind] <- allDataExp$line_PAR_east_umol_m2_s[ind] + 225
+allDataExp$line_PAR_west_umol_m2_s_plusLED[!ind] <- allDataExp$line_PAR_west_umol_m2_s[!ind]
+allDataExp$line_PAR_west_umol_m2_s_plusLED[ind] <- allDataExp$line_PAR_west_umol_m2_s[ind] + 225
+allDataExp$par1_n_plusLED[!ind] <- allDataExp$par1_n[!ind]
+allDataExp$par1_n_plusLED[ind] <- allDataExp$par1_n[ind] + 225
+allDataExp$par2_n_plusLED[!ind] <- allDataExp$par2_n[!ind]
+allDataExp$par2_n_plusLED[ind] <- allDataExp$par2_n[ind] + 225
 
 # Check: plot lq before (black) and after (red) adding LED
-x=subset(allData1, date >= '2019-12-04' & date <= '2019-12-12')
+x=subset(allDataExp, date >= '2019-12-04' & date <= '2019-12-12')
 plot(x$by15, x$line_PAR_east_umol_m2_s_plusLED, type = 'l', col='red'); lines(x$by15, x$line_PAR_east_umol_m2_s)
 plot(x$by15, x$par1_n_plusLED, type = 'l', col='red'); lines(x$by15, x$par1_n)
 
 # ---- Looks good, now replace the original data columns with added PAR
-allData1$line_PAR_east_umol_m2_s <- allData1$line_PAR_east_umol_m2_s_plusLED
-allData1$line_PAR_east_umol_m2_s_plusLED <- NULL 
-allData1$line_PAR_west_umol_m2_s <- allData1$line_PAR_west_umol_m2_s_plusLED
-allData1$line_PAR_west_umol_m2_s_plusLED <- NULL
-allData1$par1_n <- allData1$par1_n_plusLED
-allData1$par1_n_plusLED <- NULL 
-allData1$par2_s <- allData1$par2_s_plusLED
-allData1$par1_n_plusLED <- NULL 
+allDataExp$line_PAR_east_umol_m2_s <- allDataExp$line_PAR_east_umol_m2_s_plusLED
+allDataExp$line_PAR_east_umol_m2_s_plusLED <- NULL 
+allDataExp$line_PAR_west_umol_m2_s <- allDataExp$line_PAR_west_umol_m2_s_plusLED
+allDataExp$line_PAR_west_umol_m2_s_plusLED <- NULL
+allDataExp$par1_n <- allDataExp$par1_n_plusLED
+allDataExp$par1_n_plusLED <- NULL 
+allDataExp$par2_s <- allDataExp$par2_s_plusLED
+allDataExp$par1_n_plusLED <- NULL 
 
 # now, omit date & minutes columns (they make merging messy)
-allData1 <- select(allData1, -c(date, minutes))
+allDataExp <- select(allDataExp, -c(date, minutes))
+
+# find rows with no data
+ind <- apply(select(allDataExp, -by15), 1, function(x) all(is.na(x)))
+which(ind) # all rows have some data
 
 
 # ----- Add VPD_air ----
@@ -120,38 +124,39 @@ allData1 <- select(allData1, -c(date, minutes))
 # Examine RH data
 # colors <- c('am2320'='black', 'sht_hi'='red', 'sht_lo'='blue')
 # # hi v. low
-# ggplot(allData1, aes(x=by15)) +
+# ggplot(allDataExp, aes(x=by15)) +
 #   geom_line(aes(y=sht1_high_rh, color='sht_hi')) +
 #   geom_line(aes(y=sht2_low_rh, color='sht_lo'))
 # 
 # # sht hi vs. am2320 hi
-# ggplot(allData1, aes(x=by15)) +
+# ggplot(allDataExp, aes(x=by15)) +
 #   geom_line(aes(y=am2320_high_rh, color='am2320')) +
 #   geom_line(aes(y=sht1_high_rh, color='sht_hi')) 
 #  
-# cor(allData1$sht1_high_rh, allData1$am2320_high_rh, use='complete.obs')
-# cor(allData1$sht1_high_rh, allData1$sht2_low_rh, use='complete.obs')
+# cor(allDataExp$sht1_high_rh, allDataExp$am2320_high_rh, use='complete.obs')
+# cor(allDataExp$sht1_high_rh, allDataExp$sht2_low_rh, use='complete.obs')
 
 # Using Sean's formula
 
 # VPD_air, high (note: using am2320 RH/temp results in very similar VPD)
-allData1$VPD_air_high <- (1 - (allData1$sht1_high_rh / 100)) * 0.61121 * exp((17.502 * allData1$sht1_high_temp) / (240.97 + allData1$sht1_high_temp)) 
+allDataExp$VPD_air_high <- (1 - (allDataExp$sht1_high_rh / 100)) * 0.61121 * exp((17.502 * allDataExp$sht1_high_temp) / (240.97 + allDataExp$sht1_high_temp)) 
 
 # VPD_air, low
-allData1$VPD_air_low <- (1 - (allData1$sht2_low_rh / 100)) * 0.61121 * exp((17.502 * allData1$sht2_low_temp) / (240.97 + allData1$sht2_low_temp)) 
+allDataExp$VPD_air_low <- (1 - (allDataExp$sht2_low_rh / 100)) * 0.61121 * exp((17.502 * allDataExp$sht2_low_temp) / (240.97 + allDataExp$sht2_low_temp)) 
 
 # nearly same result using this function, assuming atm pressure = 101 kPa
-# allData1$VPD_air_high <- plantecophys::RHtoVPD(RH = allData1$sht1_high_rh, 
-#                                                TdegC = allData1$sht1_high_temp, 
+# allDataExp$VPD_air_high <- plantecophys::RHtoVPD(RH = allDataExp$sht1_high_rh, 
+#                                                TdegC = allDataExp$sht1_high_temp, 
 #                                                Pa = 101)
 
-summary(allData1$VPD_air_high)
-summary(allData1$VPD_air_low)
+summary(allDataExp$VPD_air_high)
+summary(allDataExp$VPD_air_low)
+
 
 
 
 ### -------------------------------------------
-###  --- Second, merge to block-level data  ----
+###  --- Second, merge block-level data  ----
 ### -------------------------------------------
 
 
@@ -164,11 +169,6 @@ soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
 # change order of columns
 soil_temp <- soil_temp[,c('by15','treatment','block','soil_temp_C')]
-
-# --- MERGE
-nrow(allData1)
-allData2 <- merge(soil_temp, allData1, by=c('by15'), all = TRUE)
-nrow(allData2)/3 # roughly equal to above
 
 
 ####
@@ -184,9 +184,15 @@ windWide <- tidyr::pivot_wider(wind, names_from = 'position', values_from = 'win
 head(windWide)
 
 
-
 ### MERGE data
-allData3 <- merge(windWide, allData2, by=c('by15','treatment','block'), all = TRUE)
+allDataPlot <- merge(windWide, soil_temp, by=c('by15','treatment','block'), all = TRUE)
+
+# find rows with no data
+ind <- apply(select(allDataPlot, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
+which(ind) # 3 rows w/no data
+
+# omit rows with all NA
+allDataPlot <- allDataPlot[!ind,]
 
 
 ####
@@ -212,19 +218,35 @@ pbMeans <- ddply(pb, .(by15, treatment, block), function(x) {
 
 
 ### MERGE data
-allData4 <- merge(pbMeans, allData3, by=c('by15','treatment','block'), all = TRUE)
+allDataPlot2 <- merge(pbMeans, allDataPlot, by=c('by15','treatment','block'), all = TRUE)
+
+
+# find rows with no data
+ind <- apply(select(allDataPlot2, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
+which(ind) # no rows w/no data
+
+# omit rows with all NA
+# allDataPlot <- allDataPlot[!ind,]
+
+
+### --- Now, merge experiment-level to plot/treatment-level data
+allData <- merge(allDataExp, allDataPlot2, by = 'by15', all = TRUE)
+
+# find rows with no data
+ind <- apply(select(allData, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
+which(ind) # no rows w/no data
 
 
 ### ----- At this point, let's save the "treatment-level only" dataset
-saveRDS(allData4, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
+saveRDS(allData, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
 
 
 # read back in
-# allData4 <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
+# allData <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
 
 
 ### -------------------------------------------
-###  --- Lastly, merge to plant-level data ----
+###  --- Lastly, merge plant-level data ----
 ### -------------------------------------------
 
 
@@ -311,66 +333,6 @@ nrow(lt_wide)
 lt_wide <- subset(lt_wide, !is.na(treatment)); nrow(lt_wide)
 
 
-# --- MERGE TO FULL DATA SET
-
-allData5 <- merge(lt_wide, allData4, by=c('by15','treatment','block'), all = TRUE)
-nrow(allData5); nrow(allData4)*4 # close to the correct number of rows (4 plants/block)
-
-
-# check for missing data...?
-# by(allData5, allData5$plant_id, function(x) length(which(is.na(x$line_PAR_west_umol_m2_s))))
-
-
-# --- Now calculate VPD_leaf, using highest available leaf temp, and "low" air temp/RH (75% canopy ht.)
-
-# First calculate the satVP_of_leaf:
-satVP_leaf <- 1e-3*(exp(77.345+0.0057*(allData5$leaftemp_highest_avail+273.15)-7235/(allData5$leaftemp_highest_avail+273.15)))/(allData5$leaftemp_highest_avail+273.15)^8.2
-summary(satVP_leaf)
-
-# Then, calculate the satVP_of_atmosphere:
-satVP_atm <- 1e-3*(exp(77.345+0.0057*(allData5$sht2_low_temp+273.15)-7235/(allData5$sht2_low_temp+273.15)))/(allData5$sht2_low_temp+273.15)^8.2
-summary(satVP_atm)
-
-
-# Then, use satVP_of_atmosphere and RH data (from sensors) to calculate actual VP of atmosphere:
-VP_atm <- satVP_atm * allData5$sht2_low_rh/100  #[ note this is to express RH as a fraction ]
-summary(VP_atm)
-
-# then, finally, calculate VPD_leaf:
-allData5$VPD_leaf <- satVP_leaf - VP_atm
-summary(allData5$VPD_leaf)
-
-
-
-####
-# 6.2 Modeled psi_leaf
-###
-
-# add irrigation amount (ml); its used in the model
-allData5$irrig <- NA
-allData5$irrig[allData5$date < "2019-11-05" & allData5$treatment == 'well_watered'] <- 750
-allData5$irrig[allData5$date >= "2019-11-05" & allData5$treatment == 'well_watered'] <- 1000
-allData5$irrig[allData5$treatment == 'moderate_drought'] <- 375
-allData5$irrig[allData5$treatment %in% c('full_drought','virgin_drought')] <- 150
-table(allData5$irrig, useNA = 'a')
-
-# add mean PAR column, also used in model
-allData5$line_PAR_mean_umol_m2_s <- rowMeans(allData5[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
-
-# read in model
-psi_leaf_model <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
-
-# add 'minutes' column (used in model)
-allData5$minutes <- hour(allData5$by15)*60 + minute(allData5$by15)
-
-# predict psi_leaf on continuous data
-allData5$mean_psi_leaf_MPa_modeled <- predict(psi_leaf_model, newdata = allData5)
-
-# omit minutes column
-allData5$minutes <- NULL
-
-summary(allData5$mean_psi_leaf_MPa_modeled)
-
 
 ####
 # 7. Transpiration data (calculated from scale weights)
@@ -437,15 +399,15 @@ transp <- subset(transp, select = c(by15, plant_id, treatment, block, scale_flag
 
 
 ### MERGE
-allData6 <- merge(transp, allData5, by=c('by15','block','treatment','plant_id'), all = TRUE)
+allDataPlant <- merge(transp, lt_wide, by=c('by15','block','treatment','plant_id'), all = TRUE)
 
-# check --- why do plants d6, d7, w-26 have missing PAR, etc?
-# Something funny going on with last merge....changing to all.y = TRUE fixes but we lose some rows..
-table(transp$plant_id)
-by(allData6, allData6$plant_id, function(x) length(which(is.na(x$line_PAR_west_umol_m2_s))))
-ind <- with(allData6, plant_id=='D-6' & is.na(line_PAR_west_umol_m2_s))
-View(allData6[ind,])
-with(allData6[ind,], table(date))
+
+nrow(transp); nrow(lt_wide); nrow(allDataPlant)
+
+# find rows with no data
+ind <- apply(select(allDataPlant, -c(by15, treatment, block, plant_id)), 1, function(x) all(is.na(x)))
+which(ind) # no rows w/no data
+
 
 
 ####
@@ -497,8 +459,91 @@ soilwp <- rename(soilwp, soil_water_potential_kPa = pressure_potential_kPa)
 soilwp <- select(soilwp, c(by15, block, treatment, plant_id, soil_water_potential_kPa))
 
 ### MERGE
-allData7 <- merge(soilwp, allData6, by=c('by15','block','treatment','plant_id'), all = TRUE)
+allDataPlant2 <- merge(soilwp, allDataPlant, by=c('by15','block','treatment','plant_id'), all = TRUE)
+
+# find rows with no data
+ind <- apply(select(allDataPlant2, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
+which(ind) # no rows w/no data
+
+
+
+### ------- Finally, merge together Plant-level data with Experiment + Block-level data
+
+
+allData2 <- merge(allData, allDataPlant2, by=c('by15','block','treatment'), all = TRUE)
+
+# find rows with no data
+ind <- apply(select(allData2, -c(by15, treatment, block, plant_id)), 1, function(x) all(is.na(x)))
+which(ind) # no rows w/no data
+
+# NOTE: after merge, some rows missing treatment/block; remove these, they're outside the treatment windows
+ind <- is.na(allData2$treatment) | is.na(allData2$block)
+View(allData2[ind,])
+# drop rows
+allData2 <- allData2[!ind, ]
+
+
+
+
+### ----- Final Section: Derived/Modelled Variables added here -----------
+
+
+
+# --- Now calculate VPD_leaf, using highest available leaf temp, and "low" air temp/RH (75% canopy ht.)
+
+# First calculate the satVP_of_leaf:
+satVP_leaf <- 1e-3*(exp(77.345+0.0057*(allData2$leaftemp_highest_avail+273.15)-7235/(allData2$leaftemp_highest_avail+273.15)))/(allData2$leaftemp_highest_avail+273.15)^8.2
+summary(satVP_leaf)
+
+# Then, calculate the satVP_of_atmosphere:
+satVP_atm <- 1e-3*(exp(77.345+0.0057*(allData2$sht2_low_temp+273.15)-7235/(allData2$sht2_low_temp+273.15)))/(allData2$sht2_low_temp+273.15)^8.2
+summary(satVP_atm)
+
+
+# Then, use satVP_of_atmosphere and RH data (from sensors) to calculate actual VP of atmosphere:
+VP_atm <- satVP_atm * allData2$sht2_low_rh/100  #[ note this is to express RH as a fraction ]
+summary(VP_atm)
+
+# then, finally, calculate VPD_leaf:
+allData2$VPD_leaf <- satVP_leaf - VP_atm
+summary(allData2$VPD_leaf)
+
+
+
+### --- Add psi_leaf linear model predictions ----
+
+
+# add irrigation amount (ml); its used in the model
+allData2$irrig <- NA
+allData2$irrig[date(allData2$by15) < "2019-11-05" & allData2$treatment == 'well_watered'] <- 750
+allData2$irrig[date(allData2$by15) >= "2019-11-05" & allData2$treatment == 'well_watered'] <- 1000
+allData2$irrig[allData2$treatment == 'moderate_drought'] <- 375
+allData2$irrig[allData2$treatment %in% c('full_drought','virgin_drought')] <- 150
+table(allData2$irrig, useNA = 'a')
+
+# add mean PAR column, also used in model
+allData2$line_PAR_mean_umol_m2_s <- rowMeans(allData2[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
+
+# read in linear model to predict continuous psi_leaf
+psi_leaf_model <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
+
+# add 'minutes' column (used in model)
+allData2$minutes <- hour(allData2$by15)*60 + minute(allData2$by15)
+
+# predict psi_leaf on continuous data
+allData2$mean_psi_leaf_MPa_modeled <- predict(psi_leaf_model, newdata = allData2)
+
+# omit minutes column
+allData2$minutes <- NULL
+
+summary(allData2$mean_psi_leaf_MPa_modeled)
+
+
+# find rows with no data
+ind <- apply(select(allData2, -c(by15, treatment, block, plant_id)), 1, function(x) all(is.na(x)))
+which(ind) # no rows w/no data
+
 
 
 ### ---- Finallly, save the complete (plant-level) dataset
-saveRDS(allData7, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+saveRDS(allData2, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')

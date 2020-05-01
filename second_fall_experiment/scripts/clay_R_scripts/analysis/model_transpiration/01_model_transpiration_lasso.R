@@ -1,7 +1,7 @@
 
 rm(list = ls())
 
-packages <- c('lubridate','plyr','ggplot2','tidyr', 'dplyr','glmnet')
+packages <- c('lubridate','plyr','ggplot2','tidyr','dplyr','glmnet','ggsci')
 lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
@@ -15,9 +15,9 @@ names(dat)
 # remove columns we don't need
 dat <- select(dat, -c(T_mg_s, plant_id, scale_weight_kg, scale_flag))
 
-# add hour and date columns
-dat$hour <- hour(dat$by15)
+# add date, minutes columns
 dat$date <- date(dat$by15)
+dat$minutes <- hour(dat$by15)*60 + minute(dat$by15)
 
 # Transpiration >> change negative values of T to zero
 ind <- dat$T_mg_m2_s < 0 & !is.na(dat$T_mg_m2_s)
@@ -48,26 +48,9 @@ summary(dat$pressure_gradient_soil_leaf_MPa)
 
 # ------ Combine/drop some variables that are highly collinear or redundant -----
 
-# RH and VPD
-cor(dat$sht2_low_rh, dat$VPD_air_low, use='complete.obs')
-cor(dat$sht1_high_rh, dat$VPD_air_high, use='complete.obs')
 
-# Air temp: Let's use just the SHT sensor temp (above canopy ca 1 m) and low (~70% canopy ht.)
-# this is consistent with the RH and VPD (we used the SHT sensors)
-
-
-# 
-# # Examine the Transpiration data
-# # trt 1
-# subdat <- subset(dat, date >= '2019-10-24' & date <= '2019-11-04')
-# # trt 2
-# subdat <- subset(dat, date >= '2019-11-05' & date <= '2019-11-27')
-# # trt 3
-# subdat <- subset(dat, date >= '2019-11-28')
-# 
-# ggplot(subdat, aes(x=by15, y=T_mg_m2_s, color=block)) + 
-#   geom_line()
-
+# mean windspeed
+dat$windspeed_mean <- rowMeans(dat[,c('windspeed_bottom','windspeed_middle','windspeed_top')], na.rm = TRUE)
 
 
 # ------ Section 2: Modeling using Lasso for different time periods.
@@ -106,48 +89,56 @@ dat <- subset(dat, date >= '2019-10-29')
 # Remove columns we don't care about for Lasso model.
 
 # names(dat)
-# dat <- subset(dat, select = -c(date, by15, block, treatment, hour, minutes,
+# dat <- subset(dat, select = -c(date, by15, block, treatment, minutes,
 #                                leaftemp_bottom, leaftemp_middle, leaftemp_top, # many NA
 #                                mean_psi_leaf_MPa, # this was only measured 60 times
 #                                leaftemp_bottom, leaftemp_middle, leaftemp_top # many NA
 # ))
 
 # Remove above vars, PLUS redundant ones.
-dat <- subset(dat, select = -c(date, by15, block, treatment, hour, minutes,
-                               am2320_high_rh, am2320_high_temp, bmp_box_temp, # use SHT temp/rh
-                               par1_n, pyr1_n, pyr2_s, # using the line quantum sensors instead
-                               line_PAR_west_umol_m2_s, line_PAR_east_umol_m2_s, # using the mean
-                               mean_psi_leaf_MPa, # this was only measured 60 times
-                               leaftemp_bottom, leaftemp_middle, leaftemp_top, # many NA
-                               leaftemp_mean, leaftemp_highest_avail, # used to model psi_leaf
-                               sht1_high_rh, sht1_high_temp, sht2_low_temp, sht2_low_rh, # used for VPD calculation
-                               bmp_box_atm_p
-                               ))
+# dat <- subset(dat, select = -c(date, by15, block, minutes, treatment,
+#                                am2320_high_rh, am2320_high_temp, bmp_box_temp, # use SHT temp/rh
+#                                par1_n, pyr1_n, pyr2_s, # using the line quantum sensors instead
+#                                line_PAR_west_umol_m2_s, line_PAR_east_umol_m2_s, # using the mean
+#                                mean_psi_leaf_MPa, # this was only measured 60 times
+#                                leaftemp_bottom, leaftemp_middle, leaftemp_top, # many NA
+#                                leaftemp_highest_avail, # used to model psi_leaf
+#                                sht1_high_rh, sht1_high_temp, sht2_low_temp, sht2_low_rh, # used for VPD calculation
+#                                bmp_box_atm_p
+#                                # VPD_leaf, irrig, day, mean_psi_leaf_MPa_modeled, soil_temp_C
+#                                
+#                                ))
+
+dat <- subset(dat, select = c(treatment, T_mg_m2_s, period, pressure_gradient_soil_leaf_MPa, VPD_air_high, VPD_air_low,
+                              leaftemp_mean, soil_water_potential_kPa, windspeed_mean, line_PAR_mean_umol_m2_s, day))
 
 # If modeling T_mg_m2_s, remove these variables also
 dat <- subset(dat, select = -c(gs_leaf, gs_air))
 
 
 # If modeling gs_air, remove these variables also
-dat <- subset(dat, select = -c(gs_leaf, T_mg_m2_s, VPD_air_high, VPD_air_low, VPD_leaf))
+# dat <- subset(dat, select = -c(gs_leaf, T_mg_m2_s, VPD_air_high, VPD_air_low, VPD_leaf))
 
 ### Examine the data, which columns contain the most NA?
 ### (We cannot have missing values for Lasso...unless we wish to impute them...?)
 # naRows <- apply(dat, 2, function(x)  length(which(is.na(x))))
 # naRows[order(naRows, decreasing = T)]
 
+
 # Get complete cases for lasso
 dat <- dat[complete.cases(dat), ]; nrow(dat)
 
+
 # Split data into list according to time period
-periodList <- split(dat, dat$period)
+periodList <- split(select(dat, -treatment), dat$period)
 # sapply(periodList, nrow)
 
 
 # testing
-df = periodList$`midday (11-14)`
+df = periodList$`night (21-2)`
+# df = df[df$treatment=='well_watered',]
+# df$treatment <- NULL
 
-  
 # Function to fit a lasso model to a dataframe
 fitLasso <- function(df) {
   
@@ -155,12 +146,16 @@ fitLasso <- function(df) {
   df <- subset(df, select = -period)
   
   # add a couple random variables just to check for spurious correlation
-  df$random1 <- rnorm(nrow(df))
-  df$random2 <- rnorm(nrow(df))
+  # df$random1 <- rnorm(nrow(df))
+  # df$random2 <- rnorm(nrow(df))
   
   # define model matrix and response
-  x <- model.matrix(T_mg_m2_s ~ ., df)
+  x <- model.matrix(T_mg_m2_s ~ ., df)[,-1] # omit intercept from model matrix
   y <- df$T_mg_m2_s
+  
+  # scale x, y
+  x <- scale(x)
+  y <- scale(y)
   
   # split into train/test sets
   propTrain <- 0.75
@@ -172,15 +167,15 @@ fitLasso <- function(df) {
   
   # fit a lasso model
   lassoModel <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambdaGrid,
-                       standardize = T, family = 'gaussian')
+                       standardize = F, family = 'gaussian')
   
   # perform cross-validation to select best lambda value
   cvOut <- cv.glmnet(x=x[train, ], y=y[train], alpha = 1, nfolds = 10, 
-                     standardize = T, family = 'gaussian') 
+                     standardize = F, family = 'gaussian') 
   
   # # Try using full data set, is it different result?
   # cvOut <- cv.glmnet(x=x, y=y, alpha = 1, nfolds = 10, 
-  #                    standardize = T, family = 'gaussian') 
+  #                    standardize = F, family = 'gaussian') 
   
   # plot(cvOut)
   bestLambda <- cvOut$lambda.1se
@@ -188,43 +183,62 @@ fitLasso <- function(df) {
   
   # get test RMSE & R^2
   lassoPred <- predict(cvOut, s = bestLambda, newx = x[test,])
-  resid <- lassoPred - y[test]
+  lassoPredUnscaled <- lassoPred * sd(y) + mean(y)
+  testValuesUnscaled <- y[test] * sd(y) + mean(y)
+  resid <- lassoPredUnscaled - testValuesUnscaled
   rmse <- sqrt(mean(resid^2)) # RMSE
+  # plot(testValuesUnscaled, lassoPredUnscaled); abline(c(0,1))
+  
   # mean(abs(resid)) # MAE
   # mean(resid) # MBE
   
   # fit lasso model to full data set
-  lassoFull <- glmnet(x, y, alpha = 1, lambda = lambdaGrid, standardize = T)
+  lassoFull <- glmnet(x, y, alpha = 1, lambda = lambdaGrid, standardize = F)
   
   # get coefficients
   lc <- predict(lassoFull, type = 'coefficients', s = bestLambda)
   lc <- as.matrix(lc)
-  lc <- data.frame(variable = dimnames(lc)[[1]], coef = round(as.numeric(lc), 2), stringsAsFactors = F)
-  lc <- lc[lc$coef != 0 & lc$variable != '(Intercept)', ]
-  lc <- lc[order(abs(lc$coef), decreasing = T), ]
-
+  lc <- data.frame(variable = dimnames(lc)[[1]], lasso_coef = as.numeric(lc), stringsAsFactors = F)
+  lc <- lc[lc$lasso_coef != 0 & lc$variable != '(Intercept)', ]
+  lc <- lc[order(abs(lc$lasso_coef), decreasing = T), ]
+  nrow(lc)
+  
   # if any coefficients are smaller than a random variable's coefficient, drop them.
-  last <- grep('random', lc$variable)
-  if(length(last) > 0) {
-    lc <- lc[1:(last[1]-1),]
-  }
+  # last <- grep('random', lc$variable)
+  # if(length(last) > 0) {
+  #   lc <- lc[1:(last[1]-1),]
+  # }
   
   # fit a linear model using the selected non-zero coefficients, to get the R2
   # also report the test RMSE
-  ms <- summary(lm(y[test] ~ x[test, c(lc$variable)]))
-  lc$r2 <- ms$adj.r.squared
-  lc$rmse <- rmse
+
+  if(nrow(lc)==0) { # if all lasso coef are zero, create empty df for return
+    lc <- data.frame(variable=NA, lasso_coef=NA, lm_coef=NA, lm_coef_se=NA, r2=NA, rmse=NA)
+  } else {
+    ms <- summary(lm(y[test] ~ x[test, c(lc$variable)]))
+    lc$lm_coef <- as.numeric(ms$coefficients[-1,1]) # omit intercept
+    lc$lm_coef_se <- as.numeric(ms$coefficients[-1,2]) # omit intercept
+    lc$r2 <- ms$adj.r.squared
+    lc$rmse <- rmse
+  }
+    
   return(lc)
 }
 
 
-require(tidyr); require(dplyr)
 nreps <- 20
 
 # Apply Lasso function to all time periods in list
-modelRuns <- lapply(periodList, function(df) do.call(rbind, lapply(1:nreps, function(x) fitLasso(df))))
+modelRuns <- lapply(names(periodList), function(period) {
+  out <- lapply(1:nreps, function(x) {
+    print(period)
+    fitLasso(df = periodList[[period]])
+  })
+  df <- do.call(rbind, out)
+  df$period <- period
+  return(df)
+})
 modelRuns_df <- do.call(rbind, modelRuns)
-modelRuns_df$period <- substr(rownames(modelRuns_df), 1, regexpr('\\.', rownames(modelRuns_df))-1)
 modelRuns_df$period <- factor(modelRuns_df$period, ordered = TRUE, 
                               levels = c('night (21-2)','early_morning (3-6:30)',
                                          'mid_morning (7-10)','midday (11-14)','late_afternoon (15-18)'))
@@ -232,47 +246,174 @@ table(modelRuns_df$period, useNA = 'a')
 
 # summarize coefficients by time period
 mrSummary <- modelRuns_df %>% group_by(period, variable) %>% 
-  summarise(coef_mean = mean(coef), coef_sd=sd(coef), mean_rmse=mean(rmse), mean_r2=mean(r2), n=n()) %>%
+  summarise(coef_mean = mean(lasso_coef), coef_sd=sd(lasso_coef),
+            mean_rmse=mean(rmse), mean_r2=mean(r2), n=n()) %>%
   arrange(desc(abs(coef_mean))) %>% filter(n >= nreps*0.75)
 
-# remove coefficients with very small values
-mrSummary <- mrSummary %>% filter(abs(coef_mean) > 1)
+
+# remove night, r2 is crap
+mrSummary <- mrSummary[mrSummary$period != 'night (21-2)',]
 
 # summarize N
 summary(mrSummary$n)
 
-# add category variable
-mrSummary$category <- 'other'
-table(mrSummary$variable)
-mrSummary$category[grepl('wind', mrSummary$variable)] <- 'wind'
-mrSummary$category[grepl('temp', mrSummary$variable)] <- 'temp'
-
 # define error bars 
 limits <- aes(ymax = mrSummary$coef_mean + mrSummary$coef_sd, ymin = mrSummary$coef_mean - mrSummary$coef_sd)
 
-require(ggsci); require(scales)
-
+png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_alldata.png',
+    width = 1500, height = 900)
 ggplot(mrSummary, aes(x = period, y = coef_mean, color = variable)) +
-  geom_line(aes(group = variable)) +
-  geom_point(aes(group = variable)) + geom_errorbar(limits, width = 0.25) +
-  # scale_color_lancet() +
-  theme_bw(base_size = 15) + 
-  facet_grid(~category)
+  geom_line(aes(group = variable), size=1.5) +
+  geom_point(aes(group = variable), size=2.5) + geom_errorbar(limits, width = 0.25) +
+  scale_color_npg() +
+  theme_bw(base_size = 20) +
+  # facet_grid(~category) +
+  ylim(c(-0.6, 0.6)) +
+  theme(legend.title=element_blank(),
+        legend.margin=margin(rep(0,4))) 
+  # theme(axis.text.x = element_text(angle = 45))
+dev.off()
+
+unique(mrSummary[,c('period', 'mean_r2')])
 
 
 
+### ---- Now, repeat above but for well_watered vs. full_drought treatments
+
+
+### --- Well Watered ----
+
+# Split data into list according to time period
+dat_ww <- dat %>% filter(treatment=='well_watered') %>% select(-treatment)
+periodList_ww <- split(dat_ww, dat_ww$period)
+
+# Apply Lasso function to all time periods in list
+modelRuns_ww <- lapply(names(periodList_WW), function(period) {
+  out <- lapply(1:nreps, function(x) {
+    print(period)
+    fitLasso(df = periodList_ww[[period]])
+  })
+  df <- do.call(rbind, out)
+  df$period <- period
+  return(df)
+})
+modelRuns_ww_df <- do.call(rbind, modelRuns_ww)
+modelRuns_ww_df$period <- factor(modelRuns_ww_df$period, ordered = TRUE, 
+                              levels = c('night (21-2)','early_morning (3-6:30)',
+                                         'mid_morning (7-10)','midday (11-14)','late_afternoon (15-18)'))
+table(modelRuns_ww_df$period, useNA = 'a')  
+
+# summarize coefficients by time period
+mrSummary_ww <- modelRuns_ww_df %>% group_by(period, variable) %>% 
+  summarise(coef_mean = mean(lasso_coef), coef_sd=sd(lasso_coef),
+            mean_rmse=mean(rmse), mean_r2=mean(r2), n=n()) %>%
+  arrange(desc(abs(coef_mean))) %>% filter(n >= nreps*0.75)
+
+
+# remove night, r2 is crap
+mrSummary_ww <- mrSummary_ww[mrSummary_ww$period != 'night (21-2)',]
+
+# summarize N
+summary(mrSummary_ww$n)
+
+# define error bars 
+limits <- aes(ymax = mrSummary_ww$coef_mean + mrSummary_ww$coef_sd, ymin = mrSummary_ww$coef_mean - mrSummary_ww$coef_sd)
+
+png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_well_watered.png',
+    width = 1500, height = 900)
+ggplot(mrSummary_ww, aes(x = period, y = coef_mean, color = variable)) +
+  geom_line(aes(group = variable), size=1.5) +
+  geom_point(aes(group = variable), size=2.5) + geom_errorbar(limits, width = 0.25) +
+  scale_color_npg() +
+  theme_bw(base_size = 20) +
+  # facet_grid(~category) +
+  ylim(c(-0.6, 0.6)) +
+  theme(legend.title=element_blank(),
+        legend.margin=margin(rep(0,4))) 
+# theme(axis.text.x = element_text(angle = 45))
+dev.off()
+
+unique(mrSummary_ww[,c('period', 'mean_r2')])
+
+
+### --- Full Drought ----
+
+# Split data into list according to time period
+dat_fd <- dat %>% filter(treatment=='full_drought') %>% select(-treatment)
+periodList_fd <- split(dat_fd, dat_fd$period)
+
+# Apply Lasso function to all time periods in list
+modelRuns_fd <- lapply(names(periodList_fd), function(period) {
+  out <- lapply(1:nreps, function(x) {
+    print(period)
+    fitLasso(df = periodList_fd[[period]])
+  })
+  df <- do.call(rbind, out)
+  df$period <- period
+  return(df)
+})
+modelRuns_fd_df <- do.call(rbind, modelRuns_fd)
+modelRuns_fd_df$period <- factor(modelRuns_fd_df$period, ordered = TRUE, 
+                              levels = c('night (21-2)','early_morning (3-6:30)',
+                                         'mid_morning (7-10)','midday (11-14)','late_afternoon (15-18)'))
+table(modelRuns_fd_df$period, useNA = 'a')  
+
+# summarize coefficients by time period
+mrSummary_fd <- modelRuns_fd_df %>% group_by(period, variable) %>% 
+  summarise(coef_mean = mean(lasso_coef), coef_sd=sd(lasso_coef),
+            mean_rmse=mean(rmse), mean_r2=mean(r2), n=n()) %>%
+  arrange(desc(abs(coef_mean))) %>% filter(n >= nreps*0.75)
+
+
+# remove night, r2 is crap
+mrSummary_fd <- mrSummary_fd[mrSummary_fd$period != 'night (21-2)',]
+
+# summarize N
+summary(mrSummary_fd$n)
+
+# define error bars 
+limits <- aes(ymax = mrSummary_fd$coef_mean + mrSummary_fd$coef_sd, ymin = mrSummary_fd$coef_mean - mrSummary_fd$coef_sd)
+
+png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_full_drought.png',
+    width = 1500, height = 900)
+ggplot(mrSummary_fd, aes(x = period, y = coef_mean, color = variable)) +
+  geom_line(aes(group = variable), size=1.5) +
+  geom_point(aes(group = variable), size=2.5) + geom_errorbar(limits, width = 0.25) +
+  scale_color_npg() +
+  theme_bw(base_size = 20) +
+  # facet_grid(~category) +
+  ylim(c(-0.6, 0.6)) +
+  theme(legend.title=element_blank(),
+        legend.margin=margin(rep(0,4))) 
+# theme(axis.text.x = element_text(angle = 45))
+dev.off()
+
+unique(mrSummary_fd[,c('period', 'mean_r2')])
 
 
 
+## --- Combine summaries of ww, fd
 
-### Examine Wind data
+mrSummary_ww$treatment <- 'well_watered'
+mrSummary_fd$treatment <- 'full_drought'
+mrSummary_wwfd <- rbind(mrSummary_ww, mrSummary_fd)
 
+# define error bars 
+limits <- aes(ymax = mrSummary_wwfd$coef_mean + mrSummary_wwfd$coef_sd, ymin = mrSummary_wwfd$coef_mean - mrSummary_wwfd$coef_sd)
 
-
-
-
-
-
+png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_compare_treatments.png',
+    width = 1800, height = 1100)
+ggplot(mrSummary_wwfd, aes(x = period, y = coef_mean, color = variable)) +
+  geom_line(aes(group = variable), size=1.5) +
+  geom_point(aes(group = variable), size=2.5) + geom_errorbar(limits, width = 0.25) +
+  scale_color_lancet() +
+  theme_bw(base_size = 20) +
+  facet_grid(~treatment) +
+  ylim(c(-0.7, 0.7)) +
+  theme(legend.title=element_blank(),
+        legend.margin=margin(rep(0,4))) 
+# theme(axis.text.x = element_text(angle = 45))
+dev.off()
 
 
 

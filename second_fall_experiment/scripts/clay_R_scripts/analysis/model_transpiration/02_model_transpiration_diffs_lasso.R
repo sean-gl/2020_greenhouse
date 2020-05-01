@@ -15,9 +15,10 @@ names(dat)
 # remove columns we don't need
 dat <- select(dat, -c(T_mg_s, scale_weight_kg, scale_flag))
 
-# add hour and date columns
-dat$hour <- hour(dat$by15)
+
+# add date, minutes columns
 dat$date <- date(dat$by15)
+dat$minutes <- hour(dat$by15)*60 + minute(dat$by15)
 
 # Transpiration >> change negative values of T to zero
 ind <- dat$T_mg_m2_s < 0 & !is.na(dat$T_mg_m2_s)
@@ -57,7 +58,7 @@ dat$day <- dat$date - min(dat$date) + 1
 dat <- subset(dat, date >= '2019-10-29')
 
 # Remove above vars, PLUS redundant ones.
-dat <- subset(dat, select = -c(date, block, treatment, hour, 
+dat <- subset(dat, select = -c(date,  
                                am2320_high_rh, am2320_high_temp, bmp_box_temp, # use SHT temp/rh
                                par1_n, pyr1_n, pyr2_s, # using the line quantum sensors instead
                                line_PAR_west_umol_m2_s, line_PAR_east_umol_m2_s, # using the mean
