@@ -7,7 +7,7 @@ Sys.setenv(TZ='GMT')
 Sys.getenv('TZ') # make sure it got set
 
 # read in 15-minute aggregated (and flagged) balance data 
-baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
+baldat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
 
 # rename the 15-minute timestamp column to match other datasets
 names(baldat)[names(baldat)=='roundTime'] <- 'by15'
@@ -126,7 +126,7 @@ View(transp[low,])
 # note: the follwing dates and blocks were outside the range of any measurments, 
 # so we may wish to exclude the leaf area estimates for them:
 # 10/24 to 10/29 (all blocks), and 11-28 to 12-05 (W block only (virgins))
-la <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')
+la <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')
 
 
 # Merge leaf area to other data
@@ -152,10 +152,10 @@ summary(transp$T_mg_s)
 
 
 # Write raw transpiration data (plant-level, 15 minute) to file
-saveRDS(transp, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
+saveRDS(transp, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
 
 # read back in
-# transp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
+# transp <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
 
 ### Examine data distribution (omit flagged data)
 
@@ -203,11 +203,11 @@ ggplot(subdat, aes(x=by15, y=mean_T_mg_m2_s, color=block)) +
   geom_line()
 
 # Save aggregated data (by block/trt)
-saveRDS(aggdat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/transpiration_by_block.rds')
+saveRDS(aggdat, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/transpiration_by_block.rds')
 
 
 ### Now, read in combined data (plus psi_leaf predictions) and merge to transpiration data (at block-level)
-combdat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predicted_psi_leaf.rds')
+combdat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predicted_psi_leaf.rds')
 
 head(combdat)
 head(aggdat)
@@ -216,7 +216,7 @@ head(aggdat)
 alldat <- merge(combdat, aggdat, by = c('by15','block','treatment'), all.x = TRUE)
 
 # save the combined data
-saveRDS(alldat, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predict_psi_leaf_transpiration.rds')
+saveRDS(alldat, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predict_psi_leaf_transpiration.rds')
 
 
 

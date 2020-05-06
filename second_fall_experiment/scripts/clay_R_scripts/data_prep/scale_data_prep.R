@@ -17,7 +17,7 @@ require(plyr)
 require(tidyr)
 require(ggplot2)
 
-wd <- "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/read_only/"
+wd <- "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/read_only/"
 setwd(wd)
 
 ###
@@ -103,7 +103,7 @@ scaledat <- scaledat[!is.na(scaledat$scale), ]
 ### Subset Maria's scale data (to send to her)
 # maria_scaledat <- subset(scaledat, scale %in% 15:16)
 # maria_scaledat$file <- NULL
-# write.csv(maria_scaledat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/maria_scale_data_raw_compiled.csv", row.names = F)
+# write.csv(maria_scaledat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/maria_scale_data_raw_compiled.csv", row.names = F)
 
 # Order data by timestamp and scale number
 scaledat <- scaledat[order(scaledat$timestamp, scaledat$scale),  ]
@@ -253,17 +253,17 @@ table(scaledat$treatment, useNA = 'always')
 
 
 #### Save the compiled file before doing more work!
-saveRDS(scaledat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
+saveRDS(scaledat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
 
 # read back in
-# scaledat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
+# scaledat <- readRDS("/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds")
 
 
 
 ### ---- Aggregate (15 minutes) and Flag 
 
 # source the function 'aggAndFlag'
-source("/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/data_prep/flagging_functions.R")
+source("/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/data_prep/flagging_functions.R")
 
 # note: this function creates flags 
 aggDat <- aggAndFlag(df = scaledat,
@@ -278,10 +278,10 @@ aggDat <- aggAndFlag(df = scaledat,
 colnames(aggDat)[colnames(aggDat) %in% 'mean'] <- 'mean_weight_kg'
 
 # SAve aggregated and flagged dataframe
-saveRDS(aggDat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
+saveRDS(aggDat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
 # read back in
-# aggDat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
+# aggDat <- readRDS("/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
 ### Add "manual" flags
 
@@ -337,7 +337,7 @@ aggDat$flag[aggDat$date == '2019-10-21' & aggDat$scale %in% c(4, 10)] <- 'man'
 
 
 ### Finally, save file with all flags
-saveRDS(aggDat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
+saveRDS(aggDat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
 
 
@@ -352,7 +352,7 @@ saveRDS(aggDat, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/
 # ### Experiment 1 data ----
 # 
 # # read in files
-# wd <- "/home/wmsru/Documents/Clay/greenhouse/2019 greenhouse data/experiment1/scale_data/"
+# wd <- "/home/sean/Documents/Clay/greenhouse/2019 greenhouse data/experiment1/scale_data/"
 # setwd(wd)
 # files <- dir(wd)
 # files <- files[grepl('.csv', files)]

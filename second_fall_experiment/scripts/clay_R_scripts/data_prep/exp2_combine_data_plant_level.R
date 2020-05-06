@@ -39,7 +39,7 @@ exp3_end   <- as.POSIXct('2019-12-12 16:00:00', tz='GMT') # clay: changed end ti
 # 1. Sean's arduino data (rh, par, pyranometer)
 ###
 
-rh <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
+rh <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
 rh$by15 <- as.POSIXct(rh$by15, tz='GMT')
 
 # remove data before 10-24 (just a few rows), these are crap
@@ -52,7 +52,7 @@ rh <- rh %>% select(-contains('soil_t'))
 # 2. Line Quantum (PAR) data
 ###
 
-lq <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
+lq <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
 lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 
 allDataExp <- merge(rh, lq, by='by15', all=TRUE)
@@ -164,7 +164,7 @@ summary(allDataExp$VPD_air_low)
 # 3. Soil temperature 
 ###
 
-soil_temp <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
+soil_temp <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
 soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
 # change order of columns
@@ -175,7 +175,7 @@ soil_temp <- soil_temp[,c('by15','treatment','block','soil_temp_C')]
 # 4. Wind data
 ###
 
-wind <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/wind_sensor_data/wind_15.csv')
+wind <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/wind_sensor_data/wind_15.csv')
 wind$by15 <- as.POSIXct(wind$by15, tz='GMT')
 
 # convert to long format
@@ -199,7 +199,7 @@ allDataPlot <- allDataPlot[!ind,]
 # 5. Pressure bomb (block means)
 ###
 
-pb <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/pressure_bomb/pressure_bomb_15.csv')
+pb <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/pressure_bomb/pressure_bomb_15.csv')
 pb$by15 <- as.POSIXct(pb$by15, tz='GMT')
 
 # omit bad observation & missing observation
@@ -238,11 +238,11 @@ which(ind) # no rows w/no data
 
 
 ### ----- At this point, let's save the "treatment-level only" dataset
-saveRDS(allData, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
+saveRDS(allData, '/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
 
 
 # read back in
-# allData <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
+# allData <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_treatment_level_only.rds')
 
 
 ### -------------------------------------------
@@ -255,7 +255,7 @@ saveRDS(allData, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data
 # 6. Leaf temperature (thermistors)
 ###
 
-lt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
+lt <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
 
 # check that block names match plant id
 bn <- substr(lt$plant_id, 1, 1)
@@ -275,6 +275,7 @@ lt$position[lt$position=='upper'] <- 'top'
 
 #
 # filter data by flag 
+# (omit data that is probably or definitely bad)
 lt <- subset(lt, flag <= 2 & temperature_flag == 'none')
 
 # remove flag columns
@@ -339,7 +340,7 @@ lt_wide <- subset(lt_wide, !is.na(treatment)); nrow(lt_wide)
 ###
 
 # read data
-transp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
+transp <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')
 
 # remove border plants
 transp <- subset(transp, !grepl('border_plant', plant_id))
@@ -415,7 +416,7 @@ which(ind) # no rows w/no data
 # 8. Soil water potential (calculated from scale weights)
 ###
 
-soilwp <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
+soilwp <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
 head(soilwp)
 
 
@@ -526,7 +527,7 @@ table(allData2$irrig, useNA = 'a')
 allData2$line_PAR_mean_umol_m2_s <- rowMeans(allData2[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
 
 # read in linear model to predict continuous psi_leaf
-psi_leaf_model <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
+psi_leaf_model <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
 
 # add 'minutes' column (used in model)
 allData2$minutes <- hour(allData2$by15)*60 + minute(allData2$by15)
@@ -547,4 +548,4 @@ which(ind) # no rows w/no data
 
 
 ### ---- Finallly, save the complete (plant-level) dataset
-saveRDS(allData2, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+saveRDS(allData2, '/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')

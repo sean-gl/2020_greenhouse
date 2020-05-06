@@ -9,7 +9,7 @@ Sys.setenv(tz='GMT')
 # ------ Section 1: Data Preparation
 
 # read data (all variables plus tranpsiration and predicted leaf water potential)
-dat  <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+dat  <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
 names(dat)
 
 # remove columns we don't need

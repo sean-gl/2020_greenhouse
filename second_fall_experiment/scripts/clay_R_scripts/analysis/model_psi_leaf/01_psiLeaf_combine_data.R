@@ -20,7 +20,7 @@ Sys.getenv('TZ') # make sure it got set
 
 
 # 1. leaf temperature
-lt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
+lt <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
 
 # remove position column, not useful
 lt$position <- NULL
@@ -43,11 +43,11 @@ lt_block <- ddply(lt_filter, .(by15, block, treatment, position), function(x){
 
 
 # 2. PAR
-lq <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
+lq <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
 lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 
 # 3. RH, air temp, soil temp
-rh <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
+rh <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
 rh$by15 <- as.POSIXct(rh$by15, tz='GMT')
 
 # remove data before 10-24 (just a few rows), these we don't want
@@ -58,7 +58,7 @@ rh <- rh %>% select(-contains('soil_t'))
 rh$par2_s <- NULL # REMOVE THIS VARIABLE, DATA ARE BAD
 
 
-soil_temp <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
+soil_temp <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
 soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
 ### Merge leaf temp and "RH" (includes air temp, rh, and light data)
@@ -124,7 +124,7 @@ lat_wide$leaftemp_mean <- rowMeans(lat_wide[,c('leaftemp_bottom','leaftemp_middl
 
 
 # 4. Wind sensors
-wind <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/wind_sensor_data/wind_15.csv')
+wind <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/wind_sensor_data/wind_15.csv')
 wind$by15 <- as.POSIXct(wind$by15, tz='GMT')
 wind$date <- date(wind$by15)
 
@@ -172,7 +172,7 @@ table(windsoil$block, useNA = 'always')
 table(windsoil$treatment, useNA = 'always')
 
 # 5. Pressure bomb data
-pb <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/pressure_bomb/pressure_bomb_15.csv')
+pb <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/pressure_bomb/pressure_bomb_15.csv')
 pb$by15 <- as.POSIXct(pb$by15, tz='GMT')
 
 # omit bad observation & missing observation
@@ -191,7 +191,7 @@ with(pbMeans, table(date))
 
 
 # 6. Garret's soil matric potential data (and soil temperature)
-# soilmat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
+# soilmat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
 # head(soilmat)
 # 
 # # remove the "mean soil temp column" (just use the 1 sensor that is always available)
@@ -274,7 +274,7 @@ comb$irrig[comb$treatment %in% c('full_drought','virgin_drought')] <- 150
 table(comb$irrig, useNA = 'a')
 
 # add calculated irrigation amounts
-irrigDat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/mean_irrigation_by_block.rds')
+irrigDat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/mean_irrigation_by_block.rds')
 
 # cummulative stress index, by block and date
 irrigDat$stress_index <- 0
@@ -355,9 +355,9 @@ summary(comb$daysPostTrt)
 comb$block <- as.factor(comb$block)
 
 # Save combined data 
-saveRDS(comb, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+saveRDS(comb, '/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
-# comb <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+# comb <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
 
 ## Check date ranges for data sets

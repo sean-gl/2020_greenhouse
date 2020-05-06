@@ -7,7 +7,7 @@ Sys.getenv('TZ') # make sure it got set
 
 require(dplyr); require(tidyr); require(ggplot2)
 
-wd <- "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/read_only/"
+wd <- "/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/read_only/"
 setwd(wd)
 
 # read in files
@@ -287,9 +287,9 @@ table(thermLong$treatment, useNA = 'always')
 thermLong$date <- NULL
 
 ### Save raw data in LONG format
-saveRDS(thermLong, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long.rds")
+saveRDS(thermLong, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long.rds")
 
-# thermLong <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long.rds")
+# thermLong <- readRDS("/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long.rds")
 
 ### Do 15-minute aggregation and re-save
 thermLong$by15 <- lubridate::ceiling_date(thermLong$timestamp, unit = '15 minutes')
@@ -299,13 +299,13 @@ aggTherm <- plyr::ddply(thermLong, .variables = c('by15', 'block', 'treatment', 
                           setNames(mean(x$temp_C, na.rm = T), 'mean_leaftemp_C')
                         })
 ### Save aggregated data
-saveRDS(aggTherm, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg.rds")
+saveRDS(aggTherm, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg.rds")
 
-# aggTherm <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg.rds")
+# aggTherm <- readRDS("/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg.rds")
 
 ### ----- Read in Data Quality Spreadsheet to Use for Flagging ------
 require(readODS)
-meta <- read.ods("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/metadata_thermistors_scales_greenhouse2019.ods",
+meta <- read.ods("/home/sean/github/2020_greenhouse/second_fall_experiment/data/metadata_thermistors_scales_greenhouse2019.ods",
                  sheet = 'thermistor_notes')
 colnames(meta) <- meta[1,]
 meta <- meta[-1,]
@@ -435,10 +435,10 @@ thermLong$temperature_flag[low] <- '<= 10 C'
 
 ### Re-save FLAGGED data (both raw and 15-minute re-aggregated)
 thermLong$date <- NULL
-saveRDS(thermLong, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
+saveRDS(thermLong, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
 
 # read back in
-# thermLong <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
+# thermLong <- readRDS("/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
 
 # Aggregate by block/treatment means
 by15Flagged <- plyr::ddply(thermLong, .variables = c('by15', 'block', 'thermistor', 'treatment',
@@ -448,4 +448,4 @@ by15Flagged <- plyr::ddply(thermLong, .variables = c('by15', 'block', 'thermisto
                              setNames(mean(x$temp_C, na.rm = T), 'mean_leaftemp_C')
                            })
 
-saveRDS(by15Flagged, "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds")
+saveRDS(by15Flagged, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds")

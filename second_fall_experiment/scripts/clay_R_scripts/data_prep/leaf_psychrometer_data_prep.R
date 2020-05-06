@@ -12,7 +12,7 @@ Sys.setenv(TZ='GMT')
 Sys.getenv('TZ') # make sure it got set
 
 
-wd <- "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/psychrometers/read_only/"
+wd <- "/home/sean/github/2020_greenhouse/second_fall_experiment/data/psychrometers/read_only/"
 setwd(wd)
 
 ###
@@ -125,10 +125,10 @@ table(psych$external_power_supply_present, useNA = 'always')
 psych$by15[psych$psychrometer_number==2] <- psych$by15[psych$psychrometer_number==2] - 3600
 
 # ----- Save the cleaned file
-saveRDS(psych, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/psychrometers/combined_psychrometer_data_raw.rds')
+saveRDS(psych, '/home/sean/github/2020_greenhouse/second_fall_experiment/data/psychrometers/combined_psychrometer_data_raw.rds')
 
 # read back in 
-# psych <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/psychrometers/combined_psychrometer_data_raw.rds')
+# psych <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/psychrometers/combined_psychrometer_data_raw.rds')
 
 # ======> Now, let's try to find some useful data.
 
@@ -195,7 +195,7 @@ ggplot(d, aes(x=by15, y=corrected_water_potential_MPa, color=psychrometer_number
 
 
 ### ---------- Read in psi_leaf predictions ---------------
-psileaf <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predicted_psi_leaf.rds')
+psileaf <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/combined_data_predicted_psi_leaf.rds')
 
 # subset to same block/period as psyrchometer
 psi.D <- subset(psileaf, block=='D' & date >= start & date <= end)

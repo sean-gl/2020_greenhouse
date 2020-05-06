@@ -5,7 +5,7 @@
 # ### Long data format
 # 
 # # raw data
-# dat <- readRDS("/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds")
+# dat <- readRDS("/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds")
 # dat$by15 <- NULL
 # 
 # 

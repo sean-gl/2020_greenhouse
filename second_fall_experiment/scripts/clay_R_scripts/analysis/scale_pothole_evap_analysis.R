@@ -1,6 +1,6 @@
 
 rm(list = ls())
-wd <- "/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/read_only/post_experiment_data/"
+wd <- "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/read_only/post_experiment_data/"
 setwd(wd)
 
 Sys.setenv(tz='GMT')

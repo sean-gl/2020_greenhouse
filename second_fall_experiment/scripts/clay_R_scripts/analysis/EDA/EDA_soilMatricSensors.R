@@ -1,5 +1,5 @@
 # read garrett's soil sensor data in
-soilDat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
+soilDat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/soil_water_potential/soil_water_potential_compiled_condensed.rds')
 
 # plot during treatment 1
 sdSub <- subset(soilDat, date >= '2019-10-22' & date <= '2019-11-04')

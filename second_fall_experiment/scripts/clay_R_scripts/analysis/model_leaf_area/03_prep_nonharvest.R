@@ -4,7 +4,7 @@ require(readODS); require(ggplot2); require(plyr); require(ranger); require(care
 
 # read in destructive non_harvest data (has leaf length, width and areas)
 # these are all border plants (except on final day, 12/12)
-non_harvest <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_width_measurements_non_harvest/read_only/leaf_width_measurements.ods',
+non_harvest <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_width_measurements_non_harvest/read_only/leaf_width_measurements.ods',
                     col_names = T)
 
 # remove empty rows
@@ -25,7 +25,7 @@ non_harvest <- subset(non_harvest, select = c(date, treatment, pot_id, leaf_id, 
                                               percent_dead))
 
 # percent_dead: assume zero when missing
-ind <- which(is.na(non_harvest$percent_dead)); ind
+ind <- which(is.na(non_harvest$percent_dead))
 non_harvest$percent_dead[ind] <- 0
 
 # examine missing data
@@ -60,10 +60,10 @@ for(i in unique(non_harvest$pot_id)) {
 }
 
 # Save data
-saveRDS(non_harvest, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_nonharvest_prepped.rds')
+saveRDS(non_harvest, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_nonharvest_prepped.rds')
 
 # Load Random Forest (leaf length) model
-rfmod_length <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
+rfmod_length <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
 
 # Predict on non-harvest data
 non_harvest$leaf_length_pred <- predict(rfmod_length, newdata = non_harvest)
@@ -71,14 +71,14 @@ summary(non_harvest$leaf_length_pred)
 
 
 # Load Random Forest (leaf area) model
-rfmod_area <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+rfmod_area <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
 
 # Predict on non-harvest data
 non_harvest$leaf_area_pred <- predict(rfmod_area, newdata = non_harvest)
 summary(non_harvest$leaf_area_pred)
 
 # Read in harvest data (plus predicted LA)
-harvest <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
+harvest <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
 
 # Combine harvest and non-harvest data + predicitons
 # use the measured leaf area for the harvest plants, and the predicted leaf area 
@@ -135,6 +135,10 @@ totalArea <- ddply(dat, .(date, pot_id, treatment, block), function(x) {
 
 ggplot(totalArea, aes(x=date, y=total_leaf_area_cm2, color=block)) + 
   geom_point() 
+
+# Save this data (I will use it to try to build a LA model using environmental variables only.)
+saveRDS(totalArea, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/total_plant_leaf_area.rds')
+
 
 # Calculate mean for each block/date, of total plant leaf area 
 meanArea <- ddply(totalArea, .(date, treatment, block), function(x) {
@@ -212,7 +216,7 @@ ggplot(grid, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
 # remove period, not useful
 out <- grid
 out$period <- NULL
-saveRDS(out, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_raw.rds')
+saveRDS(out, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_raw.rds')
 
 # ---Change blocks to match other Data set blocks...
 # NOTE: block V (12/6-12/12) corresonds to block W in other data sets, so let's change that here.
@@ -243,4 +247,4 @@ ggplot(out_final, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
 names(out_final)[names(out_final) == 'leaf_area_pred'] <- 'mean_plant_leaf_area_cm2'
 
 # save the data to be used in analysis
-saveRDS(out_final, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')
+saveRDS(out_final, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_for_analysis.rds')

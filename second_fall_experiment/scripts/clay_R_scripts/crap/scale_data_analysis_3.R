@@ -1,6 +1,6 @@
 
 rm(list = ls())
-wd <- "/home/wmsru/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/scale_output/"
+wd <- "/home/sean/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/scale_output/"
 setwd(wd)
 
 require(ggplot2)

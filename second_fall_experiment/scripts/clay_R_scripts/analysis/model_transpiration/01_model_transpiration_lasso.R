@@ -9,7 +9,7 @@ Sys.setenv(tz='GMT')
 # ------ Section 1: Data Preparation
 
 # read data (all variables plus tranpsiration and predicted leaf water potential)
-dat  <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+dat  <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
 names(dat)
 
 # remove columns we don't need
@@ -260,7 +260,7 @@ summary(mrSummary$n)
 # define error bars 
 limits <- aes(ymax = mrSummary$coef_mean + mrSummary$coef_sd, ymin = mrSummary$coef_mean - mrSummary$coef_sd)
 
-png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_alldata.png',
+png('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_alldata.png',
     width = 1500, height = 900)
 ggplot(mrSummary, aes(x = period, y = coef_mean, color = variable)) +
   geom_line(aes(group = variable), size=1.5) +
@@ -319,7 +319,7 @@ summary(mrSummary_ww$n)
 # define error bars 
 limits <- aes(ymax = mrSummary_ww$coef_mean + mrSummary_ww$coef_sd, ymin = mrSummary_ww$coef_mean - mrSummary_ww$coef_sd)
 
-png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_well_watered.png',
+png('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_well_watered.png',
     width = 1500, height = 900)
 ggplot(mrSummary_ww, aes(x = period, y = coef_mean, color = variable)) +
   geom_line(aes(group = variable), size=1.5) +
@@ -374,7 +374,7 @@ summary(mrSummary_fd$n)
 # define error bars 
 limits <- aes(ymax = mrSummary_fd$coef_mean + mrSummary_fd$coef_sd, ymin = mrSummary_fd$coef_mean - mrSummary_fd$coef_sd)
 
-png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_full_drought.png',
+png('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_full_drought.png',
     width = 1500, height = 900)
 ggplot(mrSummary_fd, aes(x = period, y = coef_mean, color = variable)) +
   geom_line(aes(group = variable), size=1.5) +
@@ -401,7 +401,7 @@ mrSummary_wwfd <- rbind(mrSummary_ww, mrSummary_fd)
 # define error bars 
 limits <- aes(ymax = mrSummary_wwfd$coef_mean + mrSummary_wwfd$coef_sd, ymin = mrSummary_wwfd$coef_mean - mrSummary_wwfd$coef_sd)
 
-png('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_compare_treatments.png',
+png('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/tranpsiration_lasso_model/lasso_compare_treatments.png',
     width = 1800, height = 1100)
 ggplot(mrSummary_wwfd, aes(x = period, y = coef_mean, color = variable)) +
   geom_line(aes(group = variable), size=1.5) +

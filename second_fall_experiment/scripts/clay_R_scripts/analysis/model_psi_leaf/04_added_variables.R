@@ -12,7 +12,7 @@ Sys.setenv(TZ='GMT')
 Sys.getenv('TZ') # make sure it got set
 
 ### load the combined data
-comb_all <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+comb_all <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
 
 

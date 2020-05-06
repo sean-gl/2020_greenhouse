@@ -4,7 +4,7 @@ require(readODS); require(ggplot2); require(plyr); require(ranger); require(care
 
 # read in destructive harvest data (has leaf length, width and areas)
 # these are all border plants (except on final day, 12/12)
-harvest <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+harvest <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                     sheet = 'leaf_measurements', col_names = T)
 
 # remove empty rows
@@ -111,4 +111,4 @@ for(i in unique(harvest$pot_id)) {
 # harvest$irrig_cummean[ind] <- 375
 
 # Save data
-saveRDS(harvest, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
+saveRDS(harvest, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')

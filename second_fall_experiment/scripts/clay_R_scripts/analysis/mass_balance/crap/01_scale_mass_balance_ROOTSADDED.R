@@ -5,7 +5,7 @@ Sys.setenv(tz='GMT')
 
 
 # read in 15-minute aggregated (and flagged) balance data 
-baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
+baldat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
 
 
 ### Code to estimate soil weight as continuous variable, to get at soil matric potential.
@@ -45,10 +45,10 @@ dm$saturated_mass_kg <- as.numeric(dm$saturated_mass_kg)
 # (end_wt = mww + sww_end - sww_start)
  
 # Read in end-of-experiment saturated pot weights data
-pot_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
+pot_wt <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
 
 # Read in end-of-experiment plant/root wet weights
-plant_wt <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
+plant_wt <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
                      col_names = T)
 plant_wt$plant_id <- toupper(plant_wt$plant_id)
 
@@ -132,7 +132,7 @@ for(p in allplants) {
     preds$pred_plant_weight_kg <- NA
   } else {
     preds$pred_plant_weight_kg <- as.numeric(predict(ssl, newdata = list(date_num = preds$date_num)))
-    png(paste('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/',
+    png(paste('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/',
               p, 'logistic.png', sep = '_'))
     myplot <- ggplot(x) + geom_point(aes(x=date, y=saturated_mass_kg)) +
       geom_line(data = preds, aes(x=date, y=pred_plant_weight_kg)) + ggtitle(p)
@@ -152,14 +152,14 @@ preds.all <- do.call(rbind, plist)
 ### ----- Simpler method: Get mean dry weights by treatement for harvested plants, and 
 ## thne model the wet weigth
 
-biomass1 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+biomass1 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                     sheet = 'biomass')
 biomass1$date <- as.Date('2019-10-30')
-biomass2 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+biomass2 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                      sheet = 'biomass_2')
 biomass2 <- biomass2[1:(which(is.na(biomass2$pot_id))[1]-1),]
 biomass2$date <- as.Date('2019-11-15')
-biomass3 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+biomass3 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                      sheet = 'biomass_3')
 biomass3$date <- as.Date('2019-12-12')
 biomass3 <- biomass3[1:(which(is.na(biomass3$pot_id))[1]-1),]
@@ -255,7 +255,7 @@ out <- ddply(biomass.expand, .(block), function(x) {
   } 
   m.linear <- lm(predicted_wet_weight_g ~ date_num, data=x)
   d$predict_lm <- predict(m.linear, d)
-  png(paste('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/block',
+  png(paste('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/block',
             b, 'logistic_v_linear.png', sep = '_'), width=1500, height=900)
   plot(predicted_wet_weight_g ~ date, data=x, col='red', main=paste('block', b, sep = ' '))
   if(block != 'V') lines(predict_logis ~ date, data=d)

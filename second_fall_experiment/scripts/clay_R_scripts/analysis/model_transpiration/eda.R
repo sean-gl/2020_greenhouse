@@ -4,7 +4,7 @@ lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
 # read data
-dat  <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predict_psi_leaf_transpiration.rds')
+dat  <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predict_psi_leaf_transpiration.rds')
 names(dat)
 
 # add hour column

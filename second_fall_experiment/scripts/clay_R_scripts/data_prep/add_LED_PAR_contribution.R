@@ -1,7 +1,7 @@
 
 ### Script to add LED contribution to PAR greenhouse data 2019
 ### LEDs contributed ~ 225 umol/m2*s at canopy height (see 'LED_PAR.R' script), and here:
-### /home/wmsru/github/2020_greenhouse/second_fall_experiment/data/LED_PAR.ods
+### /home/sean/github/2020_greenhouse/second_fall_experiment/data/LED_PAR.ods
 
 ### IMPORTANT: SET SYSTEM TIMEZONE TO GMT, THIS IS REQUIRED FOR CODE TO WORK.
 Sys.setenv(TZ='GMT')
@@ -9,7 +9,7 @@ Sys.setenv(TZ='GMT')
 require(lubridate)
 
 # read line quantum PAR data
-lq <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
+lq <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
 lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 
 # add date & minutes columns
@@ -45,7 +45,7 @@ plot(x$by15, x$line_PAR_east_umol_m2_s_plusLED, type = 'l', col='red'); lines(x$
 
 
 # read in other par data
-rh <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
+rh <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
 rh$by15 <- as.POSIXct(rh$by15, tz='GMT')
 
 # add date & minutes columns
@@ -88,9 +88,9 @@ rh <- subset(rh, select = -c(date, minutes, X))
 lq <- subset(lq, select = -c(date, minutes, X))
 
 # save the updated data files
-write.csv(lq, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv',
+write.csv(lq, '/home/sean/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv',
           row.names = F)
-write.csv(rh, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv',
+write.csv(rh, '/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv',
           row.names = F)
 
 

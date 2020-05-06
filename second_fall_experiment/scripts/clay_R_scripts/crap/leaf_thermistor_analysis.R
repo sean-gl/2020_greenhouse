@@ -3,7 +3,7 @@ rm(list = ls())
 
 require(dplyr); require(tidyr); require(ggplot2)
 
-wd <- "/home/wmsru/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/leaf_thermistor_data/"
+wd <- "/home/sean/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/leaf_thermistor_data/"
 setwd(wd)
 
 files <- dir(wd)

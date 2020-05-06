@@ -27,6 +27,10 @@ library(lubridate)
 ###_______ organize data and save as 15-min .csv files  _______### 
 
 
+# assign treatment start date/time. Irrigation started at 18:00, so I set for 1 hour after that. 
+exp_start <- as.POSIXct('2019-08-24 19:00:00', tz='GMT')
+
+
 
 ###________________PAR, RH, soil_temp data_____________###
 ###________________PAR, RH, soil_temp data_____________###
@@ -287,82 +291,6 @@ points(sub$w1_sm_m_s ~ sub$by15, col='blue')
 points(sub$w1_st_m_s ~ sub$by15, col='red')
 
 
-
-###_____________________line quantum sensor data__________________###
-###_____________________line quantum sensor data__________________###
-
-lq1 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/11_4_2019_east.csv", sep=""), sep=",", header=T)
-lq1$east_west <-'east'
-lq2 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/11_4_2019_west.csv", sep=""), sep=",", header=T)
-lq2$east_west <- 'west'
-lq3 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/11_19_2019_east.csv", sep=""), sep=",", header=T)
-lq3$east_west <- 'east'
-lq4 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/11_19_2019_west.csv", sep=""), sep=",", header=T)
-lq4$east_west <- 'west'
-lq5 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/12_5_2019_east.csv", sep=""), sep=",", header=T)
-lq5$east_west <- 'east'
-lq6 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/12_5_2019_west.csv", sep=""), sep=",", header=T)
-lq6$east_west <- 'west'
-lq7 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/12_12_2019_east.csv", sep=""), sep=",", header=T)
-lq7$east_west <- 'east'
-lq8 <- read.csv(paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/read_only/12_12_2019_west.csv", sep=""), sep=",", header=T)
-lq8$east_west <- 'west'
-
-lq_east <- rbind.data.frame(lq1[,c(2,5,13)], lq3[,c(2,5,13)], lq5[,c(2,5,13)], lq7[,c(2,5,13)])
-lq_west <- rbind.data.frame(lq2[,c(2,5,13)], lq4[,c(2,5,13)], lq6[,c(2,5,13)], lq8[,c(2,5,13)])     
-
-# set date and time to POSIXct without daylight savings (GMT)
-lq_east$date_time <- as.POSIXct(lq_east$Date.and.Time, format = "%m/%d/%Y %l:%M:%S %p", tz = "GMT")
-lq_west$date_time <- as.POSIXct(lq_west$Date.and.Time, format = "%m/%d/%Y %l:%M:%S %p", tz = "GMT")
-
-# cut into 15-min intervals.  # CHANGE HERE TO CHANGE TIME INTERVAL
-lq_east$by15 <- lubridate::ceiling_date(lq_east$date_time, "15 minutes")   
-lq_west$by15 <- lubridate::ceiling_date(lq_west$date_time, "15 minutes")   
-
-# calculate mean mass for each 15-minute time group by scale number
-lq_east_15 <- summaryBy(Average.Below.PAR ~ by15, data=lq_east, 
-                        FUN=mean, na.rm=TRUE, keep.names=TRUE)
-lq_west_15 <- summaryBy(Average.Below.PAR ~ by15, data=lq_west, 
-                        FUN=mean, na.rm=TRUE, keep.names=TRUE)
-colnames(lq_east_15) <- c('by15', 'line_PAR_east_umol_m2_s')
-colnames(lq_west_15) <- c('by15', 'line_PAR_west_umol_m2_s')
-
-# merge east and west dfs
-comb <- merge(lq_east_15, lq_west_15, by='by15')
-
-
-### --- Clay added this
-
-# We need to adjust times; apparently the clock was set to MDT, so the clock goes back by
-# an hour on 11/3 
-ind <- with(comb, by15 <= '2019-11-04 02:00')
-head(comb$by15[ind] )
-comb$by15[ind] <- comb$by15[ind] - 3600
-head(comb$by15[ind] )
-
-# Sean had a note to not use data from WEST sensor on 11/4 between ca. 15:00 and 16:00 
-sub = subset(comb, lubridate::date(by15)=='2019-11-04' )
-plot(line_PAR_west_umol_m2_s ~ by15, type='l', sub)
-lines(line_PAR_east_umol_m2_s ~ by15, type='l', sub, col='red')
-ind <- with(comb, by15 >= '2019-11-04 14:45' & by15 <= '2019-11-04 16:15')
-comb$line_PAR_west_umol_m2_s[ind] <- NA
-
-# save to file
-write.csv(comb, paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
-                      "data/line_PAR_sensors/line_PAR_15.csv", sep=""), row.names=FALSE)
-# testing
-sub <- subset(comb, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-11-01 00:00:00', tz='GMT')
-              & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-11-07 00:00:00', tz='GMT'))
-plot(sub$line_PAR_east_umol_m2_s ~ sub$by15, ylim=c(0,1000))
-points(sub$line_PAR_west_umol_m2_s ~ sub$by15, col='red')
 
 
 

@@ -183,20 +183,45 @@ table(aggTherm$block, aggTherm$flag, useNA = 'a')
 
 
 ## Examine distribution of temperature data and create flags for obviously high/low temperatures
-plot(density(thermLong$temp_C, na.rm = T), xlim=c(-10, 50))
-hi <- thermLong$temp_C >= 40 & !is.na(thermLong$temp_C)
-low <- thermLong$temp_C <= 10 & !is.na(thermLong$temp_C)
+plot(density(aggTherm$mean_leaftemp_C, na.rm = T), xlim=c(-10, 50))
 
-length(which(hi)) /nrow(thermLong) * 100 # 0.6% of observations > 40 deg C
-length(which(low)) /nrow(thermLong) * 100 # 3 % of observations < 10 deg C
+# try 40 degrees for high thershould...
+hi <- with(aggTherm, mean_leaftemp_C >= 40 & !is.na(mean_leaftemp_C))
+View(aggTherm[hi,]) 
+# Lots of believable data between 40-44 degrees, looks like 45 C is a reasonable cutoff for obviously bad data
 
-thermLong$temperature_flag <- 'none'
-thermLong$temperature_flag[hi] <- '>= 40 C'
-thermLong$temperature_flag[low] <- '<= 10 C'
+# VERDICT: USE > 45 C AS HIGH TEMPERATURE FLAG THRESHOLD.
+hi <- with(aggTherm, mean_leaftemp_C >= 45 & !is.na(mean_leaftemp_C))
+summary(aggTherm$mean_leaftemp_C[hi])
 
-### Re-save FLAGGED data (both raw and 15-minute re-aggregated)
-thermLong$date <- NULL
-saveRDS(thermLong, "/home/sean/github/2020_greenhouse/first_summer_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
+# now, see what is not believable for a low temp...
+low <- with(aggTherm, mean_leaftemp_C < 0 & !is.na(mean_leaftemp_C))
+length(which(low))
+# there are many values below zero but only 1 between 0 and 10
+# NOTE: values < 0 indicate faulty wiring of thermistor.
+low <- with(aggTherm, mean_leaftemp_C > 0 & mean_leaftemp_C <= 10 & !is.na(mean_leaftemp_C))
+length(which(low))
+low <- with(aggTherm, mean_leaftemp_C > 10 & mean_leaftemp_C <= 18 & !is.na(mean_leaftemp_C))
+length(which(low))
+View(aggTherm[low,]) # these all look reasonable, so a good cutoff is temp < 10
+
+# VERDICT: USE < 10 C AS LOW TEMPERATURE FLAG THRESHOLD.
+low <- with(aggTherm, mean_leaftemp_C <= 10 & !is.na(mean_leaftemp_C))
+summary(aggTherm$mean_leaftemp_C[low])
+
+
+
+
+length(which(hi)) /nrow(aggTherm) * 100 # 0.2% of observations > 45 deg C
+length(which(low)) /nrow(aggTherm) * 100 # 3 % of observations < 10 deg C
+
+aggTherm$temperature_flag <- 'none'
+aggTherm$temperature_flag[hi] <- '>= 45 C'
+aggTherm$temperature_flag[low] <- '<= 10 C'
+
+### Re-save FLAGGED data (both 15-minute means plus flags)
+aggTherm$date <- NULL
+saveRDS(aggTherm, "/home/sean/github/2020_greenhouse/first_summer_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds")
 
 
 
@@ -204,14 +229,14 @@ saveRDS(thermLong, "/home/sean/github/2020_greenhouse/first_summer_experiment/da
 
 
 # # read back in
-# # thermLong <- readRDS("/home/sean/github/2020_greenhouse/first_summer_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
+# # aggTherm <- readRDS("/home/sean/github/2020_greenhouse/first_summer_experiment/data/leaf_thermistor_data/leaf_thermistor_data_raw_compiled_long_flagged.rds")
 # 
 # # Aggregate by block/treatment means
-# by15Flagged <- plyr::ddply(thermLong, .variables = c('by15', 'block', 'thermistor', 'treatment',
+# by15Flagged <- plyr::ddply(aggTherm, .variables = c('by15', 'block', 'thermistor', 'treatment',
 #                                                      'plant_id', 'position', 'canopy_position',
 #                                                      'flag','temperature_flag'), 
 #                            function(x) {
-#                              setNames(mean(x$temp_C, na.rm = T), 'mean_leaftemp_C')
+#                              setNames(mean(x$mean_leaftemp_C, na.rm = T), 'mean_leaftemp_C')
 #                            })
 # 
 # saveRDS(by15Flagged, "/home/sean/github/2020_greenhouse/first_summer_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds")

@@ -13,8 +13,10 @@ Sys.setenv(TZ='GMT')
 Sys.getenv('TZ') # make sure it got set
 
 # read in all data
-comb_all <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+comb_all <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
 
+# add date
+comb_all$date <- date(comb_all$by15)
 
 # add irrigation amount (ml) given the previous night
 comb_all$irrig <- NA
@@ -25,7 +27,8 @@ comb_all$irrig[comb_all$treatment %in% c('full_drought','virgin_drought')] <- 15
 table(comb_all$irrig, useNA = 'a')
 
 # add average of east/west PAR sensors
-comb_all$line_PAR_mean_umol_m2_s <- rowMeans(comb_all[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
+# comb_all$line_PAR_mean_umol_m2_s <- rowMeans(comb_all[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
+
 
 ### First, subset data to rows with pressure bomb readings
 comb <- subset(comb_all, !is.na(mean_psi_leaf_MPa))
@@ -61,4 +64,4 @@ psi_leaf_model <- lm(mean_psi_leaf_MPa ~ line_PAR_mean_umol_m2_s + minutes + irr
 summary(psi_leaf_model)
 
 ## Save the model to use elsewhere for prediciton
-saveRDS(psi_leaf_model, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
+saveRDS(psi_leaf_model, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')

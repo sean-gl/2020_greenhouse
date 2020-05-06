@@ -1,6 +1,6 @@
 
 rm(list = ls())
-setwd("/home/wmsru/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/scale_output/pre-baseline/")
+setwd("/home/sean/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/scale_output/pre-baseline/")
 
 require(ggplot2)
 require(lubridate)

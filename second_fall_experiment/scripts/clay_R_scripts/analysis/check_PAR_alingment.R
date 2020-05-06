@@ -99,7 +99,7 @@ after %>% select(-date) %>% boxplot()
 
 # ---- Compare PAR to transpiration
 
-df <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+df <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
 df$date = date(df$by15)
 
 sub = subset(df, date>='2019-10-28' & date<='2019-10-31' & plant_id=='W-7')

@@ -1,5 +1,5 @@
  
-setwd("/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures")
+setwd("/home/sean/github/2020_greenhouse/second_fall_experiment/figures")
 # on U drive
 # setwd("U:/Staff Folders/Gleason, Sean/sean_stuff/r_stuff/2020/greenhouse_2019/second_fall_experiment/figures")
 
@@ -40,11 +40,11 @@ exp3_end   <- as.POSIXct('2019-12-12 16:00:00', tz='GMT') # clay: changed end ti
 ###________________PAR, RH, soil_temp data_____________###
 ###________________PAR, RH, soil_temp data_____________###
 
-rh1 <- read.table(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment//",
+rh1 <- read.table(paste("/home/sean/github/2020_greenhouse/second_fall_experiment//",
                         "data/RH_temp_PAR_logger_data/read_only/11_4_2019_v2.TXT", sep=""), header = F, sep = ",")
-rh2 <- read.table(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+rh2 <- read.table(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                           "data/RH_temp_PAR_logger_data/read_only/11_18_2019.TXT", sep=""), header = F, sep = ",")
-rh3 <- read.table(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+rh3 <- read.table(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/RH_temp_PAR_logger_data/read_only/12_12_2019.TXT", sep=""), header = F, sep = ",")
 
 rh <- rbind.data.frame(rh1, rh2, rh3)
@@ -74,7 +74,7 @@ rh <- summaryBy(par1_n + par2_s + pyr1_n + pyr2_s + am2320_high_temp + am2320_hi
 rh <- rh[order(rh$by15),]
 
 # write rh data to file
-write.csv(rh, paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+write.csv(rh, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                     "data/RH_temp_PAR_logger_data/rh_15.csv", sep=""), row.names=FALSE)
 
 # build another df with only temps, but all data in one column
@@ -137,7 +137,7 @@ sen4 <- df
 # rbind all sensor dataframes together
 comb <- rbind.data.frame(sen1, sen2_3, sen4)
 # export to file
-write.csv(comb, paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+write.csv(comb, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                     "data/RH_temp_PAR_logger_data/soil_temp_15.csv", sep=""), row.names=FALSE)
 
 # testing
@@ -157,11 +157,11 @@ sma1 <- sma(sub$soil_t2 ~ sub$soil_t3); summary(sma1); plot(sma1)
 ###_______________ import wind data____________________###
 ###_______________ import wind data____________________###
 
-wind1 <- read.table(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+wind1 <- read.table(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                           "data/wind_sensor_data/read_only/11_4_2019.TXT", sep=""), header = F, sep = ",")
-wind2 <- read.table(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+wind2 <- read.table(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                           "data/wind_sensor_data/read_only/11_18_2019.TXT", sep=""),  header = F, sep = ",")
-wind3 <- read.table(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+wind3 <- read.table(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                           "data/wind_sensor_data/read_only/12_12_2019.TXT", sep=""), header = F, sep = ",")
 wind <- rbind.data.frame(wind1, wind2, wind3)
 # don't need data from 12_5_2019.TXT because this is inlcuded in 12_12_2019.TXT file
@@ -193,7 +193,7 @@ wind <- summaryBy(w1_sb_m_s + w1_sm_m_s + w1_st_m_s + w2_sb_m_s + w2_sm_m_s + w2
 wind <- wind[order(wind$by15),]
 
 # to convert V to m s-1, import temperature from rh sensors
-temp <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+temp <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                 "data/RH_temp_PAR_logger_data/rh_15.csv", sep=""), header=TRUE, sep=",")
 temp <- subset(temp, select=c(by15, sht2_low_temp))
 temp$by15 <- as.character(temp$by15); wind$by15 <- as.character(wind$by15)
@@ -287,7 +287,7 @@ array3$block <- 'D' # Clay: add block for merge to other datasets
 stacked <- rbind.data.frame(array1, array2, array3)
 
 # write wind data to file
-write.csv(stacked, paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+write.csv(stacked, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                       "data/wind_sensor_data/wind_15.csv", sep=""), row.names=FALSE)
 # testing
 # subsetting data
@@ -302,28 +302,28 @@ points(sub$w1_st_m_s ~ sub$by15, col='red')
 ###_____________________line quantum sensor data__________________###
 ###_____________________line quantum sensor data__________________###
 
-lq1 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq1 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/11_4_2019_east.csv", sep=""), sep=",", header=T)
     lq1$east_west <-'east'
-lq2 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq2 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/11_4_2019_west.csv", sep=""), sep=",", header=T)
     lq2$east_west <- 'west'
-lq3 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq3 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/11_19_2019_east.csv", sep=""), sep=",", header=T)
     lq3$east_west <- 'east'
-lq4 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq4 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/11_19_2019_west.csv", sep=""), sep=",", header=T)
     lq4$east_west <- 'west'
-lq5 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq5 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/12_5_2019_east.csv", sep=""), sep=",", header=T)
     lq5$east_west <- 'east'
-lq6 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq6 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/12_5_2019_west.csv", sep=""), sep=",", header=T)
     lq6$east_west <- 'west'
-lq7 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq7 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/12_12_2019_east.csv", sep=""), sep=",", header=T)
     lq7$east_west <- 'east'
-lq8 <- read.csv(paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+lq8 <- read.csv(paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                         "data/line_PAR_sensors/read_only/12_12_2019_west.csv", sep=""), sep=",", header=T)
     lq8$east_west <- 'west'
 
@@ -367,7 +367,7 @@ ind <- with(comb, by15 >= '2019-11-04 14:45' & by15 <= '2019-11-04 16:15')
 comb$line_PAR_west_umol_m2_s[ind] <- NA
 
 # save to file
-write.csv(comb, paste("/home/wmsru/github/2020_greenhouse/second_fall_experiment/",
+write.csv(comb, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                       "data/line_PAR_sensors/line_PAR_15.csv", sep=""), row.names=FALSE)
 # testing
 sub <- subset(comb, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-11-01 00:00:00', tz='GMT')

@@ -1,7 +1,7 @@
 rm(list=ls())
 
 # read in prepped data
-widthData <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
+widthData <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
 
 
 ### 1. First, Random Forests without using leaf lengths
@@ -189,8 +189,8 @@ summary(lm(true ~ pred, out))
 ## Save data plus predicted leaf area
 names(widthData)
 widthData <- subset(widthData, select = -c(leaf_order, irrig_cummean))
-saveRDS(widthData, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
+saveRDS(widthData, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
 
 
 ## Save the model
-saveRDS(randomForest_pl_2, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+saveRDS(randomForest_pl_2, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')

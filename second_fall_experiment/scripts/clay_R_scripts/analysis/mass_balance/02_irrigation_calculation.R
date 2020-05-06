@@ -5,7 +5,7 @@ lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
 # read in raw scale data
-dat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds')
+dat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds')
 
 dat$file <- NULL
 # don't care about border plants
@@ -108,10 +108,10 @@ names(irrigAmt)[names(irrigAmt)=='V1'] <- 'irrig_kg'
 ggplot(irrigAmt, aes(x=date, y=irrig_kg, color=scale)) + geom_point() + geom_line() + facet_wrap(~block)
 
 # save irrigation data
-saveRDS(irrigAmt, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/irrigation_by_plant.rds')
+saveRDS(irrigAmt, '/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/irrigation_by_plant.rds')
 
 # read back in
-# irrigAmt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/irrigation_by_plant.rds')
+# irrigAmt <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/irrigation_by_plant.rds')
 
 # fill in NA with next or previous value, see below
 naDat <- irrigAmt[is.na(irrigAmt$irrig_kg),]
@@ -142,7 +142,7 @@ any(is.na(irrigAmt$irrig_kg))
 ggplot(irrigAmt, aes(x=date, y=irrig_kg, color=scale)) + geom_point() + geom_line() + facet_wrap(~block)
 
 # re-save irrigation data
-saveRDS(irrigAmt, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/irrigation_by_plant.rds')
+saveRDS(irrigAmt, '/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/irrigation_by_plant.rds')
 
 
 # get means by block
@@ -205,5 +205,5 @@ any(is.na(im2)) # no NAs
 
 
 # save complete irrigation data (by block)
-saveRDS(im2, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/mean_irrigation_by_block.rds')
-# im2 <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/mean_irrigation_by_block.rds')
+saveRDS(im2, '/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/mean_irrigation_by_block.rds')
+# im2 <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/mean_irrigation_by_block.rds')

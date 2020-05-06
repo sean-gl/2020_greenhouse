@@ -4,7 +4,7 @@
 Sys.setenv(tz='GMT')
 
 # read in raw saved data
-scaledat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds')
+scaledat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds')
 
 # check for duplicate rows
 d = duplicated(subset(scaledat, select = -file)); any(d)

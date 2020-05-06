@@ -17,7 +17,7 @@ Sys.getenv('TZ') # make sure it got set
 ### Read in data
 
 # 1. leaf temperature
-lt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
+lt <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
 
 # remove position column, not useful
 lt$position <- NULL
@@ -47,20 +47,20 @@ colnames(lt_block_wide) <- c('by15','block','treatment','leaftemp_bottom','leaft
 #   facet_grid(~position)
 
 # 2. PAR
-lq <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
+lq <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/line_PAR_sensors/line_PAR_15.csv')
 lq$by15 <- as.POSIXct(lq$by15, tz = 'GMT')
 
 # 3. RH and soil temperature
-rh <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
+rh <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
 rh$by15 <- as.POSIXct(rh$by15, tz='GMT')
 # remove soil temp columsn, these are imported below
 rh <- rh %>% select(-contains('soil_t'))
 
-soil_temp <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
+soil_temp <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
 soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
 # 4. Wind sensors
-wind <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/wind_sensor_data/wind_15.csv')
+wind <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/wind_sensor_data/wind_15.csv')
 wind$by15 <- as.POSIXct(wind$by15, tz='GMT')
 
 # convert to long format
@@ -69,7 +69,7 @@ head(windWide)
 colnames(windWide) <- c('by15','treatment','windspeed_bottom','windspeed_middle','windspeed_top')
 
 # 5. Pressure bomb data
-pb <- read.csv('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/pressure_bomb/pressure_bomb_15.csv')
+pb <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/pressure_bomb/pressure_bomb_15.csv')
 pb$by15 <- as.POSIXct(pb$by15, tz='GMT')
 # omit bad observation & missing observation
 pb <- pb[pb$data_ok=='yes' & !is.na(pb$psi_MPa), ]

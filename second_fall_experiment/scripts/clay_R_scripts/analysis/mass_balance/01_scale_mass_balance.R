@@ -9,7 +9,7 @@ Sys.setenv(tz='GMT')
 
 
 # Read in end-of-experiment plant/root wet weights
-plant_wt <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
+plant_wt <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
                      col_names = T)
 plant_wt$plant_id <- toupper(plant_wt$plant_id)
 # add up weight of sensors (will be used below)
@@ -17,14 +17,14 @@ plant_wt$all_sensors_wt_kg <- 1e-3*rowSums(plant_wt[,c('bs_sensor1_wt_g','bs_sen
 
 
 # Get mean dry weights by treatement for harvested plants, and then model the wet weight
-biomass1 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+biomass1 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                      sheet = 'biomass')
 biomass1$date <- as.Date('2019-10-30')
-biomass2 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+biomass2 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                      sheet = 'biomass_2')
 biomass2 <- biomass2[1:(which(is.na(biomass2$pot_id))[1]-1),]
 biomass2$date <- as.Date('2019-11-15')
-biomass3 <- read_ods('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
+biomass3 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/destructive_harvest_data/read_only/destructive_harvest.ods',
                      sheet = 'biomass_3')
 biomass3$date <- as.Date('2019-12-12')
 biomass3 <- biomass3[1:(which(is.na(biomass3$pot_id))[1]-1),]
@@ -102,7 +102,7 @@ modeled_plant_wt <- ddply(biomass.expand, .(block), function(x) {
   } 
   m.linear <- lm(predicted_wet_weight_g ~ date_num, data=x)
   d$modeled_weight_linear_g <- predict(m.linear, d)
-  png(paste('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/block',
+  png(paste('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/block',
             blk, 'logistic_v_linear.png', sep = '_'), width=1500, height=900)
   plot(predicted_wet_weight_g ~ date, data=x, col='red', main=paste('block', blk, sep = ' '))
   if(blk != 'V') lines(modeled_weight_logistic_g ~ date, data=d)
@@ -115,10 +115,10 @@ ggplot(modeled_plant_wt, aes(x=date, y=modeled_weight_logistic_g, color=block)) 
 ggplot(modeled_plant_wt, aes(x=date, y=modeled_weight_linear_g, color=block)) + geom_line()
 
 # Save the predictions
-saveRDS(modeled_plant_wt, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
+saveRDS(modeled_plant_wt, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
 
 # read back in 
-# modeled_plant_wt <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
+# modeled_plant_wt <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_aboveground_plant_weights.rds')
 
 
 
@@ -130,7 +130,7 @@ saveRDS(modeled_plant_wt, '/home/wmsru/github/2020_greenhouse/second_fall_experi
 
 
 # read in desorption-curve data (reverse-engineered from vanBavel etal, 1978, fig. 1)
-vb <- read.csv("/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/van_bavel_data_extract.csv")
+vb <- read.csv("/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/van_bavel_data_extract.csv")
 names(vb) <- c('volumetric_water_content','pressure_potential_kPa')
 
 # plot vanBavel curve (points extracted from curve in fig. 1)
@@ -156,7 +156,7 @@ plot(pressure_potential_kPa ~ volumetric_water_content, data = vb_pred, type = '
 # Save loess fit vb_pred
 vb_pred <- vb_pred[complete.cases(vb_pred),] # remove NA data outside of range
 vb_pred$pressure_potential_kPa <- -(vb_pred$pressure_potential_kPa) # reverse the sign (tension not pressure)
-write.csv(vb_pred, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/vanBavel_curve_data_final.csv',
+write.csv(vb_pred, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/vanBavel/vanBavel_curve_data_final.csv',
           row.names = F)
 
 
@@ -164,7 +164,7 @@ write.csv(vb_pred, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/sc
 
 
 # read in 15-minute aggregated (and flagged) balance data 
-baldat <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
+baldat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
 # omit border plants
 baldat <- subset(baldat, !grepl('border', baldat$plant_id)) 
 # rename scale weight column for clarity
@@ -252,7 +252,7 @@ summary(wc2)
 wcAll <- wc2
 
 # plots of soil water potential
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
            'Treatment1_WestBlock'), width=1500, height=900)
 ggplot(subset(wc2, block == 'D')) + 
   geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
@@ -260,7 +260,7 @@ ggplot(subset(wc2, block == 'D')) +
   ggtitle("Modeled soil water potential, D block (west)")
 dev.off()
 
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
            'Treatment1_MiddleBlock'), width=1500, height=900)
 ggplot(subset(wc2, block == 'M')) +
   geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
@@ -280,7 +280,7 @@ ggplot(x) +
   geom_point(aes(x=by15, y=scale_weight_kg, color = plant_id)) +
   scale_x_datetime(date_breaks = '2 days', date_labels = '%m-%d')
 
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
            'Treatment1_EastBlock'), width=1500, height=900)
 ggplot(subset(wc2, block == 'W')) +
   geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
@@ -349,7 +349,7 @@ wcStart$wet_soil_mass_kg <- wcStart$scale_weight_kg - wcStart$all_sensors_wt_kg 
 
 
 # Method 2: Now, use the ENDING pot weights to use as a reference in calculating dry mass of soil
-# wcStart <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
+# wcStart <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/saturated_pot_weights.rds')
 # wcStart <- subset(wcStart, plant_id %in% c('W-25','W-26','W-27','W-28'))
 # wcStart <- merge(wcStart, plant_wt)
 # # calculate mass of wet soil only: subtract out pot weight and sensor weights
@@ -380,7 +380,7 @@ wc2$pressure_potential_kPa <- -(predict(vb_loess_fit, newdata = wc2))
 summary(wc2)
            
 # PLOT the Virgin treatment   
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/modeled_soil_water_potential/',
            'Treatment3_EastBlock_Virgins'), width=1500, height=900)
 ggplot(wc2) +
   geom_point(aes(x=by15, y=pressure_potential_kPa, color = plant_id)) +
@@ -390,10 +390,10 @@ dev.off()
 
 # Save the predicted soil water potential data
 wcAll <- rbind(wcAll, wc2)
-saveRDS(wcAll, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
+saveRDS(wcAll, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
 
 # Read back in and calculate block means
-# wcAll <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
+# wcAll <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil.rds')
 
 wcAll_means <- ddply(wcAll, .(by15, date, block), function(x){
   setNames(mean(x$pressure_potential_kPa, na.rm = T), 'mean_soil_water_potential_kPa')
@@ -403,4 +403,4 @@ with(wcAll_means, table(date, block))
 ggplot(wcAll_means, aes(x=by15, y=mean_soil_water_potential_kPa, color=block)) + geom_line()
 
 # Save the predicted soil water potential data (block means)
-saveRDS(wcAll_means, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil_block_means.rds')
+saveRDS(wcAll_means, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/modeled_psi_soil_block_means.rds')

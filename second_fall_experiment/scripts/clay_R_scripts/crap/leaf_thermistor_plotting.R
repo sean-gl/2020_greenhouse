@@ -1,6 +1,6 @@
 
 rm(list = ls())
-setwd("/home/wmsru/Documents/Clay/greenhouse/greenhouse_leaf_thermistor_data")
+setwd("/home/sean/Documents/Clay/greenhouse/greenhouse_leaf_thermistor_data")
 ard <- read.csv('leaf_thermistor_wet_dry_south_08_21-23.TXT', header = F)
 head(ard)
 

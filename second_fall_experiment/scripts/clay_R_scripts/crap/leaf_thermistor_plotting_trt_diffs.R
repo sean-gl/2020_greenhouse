@@ -1,6 +1,6 @@
 
 rm(list = ls())
-setwd("/home/wmsru/Documents/Clay/greenhouse/greenhouse_scale_and_leaftemp_data/leaf thermistor data")
+setwd("/home/sean/Documents/Clay/greenhouse/greenhouse_scale_and_leaftemp_data/leaf thermistor data")
 
 
 ### --- Dry treatment data

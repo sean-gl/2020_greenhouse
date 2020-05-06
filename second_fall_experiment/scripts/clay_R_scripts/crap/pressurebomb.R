@@ -2,7 +2,7 @@
 
 require(dplyr); require(lubridate); require(ggplot2)
 
-wp <- read.csv('/home/wmsru/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/pressurebomb_greenhouse2019.csv')
+wp <- read.csv('/home/sean/Documents/Clay/greenhouse/2019 greenhouse data/experiment2/pressurebomb_greenhouse2019.csv')
 head(wp)
 wp$datetime <- as.POSIXct(wp$datetime, format="%m/%d/%Y %H:%M:%S", tz='GMT')
 wp$date <- lubridate::date(wp$datetime)

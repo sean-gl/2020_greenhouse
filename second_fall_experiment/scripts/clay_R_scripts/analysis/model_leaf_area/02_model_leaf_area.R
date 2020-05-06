@@ -1,7 +1,7 @@
 rm(list=ls())
 
 # read in prepped data
-widthData <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
+widthData <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
 
 
 ### 1. First, Random Forest to predict leaf length from leaf width.
@@ -59,8 +59,10 @@ plot(leaf_length_pred ~ leaf_length_cm, data = widthData); abline(c(0,1), col='r
 sqrt(mean((widthData$leaf_length_cm - widthData$leaf_length_pred)^2)) 
 
 ## Save the leaf length RF model
-saveRDS(rf_length, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
+saveRDS(rf_length, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
 
+# read back in
+# rf_length <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
 
 ### ------- Now, use predicted leaf length in RF model to predict leaf area
 
@@ -111,8 +113,10 @@ sqrt(mean((widthData$leaf_area_cm2 - widthData$leaf_area_pred)^2))
 
 
 ## Save the leaf area RF model
-saveRDS(rf_area, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+saveRDS(rf_area, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
 
+# read back in
+# rf_area <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
 
 # Now predict on ALL data and scale up error to entire plant
 
@@ -129,4 +133,4 @@ summary(lm(true ~ pred, out))
 
 ## Save data plus predicted leaf area
 names(widthData)
-saveRDS(widthData, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')
+saveRDS(widthData, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/harvest_LA_pred.rds')

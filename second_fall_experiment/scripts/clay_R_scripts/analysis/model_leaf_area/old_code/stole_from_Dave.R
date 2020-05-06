@@ -2,7 +2,7 @@ library(pacman)
 p_load(tidyverse, here, randomForest, reshape2, magrittr, data.table, caret, tictoc, tdr)
 
 # data import
-iData <- fread('/home/wmsru/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/Harvest1_leafMeasurements.csv')
+iData <- fread('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/Harvest1_leafMeasurements.csv')
 
 
 # model is far more predictive if leaf length is included, but leaf length sucks to measure

@@ -1,6 +1,6 @@
 
 rm(list = ls())
-setwd("/home/wmsru/Documents/Clay/greenhouse/scale_and_leaftemp_data/USB_stick_clone/experiment2/scale_data")
+setwd("/home/sean/Documents/Clay/greenhouse/scale_and_leaftemp_data/USB_stick_clone/experiment2/scale_data")
 
 require(ggplot2)
 require(lubridate)
@@ -151,7 +151,7 @@ ggplot(sdat4_sub, aes(x=timestamp, y=prop_water_loss, color=scale)) +
 ### Now look at Garret's BS sensor data
 
 ### 1. "A" sensors (moderate treatment)
-gh_bs_A <- read.csv("/home/wmsru/Documents/Clay/Garrett Soils Data/fwdgreenhousedata/GreenHouse_A/GH_matric_A_BS_60.csv", 
+gh_bs_A <- read.csv("/home/sean/Documents/Clay/Garrett Soils Data/fwdgreenhousedata/GreenHouse_A/GH_matric_A_BS_60.csv", 
                   header=TRUE, sep=",", row.names=NULL)
 gh_bs_A$POSIX_time <- as.POSIXct(gh_bs_A$TIMESTAMP, format = "%m/%e/%Y %H:%M") 
 
@@ -246,7 +246,7 @@ confint(mod5.2)
 
 
 ### 1. "D" sensors (fully watered treatment)
-gh_bs_D <- read.csv("/home/wmsru/Documents/Clay/Garrett Soils Data/fwdgreenhousedata/GreenHouse_D/GH_matric_D_BS_60.csv", 
+gh_bs_D <- read.csv("/home/sean/Documents/Clay/Garrett Soils Data/fwdgreenhousedata/GreenHouse_D/GH_matric_D_BS_60.csv", 
                   header=TRUE, sep=",", row.names=NULL)
 gh_bs_D$POSIX_time <- as.POSIXct(gh_bs_D$TIMESTAMP, format = "%m/%e/%Y %H:%M") 
 

@@ -12,7 +12,7 @@ Sys.setenv(TZ='GMT')
 Sys.getenv('TZ') # make sure it got set
 
 ### load the combined data
-comb_all <- readRDS('/home/wmsru/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
+comb_all <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/pressure_bomb_combined_data.rds')
 
 
 
@@ -182,7 +182,7 @@ summary(full_predictions); plot(density(full_predictions[!is.na(full_predictions
 
 ## Append predictions to full dataset of predictors and save output
 comb_all_predict <- cbind(comb_all, predicted_psi_leaf = full_predictions)
-saveRDS(comb_all_predict, '/home/wmsru/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predicted_psi_leaf.rds')
+saveRDS(comb_all_predict, '/home/sean/github/2020_greenhouse/second_fall_experiment/analysis/clay/output_data/combined_data_predicted_psi_leaf.rds')
 
 
 
@@ -415,7 +415,7 @@ sub <- subset(comb_all_predict, date(by15) == '2019-11-20')
 
 sub <- subset(comb_all_predict, date(by15) >= '2019-11-18' & date(by15) <= '2019-11-21', drop = F)
 
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
 'model_pred_no_PAR_period_1.png'), width=1400, height=700)
 ggplot(sub) +
   geom_line(aes(x=by15, y=yhat_lm, color=treatment)) + ylim(c(-0.5,2.5)) +
@@ -431,7 +431,7 @@ dev.off()
 #   geom_line(aes(x=by15, y=temp_high_mean), linetype = 'dashed') +
 #   geom_line(aes(x=by15, y=bmp_box_temp), linetype = 'solid')
 
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
            'model_pred_with_PAR_period_1.png'), width=1400, height=700)
 ggplot(sub) +
   geom_line(aes(x=by15, y=yhat_lasso, color=treatment)) + ylim(c(-0.5,2.5)) +
@@ -442,7 +442,7 @@ dev.off()
 # plot 2nd period
 sub <- subset(comb_all_predict, date(by15) >= '2019-12-09' & date(by15) <= '2019-12-12', drop = F)
 
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
            'model_pred_no_PAR_period_2.png'), width=1400, height=700)
 ggplot(sub) +
   geom_line(aes(x=by15, y=yhat_lm, color=treatment)) + ylim(c(-0.5,2.5)) +
@@ -450,7 +450,7 @@ ggplot(sub) +
   geom_point(aes(x=by15, y=mean_psi_MPa, color=treatment), size=3) + ggtitle('Model without PAR')
 dev.off()
 
-png(paste0('/home/wmsru/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
+png(paste0('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/psi_leaf_model/',
            'model_pred_with_PAR_period_2.png'), width=1400, height=700)
 ggplot(sub) +
   geom_line(aes(x=by15, y=yhat_lm_2, color=treatment)) + ylim(c(-0.5,2.5)) +
