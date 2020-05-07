@@ -1,5 +1,5 @@
 
-setwd("/home/sean/github/2020_greenhouse/first_summer_experiment/figures")
+# setwd("/home/sean/github/2020_greenhouse/first_summer_experiment/figures")
 # on U drive
 # setwd("U:/Staff Folders/Gleason, Sean/sean_stuff/r_stuff/2020/greenhouse_2019/first_summer_experiment/figures")
 
@@ -41,28 +41,23 @@ rh2 <- read.table(paste("/home/sean/github/2020_greenhouse/first_summer_experime
                         "data/RH_temp_PAR_logger_data/read_only/collected_9_3_2019.TXT", sep=""), header = F, sep = ",")
 
 rh <- rbind.data.frame(rh1, rh2)
-colnames(rh) <- c('par1_n', 'par2_s', 'pyr1_n', 'pyr2_s', 'am2320_high_temp', 'am2320_high_rh', 'sht1_high_temp', 
-                  'sht1_high_rh', 'sht2_low_temp', 'sht2_low_rh', 'bmp_box_temp', 'bmp_box_atm_p', 'soil_t1', 
-                  'soil_t2', 'soil_t3', 'soil_t4', 'date', 'time')
-# radiation sensors moved to the top of beams on 9/3/2019... use this as the start date for usable data
-# sht1 and am2320 sensors wre placed ca 1m above canopy
-# sht2 was placed at 75% canopy height
-# the bmp atmopheric pressure and temp were taken inside the shadded datalogger box
-# par1_n was placed on the beam (above leds) on north side of the plants
-# par2_s was placed on the beam (above leds) on sounth side of the plants
-# ditto for pyr -n and -s sensors.
-# soil sensors wre placed inside plots approximately at 50% soil depth
+colnames(rh) <- c('par1_n', 'par2_s', 'pyr1_n', 'pyr2_s', 'am2320_high_temp', 'am2320_high_rh', 'sht2_low_temp',
+                  'sht2_low_rh', 'bmp_box_temp', 'bmp_box_atm_p', 'soil_t1', 'soil_t2', 'soil_t3', 'soil_t4', 'date', 'time')
+
 
 # add POSIXct time
 rh$date_time <- paste(rh$date, rh$time); rh$date_time[1:10]
 rh$date_time <- as.POSIXct(rh$date_time, format = "%d/%m/%y %k:%M:%S", tz = "GMT")
 rh$date_time[1:15]
 
+# Subtract 1 hour to account for clock being set to MDT in experiment 1 but MST in experiment 2
+rh$date_time <- rh$date_time - 3600
+
 # "cut" data into 15 minute groups and take the mean
 rh$by15 <- lubridate::ceiling_date(rh$date_time, "15 minutes")   # CHANGE HERE TO CHANGE TIME INTERVAL
 # calculate mean mass for each 15-minute time group by scale number
-rh <- summaryBy(par1_n + par2_s + pyr1_n + pyr2_s + am2320_high_temp + am2320_high_rh + sht1_high_temp + 
-                  sht1_high_rh + sht2_low_temp + sht2_low_rh + bmp_box_temp + bmp_box_atm_p + soil_t1 + 
+rh <- summaryBy(par1_n + par2_s + pyr1_n + pyr2_s + am2320_high_temp + am2320_high_rh + sht2_low_temp +
+                  sht2_low_rh + bmp_box_temp + bmp_box_atm_p + soil_t1 + 
                   soil_t2 + soil_t3 + soil_t4 ~ by15, data=rh, FUN=mean, na.rm=TRUE, keep.names=TRUE)
 rh <- rh[order(rh$by15),]
 
@@ -78,6 +73,9 @@ sen2 <- subset(rh, select=c(by15, soil_t2))
 sen3 <- subset(rh, select=c(by15, soil_t3))
 sen4 <- subset(rh, select=c(by15, soil_t4))
 
+
+### CLAY TODO: NOT SURE ABOUT WHICH SENSORS GO TO WHICH BLOCK/TRT......
+
 # take mean of soil sensors T2 and T3 because they are both in same block (treatment sequence)
 sen2_3 <- merge(sen2, sen3, by='by15')
 colnames(sen2_3) <- c('by15', 't2', 't3')
@@ -88,57 +86,35 @@ sen2_3 <- subset(sen2_3, select=c(by15, mean_temp))
 sen1$block <- 'D'; sen2_3$block <- 'W'; sen4$block <- 'M'
 
 # change column name and add correct treatment to each date
+
 # first soil sensor (T1) (in west block)
-df <- sen1
-colnames(df) <- c('by15', 'soil_temp_C', 'block')
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp1_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp1_end, "full_drought", "woo")
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp2_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp2_end, "well_watered", df$treat)
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp3_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp3_end, "full_drought", df$treat)
-df <- subset(df, treatment == 'full_drought' | treatment == 'well_watered' |
-               treatment == 'moderate_drought' | treatment == 'virgin_drought') # remove "woos"
-sen1 <- df
+colnames(sen1) <- c('by15', 'soil_temp_C', 'block')
+sen1$treatment <- 'full_drought'
 
 # now, the second and third soil sensors (sen2_3 = mean of T2 and T3) (in east block)
-df <- sen2_3
-colnames(df) <- c('by15', 'soil_temp_C', 'block')
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp1_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp1_end, "well_watered", "woo")
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp2_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp2_end, "full_drought", df$treat)
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp3_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp3_end, "virgin_drought", df$treat)
-df <- subset(df, treatment == 'full_drought' | treatment == 'well_watered' |
-               treatment == 'moderate_drought' | treatment == 'virgin_drought') # remove "woos"
-sen2_3 <- df
+colnames(sen2_3) <- c('by15', 'soil_temp_C', 'block')
+sen2_3$treatment <- 'well_watered'
 
 # lastly, the fourth soil sensor (T4) (in the middle block)
-df <- sen4
-colnames(df) <- c('by15', 'soil_temp_C', 'block')
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp1_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp1_end, "moderate_drought", "woo")
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp2_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp2_end, "moderate_drought", df$treat)
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp3_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp3_end, "well_watered", df$treat)
-df <- subset(df, treatment == 'full_drought' | treatment == 'well_watered' |
-               treatment == 'moderate_drought' | treatment == 'virgin_drought') # remove "woos"
-sen4 <- df  
+colnames(sen4) <- c('by15', 'soil_temp_C', 'block')
+sen4$treatment <- 'moderate_drought' 
 
 # rbind all sensor dataframes together
 comb <- rbind.data.frame(sen1, sen2_3, sen4)
+
+# check for missing data
+any(is.na(comb))
+
 # export to file
 write.csv(comb, paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
                       "data/RH_temp_PAR_logger_data/soil_temp_15.csv", sep=""), row.names=FALSE)
 
 # testing
 # subsetting data
-sub <- subset(rh, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-11-04 01:00:00', tz='GMT')
-              & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-11-27 01:00:00', tz='GMT'))
+sub <- subset(rh, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-08-21 12:00:00', tz='GMT')
+              & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-08-26 12:00:00', tz='GMT'))
 
-plot(sub$soil_t1 ~ sub$by15, type='l', ylim=c(17,31))
+plot(sub$soil_t1 ~ sub$by15, type='l', ylim=c(20,40))
 points(sub$soil_t2 ~ sub$by15, type='l', col='red')
 points(sub$soil_t3 ~ sub$by15, type='l', col='blue')
 points(sub$soil_t4 ~ sub$by15, type='l', col='green')
@@ -177,6 +153,9 @@ wind$date_time[1:15]
 # wind$date <- substring(wind$date_time, first=1, last=10); wind$date[1:5]
 # wind$time <- substring(wind$date_time, first=12, last=19); wind$time[1:5]
 
+# Subtract 1 hour to account for clock being set to MDT in experiment 1 but MST in experiment 2
+wind$date_time <- wind$date_time - 3600
+
 # "cut" data into 15 minute groups and take the mean
 wind$by15 <- lubridate::ceiling_date(wind$date_time, "15 minutes")   # CHANGE HERE TO CHANGE TIME INTERVAL
 # calculate mean mass for each 15-minute time group by scale number
@@ -192,6 +171,12 @@ temp <- subset(temp, select=c(by15, sht2_low_temp))
 temp$by15 <- as.character(temp$by15); wind$by15 <- as.character(wind$by15)
 comb <- merge(wind, temp, by='by15', all.x=TRUE, all.y=FALSE)
 comb$by15 <- as.POSIXct(comb$by15, tz='GMT')  # back to POSIXct
+
+## CLAY NOTE:
+# We only have temperature data starting on 8/23, so there are many rows of missing wind data after the merge.
+# I won't worry about this though, since treatments didn't start until evening of 8/24 anyway.
+comb <- comb[!is.na(comb$sht2_low_temp), ]
+
 
 # calculate wind speed 
 # function to convert volts to meters per second
@@ -220,60 +205,51 @@ comb$w3_st_m_s <- to_m_s(comb$w3_st_m_s, comb$sht2_low_temp)
 # rearrange dataframe such that all wind data are in one column and extra 
 # treatment and height columns are added
 # stack the sensors within each array, assign
-# array1 (east block)
+
+# ===== CLAY NOTE: These positions may or may not be correct, need to check Sean's notes.
+# ==========''
+
+# array1 
 df1 <- comb[,c('by15', 'w1_sb_m_s')]; colnames(df1) <- c('by15', "wind_speed_m_s"); df1$position <- "bottom"
 df2 <- comb[,c('by15', 'w1_sm_m_s')]; colnames(df2) <- c('by15', "wind_speed_m_s"); df2$position <- "middle"
 df3 <- comb[,c('by15', 'w1_st_m_s')]; colnames(df3) <- c('by15', "wind_speed_m_s"); df3$position <- "top"
 array1 <- rbind.data.frame(df1, df2, df3)
-# array2 (middle block)    
+# array2   
 df1 <- comb[,c('by15', 'w2_sb_m_s')]; colnames(df1) <- c('by15', "wind_speed_m_s"); df1$position <- "bottom"
 df2 <- comb[,c('by15', 'w2_sm_m_s')]; colnames(df2) <- c('by15', "wind_speed_m_s"); df2$position <- "middle"
 df3 <- comb[,c('by15', 'w2_st_m_s')]; colnames(df3) <- c('by15', "wind_speed_m_s"); df3$position <- "top"
 array2 <- rbind.data.frame(df1, df2, df3)
-# array3 (west block)
+# array3 
 df1 <- comb[,c('by15', 'w3_sb_m_s')]; colnames(df1) <- c('by15', "wind_speed_m_s"); df1$position <- "bottom"
 df2 <- comb[,c('by15', 'w3_sm_m_s')]; colnames(df2) <- c('by15', "wind_speed_m_s"); df2$position <- "middle"
 df3 <- comb[,c('by15', 'w3_st_m_s')]; colnames(df3) <- c('by15', "wind_speed_m_s"); df3$position <- "top"
 array3 <- rbind.data.frame(df1, df2, df3)
 
+
+### Plot to see if positions look correct....
+### CLAY: STILL NOT SURE. "TOP" NOT CONSISTENTLY GREATER THAN BOTTOM/MIDDLE.
+ggplot(array1, aes(x=by15, y=wind_speed_m_s, color=position)) + geom_point() + geom_line() + ggtitle('array1')
+ggplot(array2, aes(x=by15, y=wind_speed_m_s, color=position)) + geom_point() + geom_line() + ggtitle('array2')
+ggplot(array3, aes(x=by15, y=wind_speed_m_s, color=position)) + geom_point() + geom_line() + ggtitle('array3')
+
+array1 %>% group_by(position) %>% summarise(ws=mean(wind_speed_m_s))
+array2 %>% group_by(position) %>% summarise(ws=mean(wind_speed_m_s))
+array3 %>% group_by(position) %>% summarise(ws=mean(wind_speed_m_s))
+
+
 # within each array, change column name and add correct treatment to each date
+
 # array1 (east block)
-df <- array1
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp1_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp1_end, "well_watered", "woo")
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp2_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp2_end, "full_drought", df$treat)
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp3_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp3_end, "virgin_drought", df$treat)
-df <- subset(df, treatment == 'full_drought' | treatment == 'well_watered' |
-               treatment == 'moderate_drought' | treatment == 'virgin_drought') # remove "woos"
-array1 <- df
-array1$block <- 'W' # Clay: add block for merge to other datasets
+array1$treatment <- "well_watered"
+array1$block <- 'W' 
 
 # array2 (middle block)
-df <- array2
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp1_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp1_end, "moderate_drought", "woo")
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp2_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp2_end, "moderate_drought", df$treat)
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp3_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp3_end, "well_watered", df$treat)
-df <- subset(df, treatment == 'full_drought' | treatment == 'well_watered' |
-               treatment == 'moderate_drought' | treatment == 'virgin_drought') # remove "woos"
-array2 <- df
-array2$block <- 'M' # Clay: add block for merge to other datasets
+array2$treatment <- "moderate_drought"
+array2$block <- 'M' 
+
 
 # array3 (west block)
-df <- array3
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp1_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp1_end, "full_drought", "woo")
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp2_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp2_end, "well_watered", df$treat)
-df$treatment <- ifelse(as.POSIXct(df$by15, tz='GMT') >= exp3_start & 
-                         as.POSIXct(df$by15, tz='GMT') <= exp3_end, "full_drought", df$treat)
-df <- subset(df, treatment == 'full_drought' | treatment == 'well_watered' |
-               treatment == 'moderate_drought' | treatment == 'virgin_drought') # remove "woos"
-array3 <- df
+array3$treatment <- 'full_drought'
 array3$block <- 'D' # Clay: add block for merge to other datasets
 
 # rbind all array dfs together
@@ -284,11 +260,11 @@ write.csv(stacked, paste("/home/sean/github/2020_greenhouse/first_summer_experim
                          "data/wind_sensor_data/wind_15.csv", sep=""), row.names=FALSE)
 # testing
 # subsetting data
-sub <- subset(comb, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-10-24 00:00:00', tz='GMT')
-              & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-12-12 09:00:00', tz='GMT'))
-plot(sub$w1_sb_m_s ~ sub$by15) #, ylim=c(0,0.02))
-points(sub$w1_sm_m_s ~ sub$by15, col='blue')
-points(sub$w1_st_m_s ~ sub$by15, col='red')
+# sub <- subset(comb, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-10-24 00:00:00', tz='GMT')
+#               & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-12-12 09:00:00', tz='GMT'))
+# plot(sub$w1_sb_m_s ~ sub$by15) #, ylim=c(0,0.02))
+# points(sub$w1_sm_m_s ~ sub$by15, col='blue')
+# points(sub$w1_st_m_s ~ sub$by15, col='red')
 
 
 

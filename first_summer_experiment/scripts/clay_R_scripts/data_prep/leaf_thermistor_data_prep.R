@@ -14,7 +14,7 @@ setwd(wd)
 files <- dir(wd)
 files <- files[grepl('.TXT', files)]
 files
-# Note: For these 2 files I'm not 100% sure if they are assigned to the correct block, but it was 
+# Note: For these 2 files I'm only 80% sure if they are assigned to the correct block, but it was 
 # before treatments began anyway, so not super important:
 # "leaf_thermistor_dry_east_08_21-23.TXT" and "leaf_thermistor_wet_west_08_21-23.TXT"
 
@@ -212,8 +212,8 @@ summary(aggTherm$mean_leaftemp_C[low])
 
 
 
-length(which(hi)) /nrow(aggTherm) * 100 # 0.2% of observations > 45 deg C
-length(which(low)) /nrow(aggTherm) * 100 # 3 % of observations < 10 deg C
+length(which(hi)) /nrow(aggTherm) # 0.2% of observations > 45 deg C
+length(which(low)) /nrow(aggTherm)  # 3 % of observations < 10 deg C
 
 aggTherm$temperature_flag <- 'none'
 aggTherm$temperature_flag[hi] <- '>= 45 C'

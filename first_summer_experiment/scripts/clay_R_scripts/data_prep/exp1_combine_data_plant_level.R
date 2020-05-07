@@ -32,8 +32,9 @@ exp_start <- as.POSIXct('2019-08-24 19:00:00', tz='GMT')
 rh <- read.csv('/home/sean/github/2020_greenhouse/first_summer_experiment/data/RH_temp_PAR_logger_data/rh_15.csv')
 rh$by15 <- as.POSIXct(rh$by15, tz='GMT')
 
-# remove data before 10-24 (just a few rows), these are crap
-rh <- subset(rh, date(by15) >= '2019-10-24')
+# remove data before start of treatments
+rh <- subset(rh, by15 >= exp_start)
+
 # remove soil temp columsn, these are imported below
 rh <- rh %>% select(-contains('soil_t'))
 
@@ -51,8 +52,6 @@ rh <- rh %>% select(-contains('soil_t'))
 soil_temp <- read.csv('/home/sean/github/2020_greenhouse/first_summer_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
 soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
-# change order of columns
-soil_temp <- soil_temp[,c('by15','treatment','block','soil_temp_C')]
 
 
 ####
@@ -63,8 +62,7 @@ wind <- read.csv('/home/sean/github/2020_greenhouse/first_summer_experiment/data
 wind$by15 <- as.POSIXct(wind$by15, tz='GMT')
 
 # convert to long format
-windWide <- tidyr::spread(wind, 'position', 'wind_speed_m_s')
-windWide <- tidyr::pivot_wider(wind, names_from = 'position', values_from = 'wind_speed_m_s', names_prefix = 'windspeed_')
+windWide <- tidyr::pivot_wider(wind, names_from = 'position', values_from = 'wind_speed_m_s')
 head(windWide)
 
 
@@ -73,10 +71,8 @@ allDataPlot <- merge(windWide, soil_temp, by=c('by15','treatment','block'), all 
 
 # find rows with no data
 ind <- apply(select(allDataPlot, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
-which(ind) # 3 rows w/no data
+which(ind) # 0 rows w/no data
 
-# omit rows with all NA
-allDataPlot <- allDataPlot[!ind,]
 
 
 
@@ -88,7 +84,7 @@ allDataPlot <- allDataPlot[!ind,]
 
 
 ####
-# 6. Leaf temperature (thermistors)
+# 4. Leaf temperature (thermistors)
 ###
 
 lt <- readRDS('/home/sean/github/2020_greenhouse/first_summer_experiment/data/leaf_thermistor_data/leaf_thermistor_data_15min_agg_flagged.rds')
@@ -112,7 +108,7 @@ table(lt$position, useNA = 'a')
 lt$position[lt$position=='lower'] <- 'bottom'
 lt$position[lt$position=='upper'] <- 'top'
 
-#
+
 # filter data by flag 
 # (omit data that is probably or definitely bad)
 lt <- subset(lt, flag <= 2 & temperature_flag == 'none')
@@ -147,3 +143,21 @@ lt_wide$treatment[lt_wide$block=='W'] <- 'well_watered'
 lt_wide$treatment[lt_wide$block=='M'] <- 'moderate_drought'
 lt_wide$treatment[lt_wide$block=='D'] <- 'full_drought'
 table(lt_wide$treatment, useNA = 'a')
+
+
+# Plot raw data....don't see any obvious outliers. 
+sub = lt[lt$block=='D',]
+ggplot(sub, aes(x=by15, y=mean_leaftemp_C, color=position)) + geom_point() + geom_line() + facet_grid(~plant_id)
+sub = lt[lt$block=='W',]
+ggplot(sub, aes(x=by15, y=mean_leaftemp_C, color=position)) + geom_point() + geom_line() + facet_grid(~plant_id)
+sub = lt[lt$block=='M',]
+ggplot(sub, aes(x=by15, y=mean_leaftemp_C, color=position)) + geom_point() + geom_line() + facet_grid(~plant_id)
+
+
+
+####
+# 5. Transpiration data (calculated from scale weights)
+###
+
+# read data
+transp <- readRDS('/home/sean/github/2020_greenhouse/first_summer_experiment/scripts/clay_R_scripts/analysis/model_transpiration/transpiration_by_plant.rds')

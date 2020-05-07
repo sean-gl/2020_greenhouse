@@ -8,7 +8,7 @@ Sys.setenv(tz='GMT')
 ### -------- SECTION 1: Calculate Daily Above-Ground Plant Mass -------------
 
 
-# Read in end-of-experiment plant/root wet weights
+# Read in end-of-experiment plant wet weights and sensor weights
 plant_wt <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/data/end_of_experiment_data.ods',
                      col_names = T)
 plant_wt$plant_id <- toupper(plant_wt$plant_id)
@@ -29,7 +29,8 @@ biomass3 <- read_ods('/home/sean/github/2020_greenhouse/second_fall_experiment/d
 biomass3$date <- as.Date('2019-12-12')
 biomass3 <- biomass3[1:(which(is.na(biomass3$pot_id))[1]-1),]
 
-# Note: for biomass1, I didn't separate stem and leaves. 
+# For 2nd & 3rd harvests, calculate total aboveground biomass, by plant.
+# (for 1st harvest, I didn't separate stem and leaves so no calculation needed)
 biomass2$mass_above_g <- rowSums(biomass2[ , c('leaf_live_mass','leaf_dead_mass','stem_mass','ear_mass','tassel_mass')])
 summary(biomass2$mass_above_g)
 biomass3$mass_above_g <- rowSums(biomass3[ , c('leaf_live_mass','leaf_dead_mass','stem_mass','ear_mass','tassel_mass')])

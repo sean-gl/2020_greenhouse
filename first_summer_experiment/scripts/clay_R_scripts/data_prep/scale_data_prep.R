@@ -44,7 +44,7 @@ for(i in 1:length(datList)) {
 scaledat<- do.call(rbind, datList)
 rownames(scaledat) <- NULL
 
-# NOTE: these duplicate rows will be fixed below...time zone issue.
+# Check for duplicates and remove them.
 dups <- duplicated(scaledat[,c('scale','timestamp')])
 table(scaledat$file[dups]) # a bunch of duplicates in this file, remove them
 scaledat <- scaledat[!dups, ]
@@ -145,7 +145,7 @@ scaledat <- subset(scaledat, date >= '2019-08-24')
 # note: this function creates flags 
 aggDat <- aggAndFlag(df = scaledat,
                      timeCol = 'timestamp', 
-                     idCols = c('scale','plant_id','treatment'),
+                     idCols = c('scale','plant_id','block','treatment'),
                      measCol = 'weight',
                      threshVec = c(.03, .04, .05),
                      interval = 15,

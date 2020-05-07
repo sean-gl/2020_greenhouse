@@ -126,6 +126,7 @@ lines(tempSummary$date, tempSummary$mgdd, type='l', col='red')
 
 
 # Subset to columns of interest in modeling leaf area
+# Also subset to dates after planting in 2nd experiment
 tempSummaryExp2 <- subset(tempSummary, date >= '2019-09-09', select = c(date, gdd, mgdd))
 
 # Extend data back in time, using mean value
@@ -140,7 +141,7 @@ tempSummaryExp2 <- subset(tempSummary, date >= '2019-09-09', select = c(date, gd
 
 
 
-# add cumsum column
+# add cumsum columns
 tempSummaryExp2$gdd_cumsum <- cumsum(tempSummaryExp2$gdd)
 tempSummaryExp2$mgdd_cumsum <- cumsum(tempSummaryExp2$mgdd)
 # tempSummaryExp2$mgdd_low_cumsum <- cumsum(tempSummaryExp2$mgdd_low)
@@ -170,13 +171,23 @@ la <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/
 ## An easier fix might be to just fix the treatment column (but then we only have n=1 day of virgin plants)
 table(la$date, la$treatment)
 
+# Subset leaf area to roughly the same # of days since planting as in 1st experiment
+as.Date('2019-09-03') - as.Date('2019-07-11') # 55 days in 1st exp.
+la$day <- as.numeric(la$date - as.Date('2019-09-09')) + 1
+
+# I'll use the first 3 leaf area dates (the first 68 days) to model leaf area growth in each treatment
+la <- la[la$day <= 68, ]
 
 # change to m2
 la$total_leaf_area_m2 <- la$total_leaf_area_cm2 / 1e4
 la$total_leaf_area_cm2 <- NULL
 
 # examine, looks ok
-ggplot(la, aes(x=date, y=total_leaf_area_m2, color=block)) + geom_point()
+ggplot(la, aes(x=date, y=total_leaf_area_m2, color=block)) + geom_point() + geom_smooth(method = 'lm')
+
+# looks like no treatment differences
+summary(lm(total_leaf_area_m2 ~ day + block, la))
+summary(lm(total_leaf_area_m2 ~ day, la))
 
 # merge temp data to LA data, keep only rows with LA
 alldat <- merge(tempSummaryExp2, la, by='date', all.y = TRUE)
@@ -195,7 +206,7 @@ ggplot(alldat, aes(x=mgdd_cumsum, y=total_leaf_area_m2, color=treatment)) + geom
 
 #  However, "days since planting" predicts as well as GDD, since they are perfectly linearly related.
 alldat$day <- alldat$date - as.Date('2019-09-09') + 1
-summary(lm(mgdd_cumsum ~ day, alldat ))
+summary(lm(gdd_cumsum ~ day, alldat ))
 summary(lm(total_leaf_area_m2 ~ poly(day, 2) + treatment, alldat))
 
 

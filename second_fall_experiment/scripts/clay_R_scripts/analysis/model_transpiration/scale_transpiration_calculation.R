@@ -137,9 +137,7 @@ transp <- merge(transp, la, by = c('date','block'), all.x = T)
 transp <- subset(transp, date >= '2019-10-24')
 summary(transp$mean_plant_leaf_area_cm2) 
 
-# --- Transpiration needs to be scaled by leaf area. Since we are doing the analysis 
-# at the block-level, we use the (mean) total plant leaf area in each block, and the 
-# mean transpiration for each block.
+# --- Transpiration needs to be scaled by leaf area. 
 # also we want to convert from cm2 to m2 so we divide by 10000.
 transp$mean_plant_leaf_area_m2 <- (transp$mean_plant_leaf_area_cm2) / 1E4
 transp$mean_plant_leaf_area_cm2 <- NULL

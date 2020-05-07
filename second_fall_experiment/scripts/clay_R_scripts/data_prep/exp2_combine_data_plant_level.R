@@ -167,8 +167,6 @@ summary(allDataExp$VPD_air_low)
 soil_temp <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/RH_temp_PAR_logger_data/soil_temp_15.csv')
 soil_temp$by15 <- as.POSIXct(soil_temp$by15, tz='GMT')
 
-# change order of columns
-soil_temp <- soil_temp[,c('by15','treatment','block','soil_temp_C')]
 
 
 ####
@@ -179,7 +177,6 @@ wind <- read.csv('/home/sean/github/2020_greenhouse/second_fall_experiment/data/
 wind$by15 <- as.POSIXct(wind$by15, tz='GMT')
 
 # convert to long format
-windWide <- tidyr::spread(wind, 'position', 'wind_speed_m_s')
 windWide <- tidyr::pivot_wider(wind, names_from = 'position', values_from = 'wind_speed_m_s', names_prefix = 'windspeed_')
 head(windWide)
 
@@ -494,16 +491,18 @@ allData2 <- allData2[!ind, ]
 # --- Now calculate VPD_leaf, using highest available leaf temp, and "low" air temp/RH (75% canopy ht.)
 
 # First calculate the satVP_of_leaf:
+# use highest available leaf thermistor, with upper-most sensor corresponding to ~75% canopy height
 satVP_leaf <- 1e-3*(exp(77.345+0.0057*(allData2$leaftemp_highest_avail+273.15)-7235/(allData2$leaftemp_highest_avail+273.15)))/(allData2$leaftemp_highest_avail+273.15)^8.2
 summary(satVP_leaf)
 
 # Then, calculate the satVP_of_atmosphere:
+# use "low" air temperature, also at 75% canopy height
 satVP_atm <- 1e-3*(exp(77.345+0.0057*(allData2$sht2_low_temp+273.15)-7235/(allData2$sht2_low_temp+273.15)))/(allData2$sht2_low_temp+273.15)^8.2
 summary(satVP_atm)
 
 
 # Then, use satVP_of_atmosphere and RH data (from sensors) to calculate actual VP of atmosphere:
-VP_atm <- satVP_atm * allData2$sht2_low_rh/100  #[ note this is to express RH as a fraction ]
+VP_atm <- satVP_atm * allData2$sht2_low_rh/100 
 summary(VP_atm)
 
 # then, finally, calculate VPD_leaf:
@@ -515,13 +514,98 @@ summary(allData2$VPD_leaf)
 ### --- Add psi_leaf linear model predictions ----
 
 
-# add irrigation amount (ml); its used in the model
+# add irrigation amount (L) applied the PREVIOUS day; its used in the model
 allData2$irrig <- NA
-allData2$irrig[date(allData2$by15) < "2019-11-05" & allData2$treatment == 'well_watered'] <- 750
-allData2$irrig[date(allData2$by15) >= "2019-11-05" & allData2$treatment == 'well_watered'] <- 1000
-allData2$irrig[allData2$treatment == 'moderate_drought'] <- 375
-allData2$irrig[allData2$treatment %in% c('full_drought','virgin_drought')] <- 150
+
+# all blocks: first day well-watered (1 L)
+ind <- with(allData2, date(by15) == '2019-10-24')
+allData2$irrig[ind] <- 1
+
+
+# Block W
+# well-watered from experiment start until 11/04
+ind <- with(allData2, date(by15) > '2019-10-24' & date(by15) <= '2019-10-30' & block == 'W')
+allData2$irrig[ind] <- 0.75
+# note: well-watered irrigation increased by 0.25 L/day on 10/30
+ind <- with(allData2, date(by15) > '2019-10-30' & date(by15) <= '2019-11-04' & block == 'W')
+allData2$irrig[ind] <- 1
+# full-drought after 11/04 (virgins after 11/27 also full-drought)
+ind <- with(allData2, date(by15) > '2019-11-04' & block == 'W')
+allData2$irrig[ind] <- 0.15
+
+# Block M
+# moderate_drought from 10/24 to 11/27
+ind <- with(allData2, date(by15) > '2019-10-24' & date(by15) <= '2019-11-27' & block == 'M')
+allData2$irrig[ind] <- 0.375
+# well_watered after 11/27
+ind <- with(allData2, date(by15) > '2019-11-27' & block == 'M')
+allData2$irrig[ind] <- 1
+
+# Block D
+# full_drought from 10/24 to 11/4
+ind <- with(allData2, date(by15) > '2019-10-24' & date(by15) <= '2019-11-04' & block == 'D')
+allData2$irrig[ind] <- 0.15
+# well_watered from 11/4 to 11/27
+ind <- with(allData2, date(by15) > '2019-11-04' & date(by15) <= '2019-11-27' & block == 'D')
+allData2$irrig[ind] <- 1
+# full_drought after 11/27
+ind <- with(allData2, date(by15) > '2019-11-27' & block == 'D')
+allData2$irrig[ind] <- 0.15
+
 table(allData2$irrig, useNA = 'a')
+
+# Check
+# allData2$date <- date(allData2$by15)
+# x = allData2 %>% group_by(date, block) %>% summarise(irrig=unique(irrig))
+# ggplot(x, aes(x=date, y=irrig, color=block)) + geom_line()
+# all(table(x$date, x$block)==1)
+
+
+# OLD CODE, not correct.
+# allData2$irrig[date(allData2$by15) < "2019-11-05" & allData2$treatment == 'well_watered'] <- 750
+# allData2$irrig[date(allData2$by15) >= "2019-11-05" & allData2$treatment == 'well_watered'] <- 1000
+# allData2$irrig[allData2$treatment == 'moderate_drought'] <- 375
+# allData2$irrig[allData2$treatment %in% c('full_drought','virgin_drought')] <- 150
+# table(allData2$irrig, useNA = 'a')
+
+
+# add cummulative irrigation and cummulative mean irrigation
+
+# first, calculate cumsum/cummean up until treatments began (all plants given same irrig.)
+
+# from 9/9 to 9/12, plants hand-watered. from 9/13-10/16, plants got 630 ml/day. assume they got same during hand-waterinng.
+initialIrrig <- 0.63 * (as.numeric(as.Date('2019-10-16') - as.Date('2019-09-09')) + 1)
+# from 10/17 to 10/23, plants got 1000 ml/day.
+initialIrrig <- initialIrrig + 1 * (as.numeric(as.Date('2019-10-23') - as.Date('2019-09-17')) + 1)
+
+# Virgin plants treated differently...
+initialIrrigVirgin <- initialIrrig
+# from 10/24 to 10/29, virgins got 750 ml/day
+initialIrrigVirgin <- initialIrrigVirgin + 0.75 * (as.numeric(as.Date('2019-10-29') - as.Date('2019-10-24')) + 1)
+# from 10/30 to 11/26, virgins got 1000 ml/day
+initialIrrigVirgin <- initialIrrigVirgin + 1 * (as.numeric(as.Date('2019-11-26') - as.Date('2019-10-30')) + 1)
+
+x = allData2[allData2$block=='W', ]
+irrigCumsum <- ddply(allData2, .(block), function(x) {
+  x$date <- date(x$by15)
+  blk <- unique(x$block)
+  y <- unique(x[,c('date','irrig')])
+  y <- y[order(y$date), ]
+  if(blk != 'W') {
+    y$irrig_cumsum <- cumsum(y$irrig) + initialIrrig
+  } else { # handle virgin plants separately for W block
+    y_nv <- y[y$date <= '2019-11-27', ] 
+    y_v <- y[y$date > '2019-11-27', ]
+    y_nv$irrig_cumsum <- cumsum(y_nv$irrig) + initialIrrig
+    y_v$irrig_cumsum <- cumsum(y_v$irrig) + initialIrrigVirgin
+    y <- rbind(y_nv, y_v)
+  }
+  return(y)
+})
+
+# need to merge to treatment-level data for this to make snese....
+ggplot(irrigCumsum, aes(x=date, y=irrig_cumsum, color=block)) + geom_line()
+
 
 # add mean PAR column, also used in model
 allData2$line_PAR_mean_umol_m2_s <- rowMeans(allData2[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
