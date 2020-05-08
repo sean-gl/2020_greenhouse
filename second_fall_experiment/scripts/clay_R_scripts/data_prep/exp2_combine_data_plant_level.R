@@ -119,22 +119,6 @@ which(ind) # all rows have some data
 
 # ----- Add VPD_air ----
 
-# require(plantecophys)
-
-# Examine RH data
-# colors <- c('am2320'='black', 'sht_hi'='red', 'sht_lo'='blue')
-# # hi v. low
-# ggplot(allDataExp, aes(x=by15)) +
-#   geom_line(aes(y=sht1_high_rh, color='sht_hi')) +
-#   geom_line(aes(y=sht2_low_rh, color='sht_lo'))
-# 
-# # sht hi vs. am2320 hi
-# ggplot(allDataExp, aes(x=by15)) +
-#   geom_line(aes(y=am2320_high_rh, color='am2320')) +
-#   geom_line(aes(y=sht1_high_rh, color='sht_hi')) 
-#  
-# cor(allDataExp$sht1_high_rh, allDataExp$am2320_high_rh, use='complete.obs')
-# cor(allDataExp$sht1_high_rh, allDataExp$sht2_low_rh, use='complete.obs')
 
 # Using Sean's formula
 
@@ -144,10 +128,6 @@ allDataExp$VPD_air_high <- (1 - (allDataExp$sht1_high_rh / 100)) * 0.61121 * exp
 # VPD_air, low
 allDataExp$VPD_air_low <- (1 - (allDataExp$sht2_low_rh / 100)) * 0.61121 * exp((17.502 * allDataExp$sht2_low_temp) / (240.97 + allDataExp$sht2_low_temp)) 
 
-# nearly same result using this function, assuming atm pressure = 101 kPa
-# allDataExp$VPD_air_high <- plantecophys::RHtoVPD(RH = allDataExp$sht1_high_rh, 
-#                                                TdegC = allDataExp$sht1_high_temp, 
-#                                                Pa = 101)
 
 summary(allDataExp$VPD_air_high)
 summary(allDataExp$VPD_air_low)

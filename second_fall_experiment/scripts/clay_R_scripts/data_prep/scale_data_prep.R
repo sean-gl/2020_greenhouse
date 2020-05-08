@@ -24,7 +24,6 @@ setwd(wd)
 ### ------Read and process data
 ###
 
-### Experiment 2 data ----
 
 # read in files
 files <- dir(wd)
@@ -100,10 +99,6 @@ which(is.na(scaledat$scale))
 scaledat[is.na(scaledat$scale),] 
 scaledat <- scaledat[!is.na(scaledat$scale), ]
 
-### Subset Maria's scale data (to send to her)
-# maria_scaledat <- subset(scaledat, scale %in% 15:16)
-# maria_scaledat$file <- NULL
-# write.csv(maria_scaledat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/maria_scale_data_raw_compiled.csv", row.names = F)
 
 # Order data by timestamp and scale number
 scaledat <- scaledat[order(scaledat$timestamp, scaledat$scale),  ]
@@ -118,10 +113,6 @@ scaledat[scaledat$scale %in% 5:8, 'block'] <- 'M'
 scaledat[scaledat$scale %in% c(9, 10, 12, 14, 16), 'block'] <- 'D'
 scaledat$block <- factor(scaledat$block)
 scaledat$date <- lubridate::date(scaledat$timestamp)
-# scaledat$hour <- lubridate::hour(scaledat$timestamp)
-# scaledat$minute <- lubridate::minute(scaledat$timestamp)
-# scaledat$timeofday <- scaledat$hour * 60 + scaledat$minute
-
 
 
 
@@ -188,7 +179,12 @@ scaledat$plant_id <- sapply(as.character(scaledat$scale), function(x) switch(x,
 # check work
 table(scaledat$plant_id, scaledat$scale)
 
-# find times each scale was swapped out with a virgin
+
+
+# ------- Need to change plant_id when Virgins were rotated in to W block 
+# ------- Find times each scale was swapped out with a virgin =====
+
+
 x <- subset(scaledat, timestamp >= '2019-11-27 13:00' & timestamp <= '2019-11-27 17:00')
 s <- 1
 d <- x[x$scale == s, ]
@@ -230,25 +226,25 @@ scaledat[ind, 'plant_id'] <- 'W-27'
 table(scaledat$plant_id, scaledat$scale)
 
 ### Add Current Treatment Column (based on date only, not time)
-
-scaledat$treatment <- NA
-# baseline (pre-treatments)
-scaledat$treatment[scaledat$date <= '2019-10-24'] <- 'well_watered'
-# treatment 1
-scaledat$treatment[scaledat$date > '2019-10-24' & scaledat$date <= '2019-11-04' & scaledat$block == 'W'] <- 'well_watered'
-scaledat$treatment[scaledat$date > '2019-10-24' & scaledat$date <= '2019-11-04' & scaledat$block == 'M'] <- 'moderate_drought'
-scaledat$treatment[scaledat$date > '2019-10-24' & scaledat$date <= '2019-11-04' & scaledat$block == 'D'] <- 'full_drought'
-# treatment 2
-scaledat$treatment[scaledat$date > '2019-11-04' & scaledat$date <= '2019-11-27' & scaledat$block == 'W'] <- 'full_drought'
-scaledat$treatment[scaledat$date > '2019-11-04' & scaledat$date <= '2019-11-27' & scaledat$block == 'M'] <- 'moderate_drought'
-scaledat$treatment[scaledat$date > '2019-11-04' & scaledat$date <= '2019-11-27' & scaledat$block == 'D'] <- 'well_watered'
-# treatment 3 (final)
-scaledat$treatment[scaledat$date > '2019-11-27' & scaledat$block == 'W'] <- 'virgin_drought'
-scaledat$treatment[scaledat$date > '2019-11-27' & scaledat$block == 'M'] <- 'well_watered'
-scaledat$treatment[scaledat$date > '2019-11-27' & scaledat$block == 'D'] <- 'full_drought'
-# convert to factor
-scaledat$treatment <- as.factor(scaledat$treatment)
-table(scaledat$treatment, useNA = 'always')
+# 
+# scaledat$treatment <- NA
+# # baseline (pre-treatments)
+# scaledat$treatment[scaledat$date <= '2019-10-24'] <- 'well_watered'
+# # treatment 1
+# scaledat$treatment[scaledat$date > '2019-10-24' & scaledat$date <= '2019-11-04' & scaledat$block == 'W'] <- 'well_watered'
+# scaledat$treatment[scaledat$date > '2019-10-24' & scaledat$date <= '2019-11-04' & scaledat$block == 'M'] <- 'moderate_drought'
+# scaledat$treatment[scaledat$date > '2019-10-24' & scaledat$date <= '2019-11-04' & scaledat$block == 'D'] <- 'full_drought'
+# # treatment 2
+# scaledat$treatment[scaledat$date > '2019-11-04' & scaledat$date <= '2019-11-27' & scaledat$block == 'W'] <- 'full_drought'
+# scaledat$treatment[scaledat$date > '2019-11-04' & scaledat$date <= '2019-11-27' & scaledat$block == 'M'] <- 'moderate_drought'
+# scaledat$treatment[scaledat$date > '2019-11-04' & scaledat$date <= '2019-11-27' & scaledat$block == 'D'] <- 'well_watered'
+# # treatment 3 (final)
+# scaledat$treatment[scaledat$date > '2019-11-27' & scaledat$block == 'W'] <- 'virgin_drought'
+# scaledat$treatment[scaledat$date > '2019-11-27' & scaledat$block == 'M'] <- 'well_watered'
+# scaledat$treatment[scaledat$date > '2019-11-27' & scaledat$block == 'D'] <- 'full_drought'
+# # convert to factor
+# scaledat$treatment <- as.factor(scaledat$treatment)
+# table(scaledat$treatment, useNA = 'always')
 
 
 
@@ -268,7 +264,7 @@ source("/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_
 # note: this function creates flags 
 aggDat <- aggAndFlag(df = scaledat,
                      timeCol = 'timestamp', 
-                     idCols = c('scale','plant_id','treatment','block'),
+                     idCols = c('scale','plant_id','block'),
                      measCol = 'weight',
                      threshVec = c(.03, .04, .05),
                      interval = 15,
@@ -276,6 +272,9 @@ aggDat <- aggAndFlag(df = scaledat,
 
 # rename column
 colnames(aggDat)[colnames(aggDat) %in% 'mean'] <- 'mean_weight_kg'
+
+# remove "max_diff_weight" column that gets added above, not needed anymore.
+aggDat$max_diff_weight <- NULL
 
 # SAve aggregated and flagged dataframe
 saveRDS(aggDat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
@@ -339,39 +338,3 @@ aggDat$flag[aggDat$date == '2019-10-21' & aggDat$scale %in% c(4, 10)] <- 'man'
 ### Finally, save file with all flags
 saveRDS(aggDat, "/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds")
 
-
-
-
-
-
-
-
-
-### TODO
-
-# ### Experiment 1 data ----
-# 
-# # read in files
-# wd <- "/home/sean/Documents/Clay/greenhouse/2019 greenhouse data/experiment1/scale_data/"
-# setwd(wd)
-# files <- dir(wd)
-# files <- files[grepl('.csv', files)]
-# files
-# 
-# datList <- lapply(files, function(x) read.csv(x, header = F, skipNul = F, stringsAsFactors = F))
-# names(datList) <- files
-# for(i in 1:length(datList)) {
-#   datList[[i]][,4] <- files[i]
-#   colnames(datList[[i]]) <- c('scale','timestamp','weight','file')
-#   datList[[i]]$timestamp <- as.POSIXct(datList[[i]]$timestamp, format="%Y-%m-%d %H:%M:%S", tz = 'GMT')
-# }
-# 
-# ### ------Preliminary combine data and check for duplicate rows
-# scaledat_exp1 <- do.call(rbind, datList)
-# rownames(scaledat_exp1) <- NULL
-# 
-# # NOTE: these duplicate rows will be fixed below...time zone issue.
-# anyDuplicated(scaledat_exp1[,c('scale','timestamp')])
-# 
-# dups <- duplicated(scaledat_exp1[,c('scale','timestamp')])
-# View(scaledat_exp1[dups,])

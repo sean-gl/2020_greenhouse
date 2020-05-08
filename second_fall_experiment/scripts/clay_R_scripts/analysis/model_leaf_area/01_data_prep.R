@@ -68,47 +68,7 @@ for(i in unique(harvest$pot_id)) {
 }
 
 
-### Add cummulative mean irrigation (since treatment start on 10/24)
-# start <- as.Date('2019-10-24')
-# t2 <- as.Date('2019-11-04')
-# 
-# day1 <- as.Date('2019-10-30')
-# ind <- harvest$date == day1 & harvest$treatment == 'wet'
-# harvest$irrig_cummean[ind] <- 750
-# ind <- harvest$date == day1 & harvest$treatment == 'dry'
-# harvest$irrig_cummean[ind] <- 150
-# ind <- harvest$date == day1 & harvest$treatment == 'moderate'
-# harvest$irrig_cummean[ind] <- 375
-# 
-# day2 <- as.Date('2019-11-15')
-# ind <- harvest$date == day2 & harvest$treatment == 'wet' # was dry until 11-04
-# w1 = rep(150, as.integer(t2 - start))
-# w2 = rep(1000, as.integer(day2 - t2))
-# w = c(w1, w2); length(w)
-# harvest$irrig_cummean[ind] <- mean(c(w1, w2))
-# ind <- harvest$date == day2 & harvest$treatment == 'dry' # was wet until 11-04
-# w1 = rep(750, as.integer(day1 - start))
-# w2 = rep(1000, as.integer(t2 - day1))
-# w3 = rep(150, as.integer(day2 - t2))
-# w = c(w1, w2, w3); length(w)
-# harvest$irrig_cummean[ind] <- mean(w)
-# ind <- harvest$date == day2 & harvest$treatment == 'moderate'
-# harvest$irrig_cummean[ind] <- 375
-# 
-# day3 <- as.Date('2019-12-12')
-# ind <- harvest$date == day3 & harvest$treatment == 'wet' # was dry until 11-04
-# w1 = rep(150, as.integer(t2 - start))
-# w2 = rep(1000, as.integer(day3 - t2))
-# w = c(w1, w2); length(w)
-# harvest$irrig_cummean[ind] <- mean(c(w1, w2))
-# ind <- harvest$date == day3 & harvest$treatment == 'dry' # was wet until 11-04
-# w1 = rep(750, as.integer(day1 - start))
-# w2 = rep(1000, as.integer(t2 - day1))
-# w3 = rep(150, as.integer(day3 - t2))
-# w = c(w1, w2, w3); length(w)
-# harvest$irrig_cummean[ind] <- mean(w)
-# ind <- harvest$date == day3 & harvest$treatment == 'moderate'
-# harvest$irrig_cummean[ind] <- 375
-
 # Save data
 saveRDS(harvest, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_prepped.rds')
+
+
