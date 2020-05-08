@@ -151,8 +151,8 @@ tempSummaryExp2$mgdd_cumsum <- cumsum(tempSummaryExp2$mgdd)
 
 
 # # Read in MASTER data set 15-min
-# comb <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
-# comb$date <- date(comb$by15)
+comb <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
+comb$date <- date(comb$by15)
 # 
 # # get mean leaf area by date & treatment
 # # NOTE: The mean() function is used for convenience, this is really just tabling by date.
@@ -164,12 +164,20 @@ tempSummaryExp2$mgdd_cumsum <- cumsum(tempSummaryExp2$mgdd)
 # or leaf width/length were measured (and leaf area predicted from them.)
 la <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/total_plant_leaf_area.rds')
 
+# need to fill-in treatment for "V" (virgin) block
+# la$block[la$block=='V'] <- 'W'
+
+# x = la %>% group_by(date, treatment) %>% summarize(mn = mean(total_leaf_area_cm2))
+# ggplot(x, aes(x=date, y=mn, color=treatment)) + geom_line() + geom_point()
+# 
+# x = la %>% group_by(date, block) %>% summarize(mn = mean(total_leaf_area_cm2))
+# ggplot(x, aes(x=date, y=mn, color=block)) + geom_line() + geom_point()
 
 ## TODO: The treatment column here is not quite right, esp. for the last date (12/12). 
 ## Might be better to add an irrigation colum (could get from merging with 'comb' above), and could
 ## then even calculate a cummulative irrigation. This should be as/more informative as 'treatment'
 ## An easier fix might be to just fix the treatment column (but then we only have n=1 day of virgin plants)
-table(la$date, la$treatment)
+table(la$date, la$treatment, la$block)
 
 # Subset leaf area to roughly the same # of days since planting as in 1st experiment
 as.Date('2019-09-03') - as.Date('2019-07-11') # 55 days in 1st exp.
@@ -182,11 +190,26 @@ la <- la[la$day <= 68, ]
 la$total_leaf_area_m2 <- la$total_leaf_area_cm2 / 1e4
 la$total_leaf_area_cm2 <- NULL
 
-# examine, looks ok
-ggplot(la, aes(x=date, y=total_leaf_area_m2, color=block)) + geom_point() + geom_smooth(method = 'lm')
+# merge leaf area to irrigation data
+la <- merge(la[ , c('day','date','block','total_leaf_area_m2')],
+             comb[ , c('block','treatment','date','irrig','irrig_cumsum','irrig_cummean')], 
+             by=c('date','block'), all.x = TRUE)
+la <- unique(la)
 
-# looks like no treatment differences
-summary(lm(total_leaf_area_m2 ~ day + block, la))
+
+
+# looks like no treatment differences; however, treatments changed
+summary(lm(total_leaf_area_m2 ~ day + irrig_cummean, la))
+summary(lm(total_leaf_area_m2 ~ day + irrig_cumsum, la))
+summary(lm(total_leaf_area_m2 ~ day, la))
+
+summary(lm(total_leaf_area_m2 ~ day, la))
+
+# examine, looks ok
+ggplot(la, aes(x=date, y=total_leaf_area_m2, color=block)) + geom_point() # + geom_smooth(method = 'lm')
+ggplot(la, aes(x=date, y=total_leaf_area_m2, color=treatment)) + geom_point()
+# looks like no treatment differences; however, treatments changed
+summary(lm(total_leaf_area_m2 ~ day + treatment, la))
 summary(lm(total_leaf_area_m2 ~ day, la))
 
 # merge temp data to LA data, keep only rows with LA
@@ -196,12 +219,19 @@ alldat <- merge(tempSummaryExp2, la, by='date', all.y = TRUE)
 
 
 # Doesn't matter which gdd or mgdd, high or low. R2 = 0.33
-summary(lm(total_leaf_area_m2 ~ gdd_cumsum + treatment, alldat ))
-summary(lm(total_leaf_area_m2 ~ mgdd_cumsum + treatment, alldat ))
+summary(lm(total_leaf_area_m2 ~ gdd_cumsum , alldat ))
+
+summary(lm(total_leaf_area_m2 ~ mgdd_cumsum, alldat ))
 
 
 # add quadratic, r2=0.54
+summary(lm(total_leaf_area_m2 ~ poly(day, 2), alldat ))
+summary(lm(total_leaf_area_m2 ~ poly(gdd_cumsum, 2), alldat ))
+
+# add cum irrigation
 summary(lm(total_leaf_area_m2 ~ poly(mgdd_cumsum, 2) + treatment, alldat ))
+summary(lm(total_leaf_area_m2 ~ poly(gdd_cumsum, 2) + irrig_cumsum, alldat ))
+
 ggplot(alldat, aes(x=mgdd_cumsum, y=total_leaf_area_m2, color=treatment)) + geom_point() 
 
 #  However, "days since planting" predicts as well as GDD, since they are perfectly linearly related.
