@@ -95,6 +95,8 @@ non_harvest <- non_harvest[,names(non_harvest)[names(non_harvest) %in% names(har
 harvest$isHarvest <- 'y'
 non_harvest$isHarvest <- 'n'
 
+# Combined harvest/non-harvest dataset. 
+# FUCKIN-A MAN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! :)
 dat <- rbind(harvest, non_harvest)
 
 # add block
@@ -133,8 +135,7 @@ totalArea <- ddply(dat, .(date, pot_id, treatment, block), function(x) {
   setNames(sum(x$leaf_area_cm2_adjusted), 'total_leaf_area_cm2')
 })
 
-ggplot(totalArea, aes(x=date, y=total_leaf_area_cm2, color=block)) + 
-  geom_point() 
+ggplot(totalArea, aes(x=date, y=total_leaf_area_cm2, color=block)) + geom_point() 
 
 # Save this data (I will use it to try to build a LA model using environmental variables only.)
 saveRDS(totalArea, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/total_plant_leaf_area.rds')
@@ -145,11 +146,12 @@ meanArea <- ddply(totalArea, .(date, treatment, block), function(x) {
   setNames(mean(x$total_leaf_area_cm2), 'total_leaf_area_cm2_block_mean')
 })
 
-ggplot(meanArea, aes(x=date, y=total_leaf_area_cm2_block_mean, color=block)) + 
-  geom_line() + geom_point() 
+# Plot of mean total leaf area 
+ggplot(meanArea, aes(x=date, y=total_leaf_area_cm2_block_mean, color=block)) + geom_point() 
 
 
 # Function to calculate piecewise-linear coefficiencts
+# (fitting a straight line betwen each point in the plot above)
 pw_linear_coef <- ddply(meanArea, .(date, block), function(x) {
   # print(x)
   dates <- sort(unique(meanArea$date[meanArea$block == x$block]))
@@ -166,10 +168,10 @@ pw_linear_coef <- ddply(meanArea, .(date, block), function(x) {
     return(as.numeric(m$coefficients))
   }
 })
-# pw_linear_coef <- pw_linear_coef[complete.cases(pw_linear_coef),]
+
 names(pw_linear_coef)[names(pw_linear_coef) %in% c('V1','V2')] <- c('b0','b1')
 
-# Create grid of dates and blocks
+# Create grid of dates and blocks; this will be used to predict the daily leaf area
 grid <- expand.grid(date = seq.Date(from = as.Date('2019-10-24'), to = as.Date('2019-12-12'), by = 1),
                     block = c('W','M','D','V'))
 
@@ -180,6 +182,7 @@ pw_linear_coef$period <- match(pw_linear_coef$date, sdates)
 # replace 11/15 with 12/12 (to extend lines out for non-virgin block)
 pw_linear_coef$date[pw_linear_coef$date=='2019-11-15'] <- '2019-12-12'
 
+# define periods between sampling dates
 grid$period <- NA
 grid$period[grid$date < sdates[1]] <- 0
 grid$period[grid$date >= sdates[1] & grid$date < sdates[2]] <- 1
@@ -189,7 +192,8 @@ grid$period[grid$block == 'V' & grid$date >= sdates[4] & grid$date <= sdates[5]]
 table(grid$period, useNA = 'always')
 
 
-z = dlply(grid, .(block, period), function(x) {
+# Fill in the grid with straight-line interpolations, via some ninja shit
+z <- dlply(grid, .(block, period), function(x) {
   if(unique(x$period)==0) return(rep(NA, nrow(x)))
   ind <- pw_linear_coef$period == unique(x$period) & pw_linear_coef$block == unique(x$block)
   if(any(ind)) {
@@ -203,27 +207,25 @@ z = dlply(grid, .(block, period), function(x) {
 grid$leaf_area_pred <- as.numeric(unlist(z))
 
 
-# plot predictions
+# plot interpolations
 ggplot(grid, aes(x=date, y=leaf_area_pred, color=block)) + geom_point()
 
 
-# merge datasets to check
-# m <- merge(subset(grid, select = -c(period)),
-#            subset(meanArea,  select = -c(period)),
-#            by = c('date','block'), all.x = T)
 
 # Save the predictions as-is (block doesn't match other data sets for 'virgin' period)
 # remove period, not useful
-out <- grid
-out$period <- NULL
-saveRDS(out, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_raw.rds')
+# out <- grid
+# out$period <- NULL
+# saveRDS(out, '/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/continuous_LA_pred_raw.rds')
+
+
 
 # ---Change blocks to match other Data set blocks...
 # NOTE: block V (12/6-12/12) corresonds to block W in other data sets, so let's change that here.
 # Also, the "W" block plants for these same dates don't correspond to any scale data.
 # NOTE: To avoid overlap on day treatment changed (11/27), I'm going to use the leaf area from the previous W block plants
 # on this day and not the virgin plants
-out_final <- subset(out, !(block=='V' & date < '2019-11-28'))
+out_final <- subset(grid, !(block=='V' & date < '2019-11-28'))
 out_final <- subset(out_final, !(block=='W' & date > '2019-11-27'))
 out_final[out_final$block=='V', 'block'] <- 'W'
 colSums(table(out_final$date, out_final$block))
