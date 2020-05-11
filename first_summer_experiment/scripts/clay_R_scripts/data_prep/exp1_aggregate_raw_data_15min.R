@@ -50,8 +50,50 @@ rh$date_time <- paste(rh$date, rh$time); rh$date_time[1:10]
 rh$date_time <- as.POSIXct(rh$date_time, format = "%d/%m/%y %k:%M:%S", tz = "GMT")
 rh$date_time[1:15]
 
+# fix date
+rh$date <- as.Date(rh$date, format = '%d/%m/%y')
+
 # Subtract 1 hour to account for clock being set to MDT in experiment 1 but MST in experiment 2
-rh$date_time <- rh$date_time - 3600
+# rh$date_time <- rh$date_time - 3600
+
+
+# --- QA/QC
+
+# PAR/PYR DATA
+summary(rh[,c('par1_n','par2_s','pyr1_n','pyr2_s')])
+# PAR 1 data looks very noisy, even during daytime. See below, though, 15 min means look much better.
+plot(rh$date_time, rh$par1_n)
+plot(par1_n~date_time, rh[rh$date == '2019-08-25', ])
+plot(rh$date_time, rh$par2_s)
+plot(par2_s~date_time, rh[rh$date == '2019-08-25', ])
+
+
+# Soil temp: Investigate strange "blips" in data, see below....
+
+lims=c(min(rh[,c('soil_t1','soil_t2','soil_t3','soil_t4')], na.rm = T),
+       max(rh[,c('soil_t1','soil_t2','soil_t3','soil_t4')], na.rm = T))
+plot(rh$date_time, rh$soil_t1, type='p', ylim=lims)
+points(rh$date_time, rh$soil_t2, col='red')
+points(rh$date_time, rh$soil_t3, col='blue')
+points(rh$date_time, rh$soil_t4, col='green')
+abline(c(10,0))
+
+# Looks like all of the outliers is either > 60 C or < 10 C, let's change bad values to NA
+for(clm in c('soil_t1','soil_t2','soil_t3','soil_t4')) {
+  ind <- !is.na(rh[[clm]]) & (rh[[clm]] > 60 | rh[[clm]] < 10)
+  rh[ind, clm] <- NA
+}
+
+# plot again to check, looks good.
+lims=c(min(rh[,c('soil_t1','soil_t2','soil_t3','soil_t4')], na.rm = T),
+       max(rh[,c('soil_t1','soil_t2','soil_t3','soil_t4')], na.rm = T))
+plot(rh$date_time, rh$soil_t1, type='p', ylim=lims)
+points(rh$date_time, rh$soil_t2, col='red')
+points(rh$date_time, rh$soil_t3, col='blue')
+points(rh$date_time, rh$soil_t4, col='green')
+
+
+
 
 # "cut" data into 15 minute groups and take the mean
 rh$by15 <- lubridate::ceiling_date(rh$date_time, "15 minutes")   # CHANGE HERE TO CHANGE TIME INTERVAL
@@ -60,6 +102,37 @@ rh <- summaryBy(par1_n + par2_s + pyr1_n + pyr2_s + am2320_high_temp + am2320_hi
                   sht2_low_rh + bmp_box_temp + bmp_box_atm_p + soil_t1 + 
                   soil_t2 + soil_t3 + soil_t4 ~ by15, data=rh, FUN=mean, na.rm=TRUE, keep.names=TRUE)
 rh <- rh[order(rh$by15),]
+
+
+
+
+# QAQC 'rh' dataframe (15-minute data) -----------------------------------------------------
+
+# PAR/PYR data look ok, using 15-min means.
+plot(rh$by15, rh$par2_s, type='l')
+lines(rh$by15, rh$par1_n, col='red')
+plot(rh$by15, rh$pyr2_s, type='l')
+lines(rh$by15, rh$pyr1_n, col='red')
+
+# Air temp: looks ok, both sensors similar
+plot(rh$by15, rh$bmp_box_temp, type='l', ylim=c(15, 45))
+lines(rh$by15, rh$sht2_low_temp, col='red')
+lines(rh$by15, rh$am2320_high_temp, col='blue')
+
+# RH: looks ok, both sensors similar
+plot(rh$by15, rh$sht2_low_rh, type='l')
+lines(rh$by15, rh$am2320_high_rh, col='red')
+
+# Soil temp
+plot(rh$by15, rh$soil_t1, type='l')
+lines(rh$by15, rh$soil_t2, col='red')
+lines(rh$by15, rh$soil_t3, col='blue')
+lines(rh$by15, rh$soil_t4, col='green')
+# hmm some funky moments where apparetly the data logger had an issue....
+# I'll fix these above, with raw data
+
+
+
 
 # write rh data to file
 write.csv(rh, paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
@@ -254,6 +327,32 @@ array3$block <- 'D' # Clay: add block for merge to other datasets
 
 # rbind all array dfs together
 stacked <- rbind.data.frame(array1, array2, array3)
+
+
+# --- QA/QC 
+
+summary(stacked[,grep('wind', names(stacked), value = T)])
+# block W
+w=stacked[stacked$block=='W',]
+plot(w$by15, w$windspeed_bottom_m_s,type='l')
+plot(w$by15, w$windspeed_middle_m_s,type='l')
+plot(w$by15, w$windspeed_bottom_m_s,type='l')
+
+# block M
+m=stacked[stacked$block=='M',]
+plot(m$by15, m$windspeed_bottom_m_s,type='l')
+plot(m$by15, m$windspeed_middle_m_s,type='l')
+plot(m$by15, m$windspeed_bottom_m_s,type='l')
+
+# block D
+d=stacked[stacked$block=='D',]
+plot(d$by15, d$windspeed_bottom_m_s,type='l')
+plot(d$by15, d$windspeed_middle_m_s,type='l')
+plot(d$by15, d$windspeed_bottom_m_s,type='l')
+
+
+# --- Verdict: Wind data looks fine; I don't see any obvious outliers or problems.
+
 
 # write wind data to file
 write.csv(stacked, paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",

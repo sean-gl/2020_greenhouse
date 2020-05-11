@@ -39,7 +39,6 @@ rh <- subset(rh, by15 >= exp_start)
 rh <- rh %>% select(-contains('soil_t'))
 
 
-
 ### -------------------------------------------
 ###  --- Second, merge block-level data  ----
 ### -------------------------------------------
@@ -63,20 +62,23 @@ wind$by15 <- as.POSIXct(wind$by15, tz='GMT')
 
 # convert to long format
 windWide <- tidyr::pivot_wider(wind, names_from = 'position', values_from = 'wind_speed_m_s')
+names(windWide)[names(windWide)=='bottom'] <- 'windspeed_bottom_m_s' 
+names(windWide)[names(windWide)=='middle'] <- 'windspeed_middle_m_s' 
+names(windWide)[names(windWide)=='top'] <- 'windspeed_top_m_s' 
 head(windWide)
 
 
 ### MERGE data
-allDataPlot <- merge(windWide, soil_temp, by=c('by15','treatment','block'), all = TRUE)
+allDataBlock <- merge(windWide, soil_temp, by=c('by15','treatment','block'), all = TRUE)
 
 # find rows with no data
-ind <- apply(select(allDataPlot, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
+ind <- apply(select(allDataBlock, -c(by15, treatment, block)), 1, function(x) all(is.na(x)))
 which(ind) # 0 rows w/no data
 
 
 
 
-
+# --- Verdict: Both PAR and PYR data have lots of negative values, but only at baseline (no light)
 ### -------------------------------------------
 ###  --- Lastly, merge plant-level data ----
 ### -------------------------------------------
