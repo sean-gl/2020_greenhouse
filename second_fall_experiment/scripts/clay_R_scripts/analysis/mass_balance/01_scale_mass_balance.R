@@ -93,14 +93,19 @@ ggplot(biomass.expand, aes(x=date,y=predicted_wet_weight_g,color=block)) + geom_
 biomass.expand$date_num <- as.numeric(biomass.expand$date - min(biomass.expand$date)) + 1
 
 # --- Fit logistic & linear curves for each block's means (excluding block V)
-x <- subset(biomass.expand, block=='V')
+
+# testing
+# x <- subset(biomass.expand, block=='D')
+
 modeled_plant_wt <- ddply(biomass.expand, .(block), function(x) {
   blk <- unique(x$block)
   d <- data.frame(date_num=seq(1, max(x$date_num)), date=seq.Date(min(x$date), max(x$date), 1))
+  # for non-virgin plants, fit a logistic model and save predictions to dataframe
   if(blk != 'V') {
     m.logis <- nls(predicted_wet_weight_g ~ SSlogis(date_num, a, b, c), data = x)
     d$modeled_weight_logistic_g <- predict(m.logis, d)
   } 
+  # for all plants, fit a linear model and save predictions to dataframe
   m.linear <- lm(predicted_wet_weight_g ~ date_num, data=x)
   d$modeled_weight_linear_g <- predict(m.linear, d)
   png(paste('/home/sean/github/2020_greenhouse/second_fall_experiment/figures/clay_figures/mass_balance/block',
@@ -175,7 +180,7 @@ colnames(baldat)[colnames(baldat)=='roundTime'] <- 'by15'
 
 
 
-## ----- Treatmeant Periods 1-2 ----
+## ----- Non-virgin plants ----
 
 start <- '2019-10-22'; end <- '2019-12-12'
 
@@ -187,10 +192,10 @@ ggplot(sub, aes(x=by15, y=scale_weight_kg, color=plant_id)) + geom_point() +geom
 
 
 
-# subset scale data to range for Treatment 1
+# subset scale data to non-virgin plants
 wc <- subset(baldat, date >= start & date <= end &
                !plant_id %in% c('W-25','W-26','W-27','W-28'),
-                 select = -c(max_diff_weight, hour))
+                 select = -hour)
 
 # get mean bs sensor wt to subtract from pot W-11 below (it was not recorded)
 mean_bs_wt <- mean(unlist(plant_wt[,c('bs_sensor1_wt_g','bs_sensor2_wt_g')]), na.rm = T)

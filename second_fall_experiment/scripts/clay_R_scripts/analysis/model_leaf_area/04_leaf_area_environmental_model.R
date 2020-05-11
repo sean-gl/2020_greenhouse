@@ -40,7 +40,7 @@ argus <- argus[!dups, ]
 ind <- which(!complete.cases(argus)); ind
 argus <- argus[-ind, ]
 
-# TODO: Note odd upward-shift in temps. around 2nd week of Sept....I don't think we have Ar
+# TODO: Note odd upward-shift in temps. around 2nd week of Sept....I don't think we have Arduino data for this period, either.
 plot(argus$by15, argus$Argus_temp_C, type = 'p')
 
 # TODO: Hmm why is iradiance so low in much of July/August? Seems like the data must be bad.
@@ -127,7 +127,8 @@ lines(tempSummary$date, tempSummary$mgdd, type='l', col='red')
 
 # Subset to columns of interest in modeling leaf area
 # Also subset to dates after planting in 2nd experiment
-tempSummaryExp2 <- subset(tempSummary, date >= '2019-09-09', select = c(date, gdd, mgdd))
+tempSummaryExp2 <- subset(tempSummary, date >= '2019-09-09', 
+                          select = c(date, gdd, mgdd, max_temp, mean_temp))
 
 # Extend data back in time, using mean value
 # missingdates <- c(seq.Date(as.Date('2019-09-09'), as.Date('2019-10-23'), by=1),
@@ -144,16 +145,51 @@ tempSummaryExp2 <- subset(tempSummary, date >= '2019-09-09', select = c(date, gd
 # add cumsum columns
 tempSummaryExp2$gdd_cumsum <- cumsum(tempSummaryExp2$gdd)
 tempSummaryExp2$mgdd_cumsum <- cumsum(tempSummaryExp2$mgdd)
+tempSummaryExp2$mean_temp_cummean <- cummean(tempSummaryExp2$mean_temp)
+tempSummaryExp2$max_temp_cummean <- cummean(tempSummaryExp2$max_temp)
+
 # tempSummaryExp2$mgdd_low_cumsum <- cumsum(tempSummaryExp2$mgdd_low)
 # tempSummaryExp2$mgdd_high_cumsum <- cumsum(tempSummaryExp2$mgdd_high)
 # tempSummaryExp2$gdd_low_cumsum <- cumsum(tempSummaryExp2$gdd_low)
 # tempSummaryExp2$gdd_high_cumsum <- cumsum(tempSummaryExp2$gdd_high)
 
 
+
 # # Read in MASTER data set 15-min
 comb <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/combined_data/combdat_plant_level.rds')
 comb$date <- date(comb$by15)
-# 
+
+
+# add calculated irrigation amounts
+irrigDat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/mass_balance/mean_irrigation_by_block.rds')
+
+# cummulative stress index, by block and date
+irrigDat$stress_index <- 0
+
+# trt 1
+ind <- with(irrigDat, date >= '2019-10-24' & date <= '2019-11-03' & block == 'D')
+irrigDat$stress_index[ind] <- cumsum(1-irrigDat$mean_irrig_kg[ind])
+# M block has longer treatment period 
+ind <- with(irrigDat, date >= '2019-10-24' & date <= '2019-11-27' & block == 'M')
+irrigDat$stress_index[ind] <- cumsum(1-irrigDat$mean_irrig_kg[ind])
+
+# trt2
+ind <- with(irrigDat, date >= '2019-11-04' & date <= '2019-11-27' & block == 'W')
+irrigDat$stress_index[ind] <- cumsum(1-irrigDat$mean_irrig_kg[ind])
+
+# trt 3
+ind <- with(irrigDat, date >= '2019-11-28' & block == 'D')
+irrigDat$stress_index[ind] <- cumsum(1-irrigDat$mean_irrig_kg[ind])
+ind <- with(irrigDat, date >= '2019-11-28' & block == 'W')
+irrigDat$stress_index[ind] <- cumsum(1-irrigDat$mean_irrig_kg[ind])
+plot(cumsum(1-irrigDat$mean_irrig_kg[ind]))
+
+comb <- merge(comb, irrigDat[,c('date','block','mean_irrig_kg','stress_index')], all.x = T)
+any(is.na(comb$mean_irrig_kg))
+
+ggplot(irrigDat, aes(x=date, y=stress_index, color=block)) + geom_line()
+
+
 # # get mean leaf area by date & treatment
 # # NOTE: The mean() function is used for convenience, this is really just tabling by date.
 # la <- comb %>% group_by(date, treatment, block) %>% 
@@ -164,14 +200,16 @@ comb$date <- date(comb$by15)
 # or leaf width/length were measured (and leaf area predicted from them.)
 la <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/total_plant_leaf_area.rds')
 
-# need to fill-in treatment for "V" (virgin) block
-# la$block[la$block=='V'] <- 'W'
+# drop virgin plants, they have no analoge in 1st experiment
+la <- la[la$block!='V',]
+
 
 # x = la %>% group_by(date, treatment) %>% summarize(mn = mean(total_leaf_area_cm2))
 # ggplot(x, aes(x=date, y=mn, color=treatment)) + geom_line() + geom_point()
 # 
 # x = la %>% group_by(date, block) %>% summarize(mn = mean(total_leaf_area_cm2))
 # ggplot(x, aes(x=date, y=mn, color=block)) + geom_line() + geom_point()
+
 
 ## TODO: The treatment column here is not quite right, esp. for the last date (12/12). 
 ## Might be better to add an irrigation colum (could get from merging with 'comb' above), and could
@@ -184,18 +222,54 @@ as.Date('2019-09-03') - as.Date('2019-07-11') # 55 days in 1st exp.
 la$day <- as.numeric(la$date - as.Date('2019-09-09')) + 1
 
 # I'll use the first 3 leaf area dates (the first 68 days) to model leaf area growth in each treatment
-la <- la[la$day <= 68, ]
+la <- la[la$day <= 59, ]
+
+# For 1st 2 measurements only! Ignore 2nd treatment since it had no time to take effect.
+# change treatment to contrast full_drought vs. moderate/no drought.
+la$treatment[la$block=='D'] <- 'dry'
+la$treatment[la$block!='D'] <- 'wet'
 
 # change to m2
 la$total_leaf_area_m2 <- la$total_leaf_area_cm2 / 1e4
 la$total_leaf_area_cm2 <- NULL
 
-# merge leaf area to irrigation data
-la <- merge(la[ , c('day','date','block','total_leaf_area_m2')],
-             comb[ , c('block','treatment','date','irrig','irrig_cumsum','irrig_cummean')], 
-             by=c('date','block'), all.x = TRUE)
-la <- unique(la)
 
+ggplot(la, aes(x=day, y=total_leaf_area_m2, color = block)) + geom_point() +
+  geom_smooth(method = 'lm')
+
+# # add zero points
+# grid <- unique(la[,c('block','pot_id','treatment')])
+# grid$total_leaf_area_m2 <- 0
+# grid$day <- 1
+# grid$date <- as.Date('2019-09-09')
+# la <- rbind(grid, la)
+
+# merge leaf area to irrigation data
+# la <- merge(la[ , c('day','date','block','total_leaf_area_m2')],
+#              comb[ , c('block','treatment','date','irrig','irrig_cumsum','irrig_cummean',
+#                        'stress_index')], 
+#              by=c('date','block'), all.x = TRUE)
+# la <- unique(la)
+
+# merge to temp summary
+la <- merge(la, tempSummaryExp2, by='date', all.x = TRUE)
+
+
+
+
+
+summary(lm(total_leaf_area_m2 ~ day, la))
+summary(lm(total_leaf_area_m2 ~ mgdd_cumsum, la))
+summary(lm(total_leaf_area_m2 ~ day + treatment, la))
+
+summary(lm(total_leaf_area_m2 ~ max_temp_cummean + block, la))
+summary(lm(total_leaf_area_m2 ~ mean_temp_cummean, la))
+
+summary(lm(total_leaf_area_m2 ~ day, la))
+summary(lm(total_leaf_area_m2 ~ mgdd_cumsum , la))
+summary(lm(total_leaf_area_m2 ~ mgdd_cumsum + irrig_cummean, la))
+
+summary(lm(total_leaf_area_m2 ~ poly(mgdd_cumsum,1) + irrig_cumsum, la))
 
 
 # looks like no treatment differences; however, treatments changed
