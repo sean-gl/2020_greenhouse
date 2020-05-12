@@ -65,6 +65,151 @@ rh$date_time <- paste(rh$date, rh$time); rh$date_time[1:10]
 rh$date_time <- as.POSIXct(rh$date_time, format = "%d/%m/%y %k:%M:%S", tz = "GMT")
 rh$date_time[1:15]
 
+
+# --- QA/QC
+
+# note: most sensors have some stray data collected on 10/21 and then a gap until 10/24,
+# when treatments began. I'll just delete all the data on 10/21, since we won't be using it anyway.
+rh <- rh[rh$date_time > as.POSIXct('2019-10-22 00:00', tz='GMT'), ]
+
+# PAR/PYR DATA
+
+# Note: many values below zero, looks like mostly not during daylight hours, but should check...
+summary(rh[,c('par1_n','par2_s','pyr1_n','pyr2_s')])
+
+# ---par 1: data more noisy in Oct-mid NOv. than in late-Nov to Dec....otherwise looks mostly ok.
+plot(rh$date_time, rh$par1_n); abline(c(0,0), col='red')
+
+ind <- with(rh, date_time >= as.POSIXct('2019-10-28 08:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-10-28 15:00', tz='GMT'))
+plot(par1_n ~ date_time, rh[ind,], type='b')
+
+ind <- with(rh, date_time >= as.POSIXct('2019-11-29 08:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-29 15:00', tz='GMT'))
+plot(par1_n ~ date_time, rh[ind,], type='b')
+
+# --- par2_s: lots of abberantly high/low values, esp after mid-Nov.
+plot(rh$date_time, rh$par2_s); abline(c(0,0), col='red')
+
+
+# ----
+# ---- let's clean par2_s up ----
+
+sub = subset(rh, date(date_time) <= '2019-10-23')
+plot(par2_s ~ date_time, sub) # omit values before Oct 24, it's junk
+rh$par2_s[rh$date_time <= '2019-10-23'] <- NA
+sub = subset(rh, date(date_time) >= '2019-10-23' & date(date_time) <= '2019-10-25')
+plot(par2_s ~ date_time, sub) # data looks very odd, not sure what to do here but will just NA it for now.
+sub = subset(rh, date_time >= as.POSIXct('2019-10-24 11:00', tz='GMT') & 
+               date_time <= as.POSIXct('2019-10-25 16:30', tz='GMT'))
+plot(par2_s ~ date_time, sub); identify(sub$date_time, sub$par2_s, sub, labels = sub$time)
+# set odd data to NA
+ind <- with(rh, date_time >= as.POSIXct('2019-10-24 11:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-10-25 16:00', tz='GMT'))
+plot(rh$par2_s[ind])
+rh$par2_s[ind] <- NA
+
+# Now check later time periods
+ind <- with(rh, date_time >= as.POSIXct('2019-11-12 05:10', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-13 16:50', tz='GMT'))
+plot(par2_s~date_time, rh[ind,], ylim=c(0,1000))
+# isolate the period 
+ind <- with(rh, date_time >= as.POSIXct('2019-11-13 13:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-13 18:00', tz='GMT'))
+# looks like 13:25 - 16:50 should cover it.
+plot(par2_s~date_time, rh[ind,],ylim=c(0,1000))
+identify(rh$date_time[ind], rh$par2_s[ind], labels = rh$time[ind])
+ind <- with(rh, date_time >= as.POSIXct('2019-11-13 13:25', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-13 16:50', tz='GMT'))
+plot(par2_s~date_time, rh[ind,])
+rh$par2_s[ind] <- NA
+# check
+ind <- with(rh, date_time >= as.POSIXct('2019-11-11 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-15 00:00', tz='GMT'))
+plot(par2_s~date_time, rh[ind,]) # looks good
+
+# Now, the end of experiment looks dicey...
+# see a overview: looks like most of data after 11/15 is bad, could be some ok data on 12/11?
+ind <- with(rh, date_time >= as.POSIXct('2019-11-14 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-12-13 00:00', tz='GMT'))
+plot(par2_s~date_time, rh[ind,])
+
+# find the starting point
+ind <- with(rh, date_time >= as.POSIXct('2019-11-15 10:50', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-15 12:00', tz='GMT'))
+plot(par2_s~date_time, rh[ind,]) # looks like 11/15 11:00 is the start of bad data.
+
+# find the end, if there is one
+ind <- with(rh, date_time >= as.POSIXct('2019-12-11 08:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-12-13 00:00', tz='GMT'))
+plot(par2_s~date_time, rh[ind,], ylim=c(0,1000)) # zoom in
+plot(par2_s~date_time, rh[ind,])
+identify(rh$date_time[ind], rh$par2_s[ind], labels = rh$time[ind])
+# looks like 12/11 10:30 to 12/12 09:50 data are probably ok
+ind <- with(rh, date_time >= as.POSIXct('2019-12-11 10:30', tz='GMT') & 
+              date_time <= as.POSIXct('2019-12-12 09:50', tz='GMT'))
+plot(par2_s~date_time, rh[ind,]) # yep
+
+# now remove bad data after 11/15
+ind <- with(rh, (date_time > as.POSIXct('2019-11-15 11:00', tz='GMT') & 
+              date_time < as.POSIXct('2019-12-11 10:30', tz='GMT')) |
+              date_time > as.POSIXct('2019-12-12 09:50', tz='GMT'))
+plot(par2_s~date_time, rh[ind,])
+rh$par2_s[ind] <- NA
+
+# Finally, plot all par2_s data again to check cleaning efforts
+plot(par2_s~date_time, rh) # looks good!
+
+# ----
+# ---- END,  par2_s clean-up ----
+
+
+# --- pyr1_n: Mostly looks ok. Note an odd "sinking baseline" starting 2nd-3rd week in Nov.
+plot(rh$date_time, rh$pyr1_n); abline(c(0,0), col='red')
+
+# --- pyr2_s: Similar to pyr1_n
+plot(rh$date_time, rh$pyr2_s); abline(c(0,0), col='red')
+
+# Plot air temp. sensors together
+# Data look ok, and sensors track each other.
+plot(rh$date_time, rh$am2320_high_temp, type='l')
+lines(rh$date_time, rh$sht1_high_temp, col='red')
+lines(rh$date_time, rh$sht2_low_temp, col='blue')
+lines(rh$date_time, rh$bmp_box_temp, col='green')
+
+# Plot RH sensors. Data look ok, sensors track each other. 
+# Note that the am2320 has much lower RH values than other sensors.
+plot(rh$date_time, rh$am2320_high_rh, type='l', ylim=c(0, 60))
+lines(rh$date_time, rh$sht1_high_rh, col='red')
+lines(rh$date_time, rh$sht2_low_rh, col='blue')
+
+# atm pressure; looks ok to me but don't know if these values are believable (or important)
+plot(rh$date_time, rh$bmp_box_atm_p)
+
+# Plot soil temp. sensors together
+# Data mostly look ok, with high values at very start...
+plot(rh$date_time, rh$soil_t1, type='l')
+lines(rh$date_time, rh$soil_t2, col='red')
+lines(rh$date_time, rh$soil_t3, col='blue')
+lines(rh$date_time, rh$soil_t4, col='green')
+
+# look into high values at start
+ind <- with(rh, date_time < as.POSIXct('2019-10-25 11:00', tz='GMT'))
+plot(soil_t1~date_time, rh[ind,])
+points(rh$date_time, rh$soil_t2, col='red')
+points(rh$date_time, rh$soil_t3, col='blue')
+points(rh$date_time, rh$soil_t4, col='green')
+# looks like only 2 obs. but all 4 sensors, have value > 70 
+which(rh$soil_t1 > 70)
+which(rh$soil_t3 > 70)
+which(rh$soil_t4 > 70)
+which(rh$soil_t2 > 70)
+# omit these data
+rh[130:131, c('soil_t1','soil_t2','soil_t3','soil_t4')] <- NA
+
+
+
+
 # "cut" data into 15 minute groups and take the mean
 rh$by15 <- lubridate::ceiling_date(rh$date_time, "15 minutes")   # CHANGE HERE TO CHANGE TIME INTERVAL
 # calculate mean mass for each 15-minute time group by scale number
@@ -72,6 +217,8 @@ rh <- summaryBy(par1_n + par2_s + pyr1_n + pyr2_s + am2320_high_temp + am2320_hi
                   sht1_high_rh + sht2_low_temp + sht2_low_rh + bmp_box_temp + bmp_box_atm_p + soil_t1 + 
                   soil_t2 + soil_t3 + soil_t4 ~ by15, data=rh, FUN=mean, na.rm=TRUE, keep.names=TRUE)
 rh <- rh[order(rh$by15),]
+
+
 
 # write rh data to file
 write.csv(rh, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
@@ -285,6 +432,53 @@ array3$block <- 'D' # Clay: add block for merge to other datasets
 
 # rbind all array dfs together
 stacked <- rbind.data.frame(array1, array2, array3)
+
+
+# --- QA/QC 
+
+summary(stacked$wind_speed_m_s)
+boxplot(stacked$wind_speed_m_s)
+
+# block W
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='W' & position=='bottom'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='W' & position=='middle'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='W' & position=='top'), type='p')
+
+
+# block M
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='M' & position=='bottom'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='M' & position=='middle'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='M' & position=='top'), type='p')
+
+# block D
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='bottom'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='middle'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='top'), type='p')
+
+
+#  ----- Add column to indicate yes/no for when box fans were on/off
+sub = subset(stacked, by15 > as.POSIXct('2019-10-28 13:00', tz='GMT') & 
+               by15 < as.POSIXct('2019-10-28 16:00', tz='GMT'))
+plot(wind_speed_m_s ~ by15, data=subset(sub, block=='M' & position=='middle'), type='b')
+lines(wind_speed_m_s ~ by15, data=subset(sub, block=='D' & position=='middle'), col='red')
+lines(wind_speed_m_s ~ by15, data=subset(sub, block=='W' & position=='middle'), col='blue')
+# looks like data before 10/28 15:00 had box fans off
+stacked$box_fans_on <- 'yes'
+stacked$box_fans_on[stacked$by15 < as.POSIXct('2019-10-28 15:00', tz='GMT')] <- 'no'
+
+# Box fans (and ceiling fans) turned off for part of 12/5 (see notebook)
+ind <- with(stacked, by15 > as.POSIXct('2019-12-05 07:00', tz='GMT') &
+              by15 < as.POSIXct('2019-12-06 13:00', tz='GMT'))
+sub <- stacked[ind,]
+plot(wind_speed_m_s ~ by15, data=subset(sub, block=='M' & position=='middle'), type='b')
+lines(wind_speed_m_s ~ by15, data=subset(sub, block=='D' & position=='middle'), col='red')
+lines(wind_speed_m_s ~ by15, data=subset(sub, block=='W' & position=='middle'), col='blue')
+
+# looks like fans were actually off from 12/5 9:30 until 12/6 13:00
+ind <- with(stacked, by15 > as.POSIXct('2019-12-05 09:30', tz='GMT') &
+              by15 < as.POSIXct('2019-12-06 13:00', tz='GMT'))
+stacked$box_fans_on[ind] <- 'no'
+
 
 # write wind data to file
 write.csv(stacked, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",

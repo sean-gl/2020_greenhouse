@@ -61,7 +61,7 @@ rh$date <- as.Date(rh$date, format = '%d/%m/%y')
 
 # PAR/PYR DATA
 summary(rh[,c('par1_n','par2_s','pyr1_n','pyr2_s')])
-# PAR 1 data looks very noisy, even during daytime. See below, though, 15 min means look much better.
+# PAR (and pyr) data looks very noisy, even during daytime. See below, though, 15 min means look much better.
 plot(rh$date_time, rh$par1_n)
 plot(par1_n~date_time, rh[rh$date == '2019-08-25', ])
 plot(rh$date_time, rh$par2_s)
@@ -182,17 +182,6 @@ any(is.na(comb))
 write.csv(comb, paste("/home/sean/github/2020_greenhouse/first_summer_experiment/",
                       "data/RH_temp_PAR_logger_data/soil_temp_15.csv", sep=""), row.names=FALSE)
 
-# testing
-# subsetting data
-sub <- subset(rh, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-08-21 12:00:00', tz='GMT')
-              & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-08-26 12:00:00', tz='GMT'))
-
-plot(sub$soil_t1 ~ sub$by15, type='l', ylim=c(20,40))
-points(sub$soil_t2 ~ sub$by15, type='l', col='red')
-points(sub$soil_t3 ~ sub$by15, type='l', col='blue')
-points(sub$soil_t4 ~ sub$by15, type='l', col='green')
-sma1 <- sma(sub$soil_t1 ~ sub$soil_t4); summary(sma1); plot(sma1)
-sma1 <- sma(sub$soil_t2 ~ sub$soil_t3); summary(sma1); plot(sma1)
 
 
 
@@ -331,24 +320,24 @@ stacked <- rbind.data.frame(array1, array2, array3)
 
 # --- QA/QC 
 
-summary(stacked[,grep('wind', names(stacked), value = T)])
+summary(stacked$wind_speed_m_s)
+boxplot(stacked$wind_speed_m_s)
+
 # block W
-w=stacked[stacked$block=='W',]
-plot(w$by15, w$windspeed_bottom_m_s,type='l')
-plot(w$by15, w$windspeed_middle_m_s,type='l')
-plot(w$by15, w$windspeed_bottom_m_s,type='l')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='W' & position=='bottom'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='W' & position=='middle'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='W' & position=='top'), type='p')
+
 
 # block M
-m=stacked[stacked$block=='M',]
-plot(m$by15, m$windspeed_bottom_m_s,type='l')
-plot(m$by15, m$windspeed_middle_m_s,type='l')
-plot(m$by15, m$windspeed_bottom_m_s,type='l')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='M' & position=='bottom'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='M' & position=='middle'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='M' & position=='top'), type='p')
 
 # block D
-d=stacked[stacked$block=='D',]
-plot(d$by15, d$windspeed_bottom_m_s,type='l')
-plot(d$by15, d$windspeed_middle_m_s,type='l')
-plot(d$by15, d$windspeed_bottom_m_s,type='l')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='bottom'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='middle'), type='p')
+plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='top'), type='p')
 
 
 # --- Verdict: Wind data looks fine; I don't see any obvious outliers or problems.
