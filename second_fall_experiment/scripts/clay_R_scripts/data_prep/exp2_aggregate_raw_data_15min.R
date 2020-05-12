@@ -77,11 +77,11 @@ rh <- rh[rh$date_time > as.POSIXct('2019-10-22 00:00', tz='GMT'), ]
 # Note: many values below zero, looks like mostly not during daylight hours, but should check...
 summary(rh[,c('par1_n','par2_s','pyr1_n','pyr2_s')])
 
-# ---par 1: data more noisy in Oct-mid NOv. than in late-Nov to Dec....otherwise looks mostly ok.
+# ---par 1: data more noisy in first half of experiment...otherwise looks mostly ok.
 plot(rh$date_time, rh$par1_n); abline(c(0,0), col='red')
 
-ind <- with(rh, date_time >= as.POSIXct('2019-10-28 08:00', tz='GMT') & 
-              date_time <= as.POSIXct('2019-10-28 15:00', tz='GMT'))
+ind <- with(rh, date_time >= as.POSIXct('2019-11-01 08:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-02 15:00', tz='GMT'))
 plot(par1_n ~ date_time, rh[ind,], type='b')
 
 ind <- with(rh, date_time >= as.POSIXct('2019-11-29 08:00', tz='GMT') & 
@@ -103,7 +103,8 @@ plot(par2_s ~ date_time, sub) # data looks very odd, not sure what to do here bu
 sub = subset(rh, date_time >= as.POSIXct('2019-10-24 11:00', tz='GMT') & 
                date_time <= as.POSIXct('2019-10-25 16:30', tz='GMT'))
 plot(par2_s ~ date_time, sub); identify(sub$date_time, sub$par2_s, sub, labels = sub$time)
-# set odd data to NA
+
+# set bad data to NA
 ind <- with(rh, date_time >= as.POSIXct('2019-10-24 11:00', tz='GMT') & 
               date_time <= as.POSIXct('2019-10-25 16:00', tz='GMT'))
 plot(rh$par2_s[ind])
@@ -119,10 +120,13 @@ ind <- with(rh, date_time >= as.POSIXct('2019-11-13 13:00', tz='GMT') &
 # looks like 13:25 - 16:50 should cover it.
 plot(par2_s~date_time, rh[ind,],ylim=c(0,1000))
 identify(rh$date_time[ind], rh$par2_s[ind], labels = rh$time[ind])
+
+# set bad data to NA
 ind <- with(rh, date_time >= as.POSIXct('2019-11-13 13:25', tz='GMT') & 
               date_time <= as.POSIXct('2019-11-13 16:50', tz='GMT'))
 plot(par2_s~date_time, rh[ind,])
 rh$par2_s[ind] <- NA
+
 # check
 ind <- with(rh, date_time >= as.POSIXct('2019-11-11 00:00', tz='GMT') & 
               date_time <= as.POSIXct('2019-11-15 00:00', tz='GMT'))
@@ -455,6 +459,7 @@ plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='bottom'
 plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='middle'), type='p')
 plot(wind_speed_m_s ~ by15, data=subset(stacked, block=='D' & position=='top'), type='p')
 
+### I don't see any obviously bad data... 
 
 #  ----- Add column to indicate yes/no for when box fans were on/off
 sub = subset(stacked, by15 > as.POSIXct('2019-10-28 13:00', tz='GMT') & 
@@ -528,6 +533,15 @@ lq_west <- rbind.data.frame(lq2[,c(2,5,13)], lq4[,c(2,5,13)], lq6[,c(2,5,13)], l
 lq_east$date_time <- as.POSIXct(lq_east$Date.and.Time, format = "%m/%d/%Y %l:%M:%S %p", tz = "GMT")
 lq_west$date_time <- as.POSIXct(lq_west$Date.and.Time, format = "%m/%d/%Y %l:%M:%S %p", tz = "GMT")
 
+
+
+# QAQC line quantum PAR ---------------------------------------------------
+
+# data look ok; don't see any obviously bad data and both sensor track each other.
+plot(lq_west$date_time, lq_west$Average.Below.PAR, type='l')
+lines(lq_east$date_time, lq_east$Average.Below.PAR, col='red')
+
+
 # cut into 15-min intervals.  # CHANGE HERE TO CHANGE TIME INTERVAL
 lq_east$by15 <- lubridate::ceiling_date(lq_east$date_time, "15 minutes")   
 lq_west$by15 <- lubridate::ceiling_date(lq_west$date_time, "15 minutes")   
@@ -564,10 +578,13 @@ comb$line_PAR_west_umol_m2_s[ind] <- NA
 write.csv(comb, paste("/home/sean/github/2020_greenhouse/second_fall_experiment/",
                       "data/line_PAR_sensors/line_PAR_15.csv", sep=""), row.names=FALSE)
 # testing
-sub <- subset(comb, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-11-01 00:00:00', tz='GMT')
-              & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-11-07 00:00:00', tz='GMT'))
-plot(sub$line_PAR_east_umol_m2_s ~ sub$by15, ylim=c(0,1000))
-  points(sub$line_PAR_west_umol_m2_s ~ sub$by15, col='red')
+# sub <- subset(comb, as.POSIXct(by15, tz='GMT') > as.POSIXct('2019-11-01 00:00:00', tz='GMT')
+#               & as.POSIXct(by15, tz='GMT') < as.POSIXct('2019-11-07 00:00:00', tz='GMT'))
+# plot(sub$line_PAR_east_umol_m2_s ~ sub$by15, ylim=c(0,1000))
+#   points(sub$line_PAR_west_umol_m2_s ~ sub$by15, col='red')
+
+
+#--- END OF CODE
 
 
   

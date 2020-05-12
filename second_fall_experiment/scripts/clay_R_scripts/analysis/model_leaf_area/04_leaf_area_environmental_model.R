@@ -47,7 +47,6 @@ plot(argus$by15, argus$Argus_temp_C, type = 'p')
 plot(argus$by15, argus$Argus_irradiance_W_m2, type = 'p')
 
 # merge arduino & argus data
-# NOTE: NO data (argus or arduino) from 9/3 to 10/1.
 tempDat <- merge(arduino, argus, by=c('date', 'by15'), all = TRUE)
 
 # look at correlations between argus, arduino
@@ -221,11 +220,12 @@ table(la$date, la$treatment, la$block)
 as.Date('2019-09-03') - as.Date('2019-07-11') # 55 days in 1st exp.
 la$day <- as.numeric(la$date - as.Date('2019-09-09')) + 1
 
-# I'll use the first 3 leaf area dates (the first 68 days) to model leaf area growth in each treatment
+# I'll use the first 2 leaf area dates (the first 59 days) to model leaf area growth in each treatment
 la <- la[la$day <= 59, ]
 
 # For 1st 2 measurements only! Ignore 2nd treatment since it had no time to take effect.
 # change treatment to contrast full_drought vs. moderate/no drought.
+# (if we keep all 3 treatments, there are no significant diffs between them in regression.)
 la$treatment[la$block=='D'] <- 'dry'
 la$treatment[la$block!='D'] <- 'wet'
 
@@ -261,7 +261,9 @@ la <- merge(la, tempSummaryExp2, by='date', all.x = TRUE)
 summary(lm(total_leaf_area_m2 ~ day, la))
 summary(lm(total_leaf_area_m2 ~ mgdd_cumsum, la))
 summary(lm(total_leaf_area_m2 ~ day + treatment, la))
+summary(lm(total_leaf_area_m2 ~ mgdd_cumsum + treatment, la))
 
+# SAve the best model to use in first experiment
 summary(lm(total_leaf_area_m2 ~ max_temp_cummean + block, la))
 summary(lm(total_leaf_area_m2 ~ mean_temp_cummean, la))
 

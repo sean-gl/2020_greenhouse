@@ -455,7 +455,7 @@ which(ind) # no rows w/no data
 
 # NOTE: after merge, some rows missing treatment/block; remove these, they're outside the treatment windows
 ind <- is.na(allData2$treatment) | is.na(allData2$block)
-# View(allData2[ind,])
+View(allData2[ind,])
 # drop rows
 allData2 <- allData2[!ind, ]
 
