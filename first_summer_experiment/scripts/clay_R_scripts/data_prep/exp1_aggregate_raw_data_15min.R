@@ -61,12 +61,56 @@ rh$date <- as.Date(rh$date, format = '%d/%m/%y')
 
 # PAR/PYR DATA
 summary(rh[,c('par1_n','par2_s','pyr1_n','pyr2_s')])
-# PAR (and pyr) data looks very noisy, even during daytime. See below, though, 15 min means look much better.
-plot(rh$date_time, rh$par1_n)
-plot(par1_n~date_time, rh[rh$date == '2019-08-25', ])
-plot(rh$date_time, rh$par2_s)
-plot(par2_s~date_time, rh[rh$date == '2019-08-25', ])
 
+# PAR (and pyr) data looks very noisy, even during daytime. 
+# See below, though, 15 min means look much better.
+testDate <- as.Date('2019-08-26')
+
+# PAR
+plot(rh$date_time, rh$par1_n)
+plot(par1_n~date_time, rh[rh$date == testDate, ])
+plot(rh$date_time, rh$par2_s)
+plot(par2_s~date_time, rh[rh$date == testDate, ])
+
+# PYR
+plot(rh$date_time, rh$pyr1_n)
+plot(pyr1_n~date_time, rh[rh$date == testDate, ])
+plot(rh$date_time, rh$pyr2_s)
+plot(pyr2_s~date_time, rh[rh$date == testDate, ])
+
+
+# ---- Compare PAR/PYR 
+
+
+# --- pyr1_n:
+plot(par1_n ~ date_time, rh, type='l', ylab = '', main = 'par1_n (black) / pyr1_n (red)')
+lines(pyr1_n ~ date_time, rh, col='red')
+
+# --- pyr2_s: 
+plot(par2_s ~ date_time, rh, type='l', ylab = '', main = 'par2_s (black) / pyr2_s (red)')
+lines(pyr2_s ~ date_time, rh, col='red')
+
+# Later period, less noisy PAR data
+ind <- with(rh, date_time >= as.POSIXct('2019-11-20 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-27 00:00', tz='GMT'))
+plot(par2_s ~ date_time, rh[ind,], type='l', ylab = '', main = 'par2_s (black) / pyr2_s (red)')
+lines(pyr2_s ~ date_time, rh[ind,], col='red')
+
+
+# Plot air temp. sensors together
+# Data look ok, and sensors track each other.
+# Note that box temp is higher than other air temps.
+plot(rh$date_time, rh$am2320_high_temp, type='l')
+lines(rh$date_time, rh$sht2_low_temp, col='red')
+lines(rh$date_time, rh$bmp_box_temp, col='blue')
+
+# Plot RH sensors. Data look ok, sensors track each other. 
+# Note that the am2320 has lower RH values than other sensor.
+plot(rh$date_time, rh$am2320_high_rh, type='l')
+lines(rh$date_time, rh$sht2_low_rh, col='red')
+
+# atm pressure; looks ok to me but don't know if these values are believable (or important)
+plot(rh$date_time, rh$bmp_box_atm_p)
 
 # Soil temp: Investigate strange "blips" in data, see below....
 
@@ -106,7 +150,7 @@ rh <- rh[order(rh$by15),]
 
 
 
-# QAQC 'rh' dataframe (15-minute data) -----------------------------------------------------
+# Post - QAQC check on 15-min means 'rh' dataframe -----------------------------------------------------
 
 # PAR/PYR data look ok, using 15-min means.
 plot(rh$by15, rh$par2_s, type='l')
@@ -128,10 +172,6 @@ plot(rh$by15, rh$soil_t1, type='l')
 lines(rh$by15, rh$soil_t2, col='red')
 lines(rh$by15, rh$soil_t3, col='blue')
 lines(rh$by15, rh$soil_t4, col='green')
-# hmm some funky moments where apparetly the data logger had an issue....
-# I'll fix these above, with raw data
-
-
 
 
 # write rh data to file

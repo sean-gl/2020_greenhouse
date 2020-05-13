@@ -77,7 +77,8 @@ rh <- rh[rh$date_time > as.POSIXct('2019-10-22 00:00', tz='GMT'), ]
 # Note: many values below zero, looks like mostly not during daylight hours, but should check...
 summary(rh[,c('par1_n','par2_s','pyr1_n','pyr2_s')])
 
-# ---par 1: data more noisy in first half of experiment...otherwise looks mostly ok.
+# ---par 1: data much more "noisy" in first half of experiment...otherwise looks noisy but probably ok,
+# if using 15-minute means (?)
 plot(rh$date_time, rh$par1_n); abline(c(0,0), col='red')
 
 ind <- with(rh, date_time >= as.POSIXct('2019-11-01 08:00', tz='GMT') & 
@@ -171,8 +172,33 @@ plot(par2_s~date_time, rh) # looks good!
 # --- pyr1_n: Mostly looks ok. Note an odd "sinking baseline" starting 2nd-3rd week in Nov.
 plot(rh$date_time, rh$pyr1_n); abline(c(0,0), col='red')
 
+# Earlier period, more noisy PAR data 
+ind <- with(rh, date_time >= as.POSIXct('2019-10-25 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-01 00:00', tz='GMT'))
+plot(par1_n ~ date_time, rh[ind,], type='l', ylab = '', main = 'par1_n (black) / pyr1_n (red)')
+lines(pyr1_n ~ date_time, rh[ind,], col='red')
+
+# Later period, less noisy PAR data
+ind <- with(rh, date_time >= as.POSIXct('2019-11-20 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-27 00:00', tz='GMT'))
+plot(par1_n ~ date_time, rh[ind,], type='l', ylab = '', main = 'par1_n (black) / pyr1_n (red)')
+lines(pyr1_n ~ date_time, rh[ind,], col='red')
+
+
 # --- pyr2_s: Similar to pyr1_n
 plot(rh$date_time, rh$pyr2_s); abline(c(0,0), col='red')
+
+# Earlier period, more noisy PAR data 
+ind <- with(rh, date_time >= as.POSIXct('2019-10-26 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-02 00:00', tz='GMT'))
+plot(par2_s ~ date_time, rh[ind,], type='l', ylab = '', main = 'par2_s (black) / pyr2_s (red)')
+lines(pyr2_s ~ date_time, rh[ind,], col='red')
+
+# Later period, less noisy PAR data
+ind <- with(rh, date_time >= as.POSIXct('2019-11-20 00:00', tz='GMT') & 
+              date_time <= as.POSIXct('2019-11-27 00:00', tz='GMT'))
+plot(par2_s ~ date_time, rh[ind,], type='l', ylab = '', main = 'par2_s (black) / pyr2_s (red)')
+lines(pyr2_s ~ date_time, rh[ind,], col='red')
 
 # Plot air temp. sensors together
 # Data look ok, and sensors track each other.
