@@ -205,16 +205,21 @@ for(i in unique(leafMeasExp1$plant_id)) {
 ind <- !is.na(leafMeasExp1$leaf_length_cm)
 leafMeasExp1$leaf_length_cm_predicted[ind] <- predict(rfMod_length, newdata = leafMeasExp1[ind,])
 summary(lm(leaf_length_cm_predicted ~ leaf_length_cm, leafMeasExp1))
+sqrt(mean((leafMeasExp1$leaf_length_cm_predicted - leafMeasExp1$leaf_length_cm)^2, na.rm = T))
 plot(leaf_length_cm_predicted ~ leaf_length_cm, leafMeasExp1); abline(c(0,1))
 # pretty decent; R2=0.77 between predicted and measured length
 
 
 # --- OK< moving on to important stuff....Let's now predict leaf area using measured length/width, etc.
+
 # note: need to rename leaf_length column to match RF model
 names(leafMeasExp1)[names(leafMeasExp1)=='leaf_length_cm'] <- 'leaf_length_pred'
+
+# PREDICT THAT SHIZ!
 leafMeasExp1$leaf_area_cm2_predicted[ind] <- predict(rfMod_area, newdata = leafMeasExp1[ind,])
 names(leafMeasExp1)[names(leafMeasExp1)=='leaf_length_pred'] <- 'leaf_length_cm' # revert column name
 summary(leafMeasExp1$leaf_area_cm2_predicted)
+
 
 # add "adjusted leaf area" to account for % dead
 leafMeasExp1$leaf_area_cm2_predicted_adjusted <- leafMeasExp1$leaf_area_cm2_predicted * (1 - leafMeasExp1$percent_dead/100)
@@ -228,3 +233,21 @@ leafMeasExp1 %>% group_by(plant_id, treatment) %>%
 # What is leaf area using GDD-based model above, on same date as plants measured (8/22)?
 laExp1[laExp1$date=='2019-08-22',]
 
+
+# --- Model predictions seem to match ok enough, let's save the total leaf area predictions.
+
+# subset to data of interest and during treatment period
+laExp1_out <- subset(laExp1, date >= '2019-08-24', select=c('date','treatment','total_leaf_area_m2'))
+
+# NOTE: We need to fix the treatments to match those in other datasets. 
+# Other datasets have 3 treatments, this one has only 2.
+laExp1_out_wet <- subset(laExp1_out, treatment=='wet')
+laExp1_out_wet$treatment <- 'well_watered'
+laExp1_out_moderate <- laExp1_out_wet
+laExp1_out_moderate$treatment <- 'moderate_drought'
+laExp1_out_dry<- subset(laExp1_out, treatment=='dry')
+laExp1_out_dry$treatment <- 'full_drought'
+laExp1_out <- rbind(laExp1_out_dry, laExp1_out_wet, laExp1_out_moderate)
+
+# Save the output
+saveRDS(laExp1_out, '/home/sean/github/2020_greenhouse/first_summer_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/plant_leaf_area_predictions.rds')
