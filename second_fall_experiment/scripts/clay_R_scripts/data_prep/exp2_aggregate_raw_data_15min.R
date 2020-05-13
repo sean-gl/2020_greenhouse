@@ -568,6 +568,25 @@ plot(lq_west$date_time, lq_west$Average.Below.PAR, type='l')
 lines(lq_east$date_time, lq_east$Average.Below.PAR, col='red')
 
 
+# Look in more detail at earlier period that has noisy par1_n data 
+# LQ PAR looks fine (Oct 28 fairly noisy tho)
+lqw_sub <- subset(lq_west, date_time >= as.POSIXct('2019-10-26 00:00', tz='GMT') & 
+                    date_time <= as.POSIXct('2019-11-02 00:00', tz='GMT'))
+lqe_sub <- subset(lq_east, date_time >= as.POSIXct('2019-10-26 00:00', tz='GMT') & 
+                    date_time <= as.POSIXct('2019-11-02 00:00', tz='GMT'))
+plot(Average.Below.PAR ~ date_time, lqw_sub, type='l', main='Line quantum PAR (black=west, red=east)')
+lines(Average.Below.PAR ~ date_time, lqe_sub, col='red')
+
+# Later period, less noisy par1_n data
+# LQ PAR looks fine
+lqw_sub <- subset(lq_west, date_time >= as.POSIXct('2019-11-20 00:00', tz='GMT') & 
+                    date_time <= as.POSIXct('2019-11-27 00:00', tz='GMT'))
+lqe_sub <- subset(lq_east, date_time >= as.POSIXct('2019-11-20 00:00', tz='GMT') & 
+                    date_time <= as.POSIXct('2019-11-27 00:00', tz='GMT'))
+plot(Average.Below.PAR ~ date_time, lqw_sub, type='l',  main='Line quantum PAR (black=west, red=east)')
+lines(Average.Below.PAR ~ date_time, lqe_sub, col='red')
+
+
 # cut into 15-min intervals.  # CHANGE HERE TO CHANGE TIME INTERVAL
 lq_east$by15 <- lubridate::ceiling_date(lq_east$date_time, "15 minutes")   
 lq_west$by15 <- lubridate::ceiling_date(lq_west$date_time, "15 minutes")   

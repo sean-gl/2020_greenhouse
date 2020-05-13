@@ -7,6 +7,7 @@ require(plyr)
 require(lubridate)
 require(tidyr)
 require(dplyr)
+require(readODS)
 
 ### IMPORTANT: SET SYSTEM TIMEZONE TO GMT, THIS IS REQUIRED FOR CODE TO WORK.
 Sys.setenv(TZ='GMT')
@@ -119,11 +120,14 @@ summary(lm(total_leaf_area_m2 ~ gdd_cumsum + treatment, la))
 # However, this means we cannot we are lumping well-watered and moderate-drought together, so keep that in mind below...
 
 # Save the best model to use below.
-exp2LeafAreaModel <- lm(total_leaf_area_m2 ~ mgdd_cumsum + treatment, la)
-
+# can use either GDD or day, doesn't seem to matter in terms of fitting with measured leaves below.
+exp2LeafAreaModel <- lm(total_leaf_area_m2 ~ gdd_cumsum + treatment, la)
+summary(exp2LeafAreaModel)
 
 
 # Predict Leaf Area for 1st Experiment, using Linear Model from 2nd Experiment ------------------------------------
+# NOTE: This is a temporal model, modeling change in leaf area over time in each block.
+
 
 # Subset to dates after planting in 2nd experiment, to use in fitting leaf area model.
 laExp1 <- subset(tempSummary, date >= '2019-07-11' & date <= '2019-09-03', select = c(date, gdd, mgdd))
@@ -140,7 +144,87 @@ laExp1 <- rbind(laExp1_wet, laExp1_dry)
 laExp1 <- laExp1[order(laExp1$date),]
 laExp1$treatment <- as.factor(laExp1$treatment)
 
-## Using MGDD instead of GDD seems to give more reasonable predictions.
+# Add predicted leaf area to dataframe
 laExp1$total_leaf_area_m2 <- predict(exp2LeafAreaModel, newdata = laExp1)
-
 plot(laExp1$date, laExp1$total_leaf_area_m2, col=laExp1$treatment)
+
+
+
+# Use Random Forest Leaf Length/Width Model (non-temporal model) from 2nd Experiment to 
+# Predict Leaf Area from 1st Experiment Leaf Measurements -----------
+
+
+# get leaf length/width data from 1st experiment (4 plants only)
+leafMeasExp1 <- readODS::read_ods('/home/sean/github/2020_greenhouse/first_summer_experiment/data/experiment1_nondestructive_leaf_measurements.ods')
+
+# rename treatments to match above model
+leafMeasExp1$treatment[leafMeasExp1$treatment=='well_watered'] <- 'wet' 
+leafMeasExp1$treatment[leafMeasExp1$treatment=='full_drought'] <- 'dry' 
+leafMeasExp1$treatment <- as.factor(leafMeasExp1$treatment)
+
+# convert numeric variables
+leafMeasExp1$leaf_id <- as.numeric(leafMeasExp1$leaf_id)
+# NOTE: NAs introduced here are due to missing measurments.
+leafMeasExp1$leaf_length_cm <- as.numeric(leafMeasExp1$leaf_length_cm)
+leafMeasExp1$leaf_width_cm <- as.numeric(leafMeasExp1$leaf_width_cm)
+leafMeasExp1$percent_dead <- as.numeric(leafMeasExp1$percent_dead)
+
+# Get random forest models from Experiment 2:
+# model 1: use leaf width (and other vars.) to predict leaf length
+rfMod_length <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_length_RF_model.rds')
+# model 2: use leaf length (and other vars.) to predict leaf area
+rfMod_area <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_leaf_area/leaf_area_RF_model.rds')
+
+
+# Now, we measured leaf lenth in 1st experiment (so we can use these measurements to model area below)
+# But, out of curiosity, let's see how well the 2nd Experiment model predicts leaf length from width etc.
+
+# These are the variables we need, let's derive them below
+rfMod_length$finalModel$variable.importance
+
+# add days since planting
+leafMeasExp1$days_since_planting <- as.numeric(as.Date('2019-08-22') - as.Date('2019-07-11'))
+
+# leaf_id needs to be reclassified as "leaf_order", to be relative to smallest within-plant number
+u <- unique(leafMeasExp1$plant_id)
+for(i in unique(leafMeasExp1$plant_id)) {
+  ind <- leafMeasExp1$plant_id == i
+  leafMeasExp1$leaf_order[ind] <- leafMeasExp1$leaf_id[ind] - min(leafMeasExp1$leaf_id[ind])
+  leafMeasExp1$leaf_order_reverse[ind] <- max(leafMeasExp1$leaf_id[ind]) - leafMeasExp1$leaf_id[ind]
+}
+table(leafMeasExp1$leaf_id)
+table(leafMeasExp1$leaf_order); table(leafMeasExp1$leaf_order_reverse)
+
+# add column for mean leaf width of entire plant
+for(i in unique(leafMeasExp1$plant_id)) {
+  ind <- leafMeasExp1$plant_id == i
+  leafMeasExp1$mean_width_cm[ind] <- mean(leafMeasExp1$leaf_width_cm[ind], na.rm = T)
+}
+
+### Now, predict leaf length using width etc.
+ind <- !is.na(leafMeasExp1$leaf_length_cm)
+leafMeasExp1$leaf_length_cm_predicted[ind] <- predict(rfMod_length, newdata = leafMeasExp1[ind,])
+summary(lm(leaf_length_cm_predicted ~ leaf_length_cm, leafMeasExp1))
+plot(leaf_length_cm_predicted ~ leaf_length_cm, leafMeasExp1); abline(c(0,1))
+# pretty decent; R2=0.77 between predicted and measured length
+
+
+# --- OK< moving on to important stuff....Let's now predict leaf area using measured length/width, etc.
+# note: need to rename leaf_length column to match RF model
+names(leafMeasExp1)[names(leafMeasExp1)=='leaf_length_cm'] <- 'leaf_length_pred'
+leafMeasExp1$leaf_area_cm2_predicted[ind] <- predict(rfMod_area, newdata = leafMeasExp1[ind,])
+names(leafMeasExp1)[names(leafMeasExp1)=='leaf_length_pred'] <- 'leaf_length_cm' # revert column name
+summary(leafMeasExp1$leaf_area_cm2_predicted)
+
+# add "adjusted leaf area" to account for % dead
+leafMeasExp1$leaf_area_cm2_predicted_adjusted <- leafMeasExp1$leaf_area_cm2_predicted * (1 - leafMeasExp1$percent_dead/100)
+
+
+# scale up to entire-plant leaf area and convert to m2
+leafMeasExp1 %>% group_by(plant_id, treatment) %>% 
+  summarise(total_leaf_area_m2_predicted_adjusted = sum(leaf_area_cm2_predicted_adjusted/1e4))
+
+
+# What is leaf area using GDD-based model above, on same date as plants measured (8/22)?
+laExp1[laExp1$date=='2019-08-22',]
+

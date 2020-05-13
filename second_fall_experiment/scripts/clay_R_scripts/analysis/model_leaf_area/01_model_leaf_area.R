@@ -68,7 +68,7 @@ table(harvest$leaf_order); table(harvest$leaf_order_reverse)
 
 
 # add days since planting
-harvest$days_since_planting <- harvest$date - as.Date('2019-09-09')
+harvest$days_since_planting <- as.numeric(harvest$date - as.Date('2019-09-09'))
 
 # add column for mean leaf width of entire plant
 for(i in unique(harvest$pot_id)) {
@@ -89,6 +89,10 @@ saveRDS(harvest, '/home/sean/github/2020_greenhouse/second_fall_experiment/scrip
 
 ### 1. First, Random Forest to predict leaf length from leaf width.
 
+
+# rename data before modeling
+widthData <- harvest
+
 ## For modeling, exclude leaves < 90% expanded from training data
 # (this is done becuase all of the out-of-sample (non-harvest) data were sampled
 # after all leaves were fully expanded.)
@@ -106,8 +110,9 @@ fitControl_randomForest <- trainControl(method='repeatedcv',
                                         verboseIter=F, # print training log
                                         search='grid', # grid or random
                                         savePredictions = 'final') # all, final or none
-# (optional) create grid of tuning parameters for train()
 
+# (optional) create grid of tuning parameters for train()
+# note: 'extratrees' splitrule seems consistenly the best.
 tuneGrid = expand.grid(mtry = 1:5,
                        splitrule = 'extratrees',
                        # splitrule = c('variance', 'extratrees', 'maxstat'),
@@ -115,7 +120,7 @@ tuneGrid = expand.grid(mtry = 1:5,
 
 # train the model
 # predictors: leaf_width_cm, leaf_order, leaf_order_reverse, days_since_planting,
-# mean_width_cm, 
+# mean_width_cm
 rf_length <- train(leaf_length_cm ~ leaf_width_cm + leaf_order_reverse + leaf_order +
                      days_since_planting + mean_width_cm,
                    data=widthData,
@@ -162,8 +167,9 @@ fitControl_randomForest <- trainControl(method='repeatedcv',
                                         verboseIter=F, # print training log
                                         search='grid', # grid or random
                                         savePredictions = 'final') # all, final or none
-# (optional) create grid of tuning parameters for train()
 
+# (optional) create grid of tuning parameters for train()
+# again, extratrees' splitrule seems consistenly the best.
 tuneGrid = expand.grid(mtry = 1:6,
                        splitrule = 'extratrees',
                        # splitrule = c('variance', 'extratrees', 'maxstat'),
@@ -172,7 +178,7 @@ tuneGrid = expand.grid(mtry = 1:6,
 # train the model
 # predictors: leaf_width_cm, leaf_order, leaf_order_reverse, days_since_planting,
 # mean_width_cm
-rf_area <- train(leaf_area_cm2 ~ leaf_length_pred + leaf_width_cm + leaf_order_reverse + leaf_order +
+rf_area <- train(leaf_area_cm2 ~ leaf_length_pred + leaf_width_cm + leaf_order + leaf_order_reverse +
                    days_since_planting + mean_width_cm,
                  data=widthData,
                  metric='RMSE',
@@ -186,7 +192,7 @@ varImp(rf_area)
 plot(rf_area, metric = c('RMSE'))
 rf_area$bestTune
 res <- rf_area$results
-res[res$RMSE == min(res$RMSE),]
+res[res$RMSE == min(res$RMSE),] # rmse = 48.1, r2=.95
 res[res$MAE == min(res$MAE),]
 res[res$Rsquared == max(res$Rsquared),]
 
@@ -279,7 +285,7 @@ table(non_harvest$leaf_order_reverse)
 # change date to factor for plotting
 # u <- unique(non_harvest$date); u
 # non_harvest$date_num <- match(non_harvest$date, u) 
-non_harvest$days_since_planting <- non_harvest$date - as.Date('2019-09-09')
+non_harvest$days_since_planting <- as.numeric(non_harvest$date - as.Date('2019-09-09'))
 
 # add column for mean leaf width of entire plant
 for(i in unique(non_harvest$pot_id)) {
