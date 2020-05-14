@@ -168,14 +168,7 @@ write.csv(vb_pred, '/home/sean/github/2020_greenhouse/second_fall_experiment/scr
 
 ### 2.2 ---  Calculate Soil Water Content for each Treatment Period
 
-
-# read in 15-minute aggregated (and flagged) balance data 
-baldat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_long_aggflag.rds')
-# omit border plants
-baldat <- subset(baldat, !grepl('border', baldat$plant_id)) 
-# rename scale weight column for clarity
-colnames(baldat)[colnames(baldat)=='mean_weight_kg'] <- 'scale_weight_kg'
-colnames(baldat)[colnames(baldat)=='roundTime'] <- 'by15'
+c
 
 
 

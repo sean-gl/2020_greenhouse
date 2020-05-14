@@ -5,7 +5,7 @@ lapply(packages, require, character.only = TRUE)
 Sys.setenv(tz='GMT')
 
 # read in raw scale data
-dat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_raw_compiled_long.rds')
+dat <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/data/scale_output/scale_data_compiled_raw_long.rds')
 
 dat$file <- NULL
 # don't care about border plants
@@ -26,9 +26,11 @@ dat$hour <- hour(dat$timestamp)
 # identify(x$timestamp, x$weight, labels = x$timestamp, pos=4)
 
 # test case
-x = subset(dat, scale== 1 & date == '2019-11-04')
+# x = subset(dat, scale== 1 & date == '2019-11-04')
+
 options(warn = 1) # print warnings as occur
-# dat=dat[dat$scale==1,]
+
+# Function to calculate irrigation by plant
 irrigAmt <- ddply(dat, .(scale, date, plant_id, block, treatment), function(x) {
   
   # print(head(x))
@@ -76,8 +78,8 @@ irrigAmt <- ddply(dat, .(scale, date, plant_id, block, treatment), function(x) {
   start <- sum(rl$lengths[1:(ind-1)]) + 1
   end <- start + imax
   
-  plot(d$timestamp, d$weight, main = paste0('scale ', unique(d$scale), ',  ', dt))
-  points(weight ~ timestamp, data = d[start:end,], col = 'red', lwd = 3)
+  # plot(d$timestamp, d$weight, main = paste0('scale ', unique(d$scale), ',  ', dt))
+  # points(weight ~ timestamp, data = d[start:end,], col = 'red', lwd = 3)
   
   # --- OLD METHOD ---
   # iPoints <- which(d$diff > 0.01) # increasing points

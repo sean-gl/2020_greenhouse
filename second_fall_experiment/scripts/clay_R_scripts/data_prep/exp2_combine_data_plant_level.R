@@ -544,69 +544,75 @@ table(allData2$irrig, useNA = 'a')
 
 
 
-# --- Add cummulative irrigation and cummulative mean irrigation
+# ---- I commented this section out; these derived variables weren't actually of use.
 
-# first, calculate cumsum/cummean up until treatments began (all plants given same irrig.)
-
-# from 9/9 to 9/12, plants hand-watered. from 9/13-10/16, plants got 630 ml/day. assume they got same during hand-waterinng.
-initialIrrig <- 0.63 * (as.numeric(as.Date('2019-10-16') - as.Date('2019-09-09')) + 1)
-# from 10/17 to 10/23, plants got 1000 ml/day.
-initialIrrig <- initialIrrig + 1 * (as.numeric(as.Date('2019-10-23') - as.Date('2019-10-17')) + 1)
-
-# Virgin plants treated differently...
-initialIrrigVirgin <- initialIrrig
-# from 10/24 to 10/29, virgins got 750 ml/day
-initialIrrigVirgin <- initialIrrigVirgin + 0.75 * (as.numeric(as.Date('2019-10-29') - as.Date('2019-10-24')) + 1)
-# from 10/30 to 11/26, virgins got 1000 ml/day
-initialIrrigVirgin <- initialIrrigVirgin + 1 * (as.numeric(as.Date('2019-11-26') - as.Date('2019-10-30')) + 1)
-
-# testing
-# x = allData2[allData2$block=='W', ]
-
-# Calculate cumsum and cummean by block
-irrigCumsum <- ddply(allData2, .(block), function(x) {
-  blk <- unique(x$block)
-  y <- unique(x[,c('date','irrig')])
-  y <- y[order(y$date), ]
-  y$day <- as.numeric(y$date - as.Date('2019-09-09')) + 1
-  if(blk != 'W') {
-    y$irrig_cumsum <- cumsum(y$irrig) + initialIrrig
-    y$irrig_cummean <- y$irrig_cumsum / y$day
-  } else { # handle virgin plants separately for W block
-    # non-virgins
-    y_nv <- y[y$date <= '2019-11-27', ] 
-    y_nv$irrig_cumsum <- cumsum(y_nv$irrig) + initialIrrig
-    y_nv$irrig_cummean <- y_nv$irrig_cumsum / y_nv$day
-    # virgins
-    y_v <- y[y$date > '2019-11-27', ]
-    y_v$irrig_cumsum <- cumsum(y_v$irrig) + initialIrrigVirgin
-    y_v$irrig_cummean <- y_v$irrig_cumsum / y_v$day
-    y <- rbind(y_nv, y_v)
-  }
-  return(y)
-})
-
-# Plot the cumsum/cummean irrigation by block
-# Not sure if this will be useful, doesn't seem to capture treatment effect exactly...
-# Perhaps a better proxy for treatment effect would use "cummulative days under stress"
-# with a weight for the stress-level.
-ggplot(irrigCumsum, aes(x=date, y=irrig_cumsum, color=block)) + geom_line()
-ggplot(irrigCumsum, aes(x=date, y=irrig_cummean, color=block)) + geom_line()
+# 
+# # --- Add cummulative irrigation and cummulative mean irrigation
+# 
+# # first, calculate cumsum/cummean up until treatments began (all plants given same irrig.)
+# 
+# # from 9/9 to 9/12, plants hand-watered. from 9/13-10/16, plants got 630 ml/day. assume they got same during hand-waterinng.
+# initialIrrig <- 0.63 * (as.numeric(as.Date('2019-10-16') - as.Date('2019-09-09')) + 1)
+# # from 10/17 to 10/23, plants got 1000 ml/day.
+# initialIrrig <- initialIrrig + 1 * (as.numeric(as.Date('2019-10-23') - as.Date('2019-10-17')) + 1)
+# 
+# # Virgin plants treated differently...
+# initialIrrigVirgin <- initialIrrig
+# # from 10/24 to 10/29, virgins got 750 ml/day
+# initialIrrigVirgin <- initialIrrigVirgin + 0.75 * (as.numeric(as.Date('2019-10-29') - as.Date('2019-10-24')) + 1)
+# # from 10/30 to 11/26, virgins got 1000 ml/day
+# initialIrrigVirgin <- initialIrrigVirgin + 1 * (as.numeric(as.Date('2019-11-26') - as.Date('2019-10-30')) + 1)
+# 
+# # testing
+# # x = allData2[allData2$block=='W', ]
+# 
+# # Calculate cumsum and cummean by block
+# irrigCumsum <- ddply(allData2, .(block), function(x) {
+#   blk <- unique(x$block)
+#   y <- unique(x[,c('date','irrig')])
+#   y <- y[order(y$date), ]
+#   y$day <- as.numeric(y$date - as.Date('2019-09-09')) + 1
+#   if(blk != 'W') {
+#     y$irrig_cumsum <- cumsum(y$irrig) + initialIrrig
+#     y$irrig_cummean <- y$irrig_cumsum / y$day
+#   } else { # handle virgin plants separately for W block
+#     # non-virgins
+#     y_nv <- y[y$date <= '2019-11-27', ] 
+#     y_nv$irrig_cumsum <- cumsum(y_nv$irrig) + initialIrrig
+#     y_nv$irrig_cummean <- y_nv$irrig_cumsum / y_nv$day
+#     # virgins
+#     y_v <- y[y$date > '2019-11-27', ]
+#     y_v$irrig_cumsum <- cumsum(y_v$irrig) + initialIrrigVirgin
+#     y_v$irrig_cummean <- y_v$irrig_cumsum / y_v$day
+#     y <- rbind(y_nv, y_v)
+#   }
+#   return(y)
+# })
+# 
+# # Plot the cumsum/cummean irrigation by block
+# # Not sure if this will be useful, doesn't seem to capture treatment effect exactly...
+# # Perhaps a better proxy for treatment effect would use "cummulative days under stress"
+# # with a weight for the stress-level.
+# ggplot(irrigCumsum, aes(x=date, y=irrig_cumsum, color=block)) + geom_line()
+# ggplot(irrigCumsum, aes(x=date, y=irrig_cummean, color=block)) + geom_line()
 
 
 
 ### Finally, merge the cumsum/cummean irrigation data to the full dataset...
-allData3 <- merge(allData2, irrigCumsum[,c('date','block','irrig_cumsum','irrig_cummean')],
-                  by = c('date', 'block'), all.x = TRUE)
-nrow(allData2); nrow(allData3)
+# allData3 <- merge(allData2, irrigCumsum[,c('date','block','irrig_cumsum','irrig_cummean')],
+#                   by = c('date', 'block'), all.x = TRUE)
+# nrow(allData2); nrow(allData3)
 
+
+# rename
+allData3 <- allData2
 
 
 # add mean PAR column, also used in model
-allData3$line_PAR_mean_umol_m2_s <- rowMeans(allData3[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
+# allData3$line_PAR_mean_umol_m2_s <- rowMeans(allData3[,c('line_PAR_west_umol_m2_s','line_PAR_east_umol_m2_s')], na.rm = TRUE)
 
 # read in linear model to predict continuous psi_leaf
-psi_leaf_model <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_final_model.rds')
+psi_leaf_model <- readRDS('/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/analysis/model_psi_leaf/psi_leaf_linear_model.rds')
 
 # add 'minutes' column (used in model)
 allData3$minutes <- hour(allData3$by15)*60 + minute(allData3$by15)

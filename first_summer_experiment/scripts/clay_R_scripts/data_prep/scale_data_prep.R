@@ -140,7 +140,7 @@ saveRDS(scaledat, "/home/sean/github/2020_greenhouse/first_summer_experiment/dat
 source("/home/sean/github/2020_greenhouse/second_fall_experiment/scripts/clay_R_scripts/data_prep/flagging_functions.R")
 
 # First, subset data to 8/24 and beyond (start of treatments was 8/24)
-scaledat <- subset(scaledat, date >= '2019-08-24')
+# scaledat <- subset(scaledat, date >= '2019-08-24')
 
 # note: this function creates flags 
 aggDat <- aggAndFlag(df = scaledat,

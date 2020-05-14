@@ -145,8 +145,8 @@ laExp1 <- laExp1[order(laExp1$date),]
 laExp1$treatment <- as.factor(laExp1$treatment)
 
 # Add predicted leaf area to dataframe
-laExp1$total_leaf_area_m2 <- predict(exp2LeafAreaModel, newdata = laExp1)
-plot(laExp1$date, laExp1$total_leaf_area_m2, col=laExp1$treatment)
+laExp1$mean_plant_leaf_area_m2 <- predict(exp2LeafAreaModel, newdata = laExp1)
+plot(laExp1$date, laExp1$mean_plant_leaf_area_m2, col=laExp1$treatment)
 
 
 
@@ -237,7 +237,8 @@ laExp1[laExp1$date=='2019-08-22',]
 # --- Model predictions seem to match ok enough, let's save the total leaf area predictions.
 
 # subset to data of interest and during treatment period
-laExp1_out <- subset(laExp1, date >= '2019-08-24', select=c('date','treatment','total_leaf_area_m2'))
+laExp1_out <- subset(laExp1, date >= '2019-08-24', select=c('date','treatment','mean_plant_leaf_area_m2'))
+
 
 # NOTE: We need to fix the treatments to match those in other datasets. 
 # Other datasets have 3 treatments, this one has only 2.
