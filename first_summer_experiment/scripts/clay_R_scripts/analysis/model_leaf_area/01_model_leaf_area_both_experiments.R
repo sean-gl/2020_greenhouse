@@ -100,7 +100,7 @@ la$total_leaf_area_m2 <- la$total_leaf_area_cm2 / 1e4
 la$total_leaf_area_cm2 <- NULL
 
 
-ggplot(la, aes(x=day, y=total_leaf_area_m2, color = block)) + geom_point() +
+ggplot(la, aes(x=day, y=total_leaf_area_m2, color = treatment)) + geom_point() +
   geom_smooth(method = 'lm')
 
 

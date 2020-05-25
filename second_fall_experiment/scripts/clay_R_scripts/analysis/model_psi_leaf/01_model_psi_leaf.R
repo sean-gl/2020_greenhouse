@@ -56,7 +56,7 @@ df <- subset(comb, select = c(mean_psi_leaf_MPa, par1_n, pyr1_n, pyr2_s, am2320_
                               VPD_air_high, VPD_air_low, 
                               windspeed_bottom, windspeed_middle, windspeed_top, soil_temp_C,
                               leaftemp_highest_avail, leaftemp_mean, VPD_leaf, 
-                              irrig, irrig_cummean, irrig_cumsum, minutes
+                              irrig, minutes
                               ))
 df <- subset(df, complete.cases(df)); nrow(df)
 
@@ -254,7 +254,7 @@ comb_all$mean_psi_leaf_MPa_modeled_new <- predict(lm4, newdata = comb_all)
 
 # Plot predictions (lines) vs. pressure bomb readings (points)
 sub = subset(comb_all, date >= '2019-11-10' & date <= '2019-11-26')
-sub = subset(comb_all, date >= '2019-11-28' & date <= '2019-12-12')
+# sub = subset(comb_all, date >= '2019-11-28' & date <= '2019-12-12')
 
 ggplot(sub, aes(x=by15, color=treatment)) + geom_line(aes(y=mean_psi_leaf_MPa_modeled_new)) +
   geom_point(aes(y=mean_psi_leaf_MPa)) #+ facet_grid(~treatment)
